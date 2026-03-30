@@ -1,0 +1,30 @@
+[workspace]
+resolver = "2"
+members = []
+
+[workspace.package]
+edition = "2021"
+license = "Apache-2.0"
+
+[workspace.dependencies]
+tokio = { version = "1", features = ["rt-multi-thread", "macros", "sync", "time", "fs"] }
+sqlx = { version = "0.8", default-features = false, features = ["runtime-tokio-rustls", "postgres", "uuid", "chrono", "json", "macros", "migrate"] }
+es-entity = { version = "0.10", features = ["instrument"] }
+thiserror = "2"
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+serde_with = "3"
+chrono = { version = "0.4", features = ["clock", "serde"], default-features = false }
+uuid = { version = "1", features = ["serde", "v7"] }
+derive_builder = "0.20"
+async-trait = "0.1"
+axum = { version = "0.8", features = ["macros", "json"] }
+tower = "0.5"
+tower-http = { version = "0.6", features = ["cors", "trace"] }
+bitcoin = { version = "0.32" }
+corepc-client = { version = "0.10", features = ["client-sync"] }
+tracing = "0.1"
+tracing-subscriber = { version = "0.3", features = ["env-filter"] }
+dotenvy = "0.15"
+hex = "0.4"
+log = "0.4"

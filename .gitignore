@@ -1,0 +1,8 @@
+/target/
+.env
+*.pdb
+.sqlx
+.DS_Store
+apps/client/node_modules/
+apps/client/.next/
+apps/client/.env*.local
