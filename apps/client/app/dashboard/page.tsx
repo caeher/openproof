@@ -3,7 +3,8 @@
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
-import { ArrowLeft, FileText, CheckCircle2, ArrowRight, Plus, Settings, LogOut } from 'lucide-react'
+import { ArrowLeft, FileText, CheckCircle2, ArrowRight, Plus, Settings, LogOut, MailCheck } from 'lucide-react'
+
 import { AuthGuard } from '@/components/auth/auth-guard'
 import { useAuth } from '@/components/auth/auth-provider'
 import { Button } from '@/components/ui/button'
@@ -15,6 +16,7 @@ import { Separator } from '@/components/ui/separator'
 import { Header, Footer, MobileNav } from '@/components/layout'
 import { DocumentCard, TimestampDisplay } from '@/components/proof'
 import { getAccountProfile, getApiErrorMessage, getDocuments } from '@/lib/api'
+import { buildVerifyEmailPath } from '@/lib/auth-routing'
 import type { AccountProfile, Document } from '@/types'
 
 export default function DashboardPage() {
@@ -30,29 +32,25 @@ export default function DashboardPage() {
       return
     }
 
-    if (!user?.emailVerified) {
-      setDocuments([])
-      setIsLoading(false)
-      return
-    }
-
     async function fetchDocuments() {
       try {
-        const [documentsResponse, profileResponse] = await Promise.all([
-          getDocuments(),
-          getAccountProfile(),
-        ])
-
-        if (documentsResponse.success && documentsResponse.data) {
-          setDocuments(documentsResponse.data)
-        } else {
-          setError(getApiErrorMessage(documentsResponse, 'No fue posible cargar los documentos.'))
-        }
+        const profileResponse = await getAccountProfile()
 
         if (profileResponse.success && profileResponse.data) {
           setAccountProfile(profileResponse.data)
         } else {
           setError((current) => current || getApiErrorMessage(profileResponse, 'No fue posible cargar la cuenta.'))
+        }
+
+        if (user?.emailVerified) {
+          const documentsResponse = await getDocuments()
+          if (documentsResponse.success && documentsResponse.data) {
+            setDocuments(documentsResponse.data)
+          } else {
+            setError(getApiErrorMessage(documentsResponse, 'No fue posible cargar los documentos.'))
+          }
+        } else {
+          setDocuments([])
         }
       } catch (error) {
         setError('No fue posible cargar el dashboard.')
@@ -61,7 +59,7 @@ export default function DashboardPage() {
       }
     }
 
-    fetchDocuments()
+    void fetchDocuments()
   }, [isAuthLoading, user?.emailVerified])
 
   const stats = {
@@ -71,8 +69,9 @@ export default function DashboardPage() {
   }
 
   const recentDocuments = documents.slice(0, 3)
-  const displayName = accountProfile?.user.email.split('@')[0] || user?.email.split('@')[0] || 'Cuenta'
+  const displayName = accountProfile?.user.name || user?.name || 'Cuenta'
   const avatarFallback = displayName.slice(0, 2).toUpperCase()
+  const verifyHref = buildVerifyEmailPath('/register')
 
   async function handleLogout() {
     await logoutCurrentSession()
@@ -95,7 +94,7 @@ export default function DashboardPage() {
           </Link>
 
           <div className="max-w-4xl mx-auto">
-            <AuthGuard requireVerified>
+            <AuthGuard>
             {/* User profile header */}
             <Card className="mb-8">
               <CardContent className="pt-6">
@@ -165,7 +164,7 @@ export default function DashboardPage() {
               </div>
             ) : null}
 
-            {accountProfile && accountProfile.creditAccount.balanceCredits <= 2 ? (
+            {accountProfile && user?.emailVerified && accountProfile.creditAccount.balanceCredits <= 2 ? (
               <Alert className="mb-8">
                 <AlertDescription>
                   Tu saldo está bajo. Compra más créditos en <Link href="/billing" className="underline underline-offset-4">billing</Link> antes de registrar nuevos documentos.
@@ -173,19 +172,35 @@ export default function DashboardPage() {
               </Alert>
             ) : null}
 
+            {!user?.emailVerified ? (
+              <Alert className="mb-8 border-amber-200 bg-amber-50 text-amber-950">
+                <MailCheck className="h-4 w-4" />
+                <AlertDescription className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                  <span>
+                    Tu cuenta ya tiene sesion activa, pero todavia necesitas verificar el correo para registrar documentos, usar billing y emitir API keys.
+                  </span>
+                  <Button asChild size="sm" variant="outline">
+                    <Link href={verifyHref}>Verificar correo</Link>
+                  </Button>
+                </AlertDescription>
+              </Alert>
+            ) : null}
+
             {/* Quick actions */}
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-8">
               <Card className="group hover:border-foreground/20 transition-colors">
-                <Link href="/register" className="block">
+                <Link href={user?.emailVerified ? '/register' : verifyHref} className="block">
                   <CardContent className="p-6">
                     <div className="flex items-center gap-4">
                       <div className="p-3 rounded-full bg-accent/10">
                         <Plus className="w-6 h-6 text-accent" />
                       </div>
                       <div className="flex-1">
-                        <h3 className="font-semibold text-foreground">Registrar documento</h3>
+                        <h3 className="font-semibold text-foreground">
+                          {user?.emailVerified ? 'Registrar documento' : 'Verificar correo'}
+                        </h3>
                         <p className="text-sm text-muted-foreground">
-                          Crea una nueva prueba de existencia
+                          {user?.emailVerified ? 'Crea una nueva prueba de existencia' : 'Desbloquea las rutas verificadas y completa el onboarding'}
                         </p>
                       </div>
                       <ArrowRight className="w-5 h-5 text-muted-foreground group-hover:text-foreground transition-colors" />
@@ -215,28 +230,30 @@ export default function DashboardPage() {
             </div>
 
             {/* Stats */}
-            <div className="grid grid-cols-3 gap-4 mb-8">
-              <Card>
-                <CardContent className="p-4 text-center">
-                  <p className="text-3xl font-bold text-foreground">{stats.total}</p>
-                  <p className="text-sm text-muted-foreground">Total documentos</p>
-                </CardContent>
-              </Card>
-              
-              <Card>
-                <CardContent className="p-4 text-center">
-                  <p className="text-3xl font-bold text-accent">{stats.confirmed}</p>
-                  <p className="text-sm text-muted-foreground">Confirmados</p>
-                </CardContent>
-              </Card>
-              
-              <Card>
-                <CardContent className="p-4 text-center">
-                  <p className="text-3xl font-bold text-foreground">{stats.pending}</p>
-                  <p className="text-sm text-muted-foreground">Pendientes</p>
-                </CardContent>
-              </Card>
-            </div>
+            {user?.emailVerified ? (
+              <div className="grid grid-cols-3 gap-4 mb-8">
+                <Card>
+                  <CardContent className="p-4 text-center">
+                    <p className="text-3xl font-bold text-foreground">{stats.total}</p>
+                    <p className="text-sm text-muted-foreground">Total documentos</p>
+                  </CardContent>
+                </Card>
+                
+                <Card>
+                  <CardContent className="p-4 text-center">
+                    <p className="text-3xl font-bold text-accent">{stats.confirmed}</p>
+                    <p className="text-sm text-muted-foreground">Confirmados</p>
+                  </CardContent>
+                </Card>
+                
+                <Card>
+                  <CardContent className="p-4 text-center">
+                    <p className="text-3xl font-bold text-foreground">{stats.pending}</p>
+                    <p className="text-sm text-muted-foreground">Pendientes</p>
+                  </CardContent>
+                </Card>
+              </div>
+            ) : null}
 
             {/* Recent documents */}
             <Card>
@@ -248,12 +265,14 @@ export default function DashboardPage() {
                       Tus últimos registros en la blockchain
                     </CardDescription>
                   </div>
-                  <Button variant="ghost" size="sm" asChild>
-                    <Link href="/history">
-                      Ver todos
-                      <ArrowRight className="w-4 h-4 ml-2" />
-                    </Link>
-                  </Button>
+                  {user?.emailVerified ? (
+                    <Button variant="ghost" size="sm" asChild>
+                      <Link href="/history">
+                        Ver todos
+                        <ArrowRight className="w-4 h-4 ml-2" />
+                      </Link>
+                    </Button>
+                  ) : null}
                 </div>
               </CardHeader>
               <CardContent>
@@ -269,7 +288,7 @@ export default function DashboardPage() {
                       </div>
                     ))}
                   </div>
-                ) : recentDocuments.length > 0 ? (
+                ) : user?.emailVerified && recentDocuments.length > 0 ? (
                   <div className="space-y-4">
                     {recentDocuments.map((document) => (
                       <DocumentCard
@@ -279,7 +298,7 @@ export default function DashboardPage() {
                       />
                     ))}
                   </div>
-                ) : (
+                ) : user?.emailVerified ? (
                   <div className="text-center py-8">
                     <FileText className="w-12 h-12 text-muted-foreground mx-auto mb-3" />
                     <p className="text-muted-foreground">
@@ -287,6 +306,16 @@ export default function DashboardPage() {
                     </p>
                     <Button asChild className="mt-4">
                       <Link href="/register">Registrar documento</Link>
+                    </Button>
+                  </div>
+                ) : (
+                  <div className="text-center py-8">
+                    <MailCheck className="w-12 h-12 text-muted-foreground mx-auto mb-3" />
+                    <p className="text-muted-foreground">
+                      Verifica tu correo para habilitar historial, registros y comprobantes recientes.
+                    </p>
+                    <Button asChild className="mt-4">
+                      <Link href={verifyHref}>Ir a verificar correo</Link>
                     </Button>
                   </div>
                 )}
@@ -306,20 +335,24 @@ export default function DashboardPage() {
                   </Link>
                 </Button>
                 <Separator />
-                <Button variant="ghost" className="w-full justify-start" asChild>
-                  <Link href="/billing">
-                    <Settings className="w-4 h-4 mr-3" />
-                    Billing y creditos
-                  </Link>
-                </Button>
-                <Separator />
-                <Button variant="ghost" className="w-full justify-start" asChild>
-                  <Link href="/developers">
-                    <Settings className="w-4 h-4 mr-3" />
-                    Developers y API keys
-                  </Link>
-                </Button>
-                <Separator />
+                {user?.emailVerified ? (
+                  <>
+                    <Button variant="ghost" className="w-full justify-start" asChild>
+                      <Link href="/billing">
+                        <Settings className="w-4 h-4 mr-3" />
+                        Billing y creditos
+                      </Link>
+                    </Button>
+                    <Separator />
+                    <Button variant="ghost" className="w-full justify-start" asChild>
+                      <Link href="/developers">
+                        <Settings className="w-4 h-4 mr-3" />
+                        Developers y API keys
+                      </Link>
+                    </Button>
+                    <Separator />
+                  </>
+                ) : null}
                 <Button variant="ghost" className="w-full justify-start" asChild>
                   <Link href="/api-docs">
                     <Settings className="w-4 h-4 mr-3" />

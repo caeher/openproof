@@ -3,13 +3,10 @@
 import Link from 'next/link'
 import { Shield, Github, Twitter } from 'lucide-react'
 
+import { useAuth } from '@/components/auth/auth-provider'
+import { buildVerifyEmailPath } from '@/lib/auth-routing'
+
 const footerLinks = {
-  product: [
-    { href: '/pricing', label: 'Pricing' },
-    { href: '/register', label: 'Registrar documento' },
-    { href: '/verify', label: 'Verificar documento' },
-    { href: '/dashboard', label: 'Dashboard' },
-  ],
   resources: [
     { href: '/api-docs', label: 'Documentación API' },
     { href: '/faq', label: 'FAQ' },
@@ -21,10 +18,49 @@ const footerLinks = {
   ],
 }
 
+function getProductLinks(authState: ReturnType<typeof useAuth>['authState']) {
+  if (authState === 'authenticated_admin') {
+    return [
+      { href: '/pricing', label: 'Pricing' },
+      { href: '/register', label: 'Registrar documento' },
+      { href: '/dashboard', label: 'Dashboard' },
+      { href: '/admin', label: 'Admin' },
+    ]
+  }
+
+  if (authState === 'authenticated_verified') {
+    return [
+      { href: '/pricing', label: 'Pricing' },
+      { href: '/register', label: 'Registrar documento' },
+      { href: '/history', label: 'Historial' },
+      { href: '/dashboard', label: 'Dashboard' },
+    ]
+  }
+
+  if (authState === 'authenticated_unverified') {
+    return [
+      { href: '/verify', label: 'Verificar documento' },
+      { href: buildVerifyEmailPath('/register'), label: 'Confirmar correo' },
+      { href: '/dashboard', label: 'Dashboard' },
+      { href: '/account', label: 'Cuenta' },
+    ]
+  }
+
+  return [
+    { href: '/pricing', label: 'Pricing' },
+    { href: '/login?next=%2Fregister', label: 'Registrar documento' },
+    { href: '/verify', label: 'Verificar documento' },
+    { href: '/login?next=%2Fdashboard', label: 'Dashboard' },
+  ]
+}
+
 export function Footer() {
+  const { authState, isLoading } = useAuth()
+  const productLinks = isLoading ? getProductLinks('anonymous') : getProductLinks(authState)
+
   return (
     <footer className="border-t border-border bg-card/50 pb-20 md:pb-0">
-      <div className="container mx-auto px-4 py-12">
+      <div className="container max-w-6xl mx-auto px-4 py-12">
         <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
           {/* Brand */}
           <div className="col-span-2 md:col-span-1">
@@ -64,7 +100,7 @@ export function Footer() {
           <div>
             <h3 className="font-semibold text-foreground mb-4">Producto</h3>
             <ul className="space-y-2">
-              {footerLinks.product.map((link) => (
+              {productLinks.map((link) => (
                 <li key={link.href}>
                   <Link
                     href={link.href}

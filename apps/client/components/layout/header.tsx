@@ -2,10 +2,11 @@
 
 import Link from 'next/link'
 import { usePathname, useRouter } from 'next/navigation'
-import { Menu, Shield, Sun, Moon, LogOut, LayoutDashboard } from 'lucide-react'
+import { Menu, Shield, Sun, Moon, LogOut, LayoutDashboard, MailCheck } from 'lucide-react'
 import { useState, useEffect } from 'react'
 import { useTheme } from 'next-themes'
 import { useAuth } from '@/components/auth/auth-provider'
+import { buildVerifyEmailPath } from '@/lib/auth-routing'
 import { cn } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
 import { Sheet, SheetContent, SheetTrigger, SheetTitle } from '@/components/ui/sheet'
@@ -18,14 +19,33 @@ const publicNavLinks = [
   { href: '/api-docs', label: 'API' },
 ]
 
-const privateNavLinks = [
+const verifiedNavLinks = [
   { href: '/register', label: 'Registrar' },
   { href: '/history', label: 'Historial' },
   { href: '/developers', label: 'Developers' },
   { href: '/billing', label: 'Billing' },
+]
+
+const authNavLinks = [
   { href: '/dashboard', label: 'Dashboard' },
   { href: '/account', label: 'Cuenta' },
 ]
+
+function getNavLinks(authState: ReturnType<typeof useAuth>['authState']) {
+  if (authState === 'authenticated_admin') {
+    return [...publicNavLinks, ...verifiedNavLinks, ...authNavLinks, { href: '/admin', label: 'Admin' }]
+  }
+
+  if (authState === 'authenticated_verified') {
+    return [...publicNavLinks, ...verifiedNavLinks, ...authNavLinks]
+  }
+
+  if (authState === 'authenticated_unverified') {
+    return [...publicNavLinks, ...authNavLinks, { href: '/verify-email', label: 'Verificar correo' }]
+  }
+
+  return publicNavLinks
+}
 
 export function Header() {
   const pathname = usePathname()
@@ -33,10 +53,12 @@ export function Header() {
   const [open, setOpen] = useState(false)
   const { theme, setTheme } = useTheme()
   const [mounted, setMounted] = useState(false)
-  const { isAuthenticated, logoutCurrentSession, user } = useAuth()
-  const navLinks = isAuthenticated
-    ? [...publicNavLinks, ...privateNavLinks, ...(user?.role === 'admin' ? [{ href: '/admin', label: 'Admin' }] : [])]
-    : publicNavLinks
+  const { authState, isAuthenticated, isLoading, logoutCurrentSession, user } = useAuth()
+  const navLinks = isLoading ? publicNavLinks : getNavLinks(authState)
+  const primaryActionHref = authState === 'authenticated_unverified'
+    ? buildVerifyEmailPath('/register')
+    : '/dashboard'
+  const displayName = user?.name || user?.email || 'Cuenta'
 
   useEffect(() => {
     setMounted(true)
@@ -50,7 +72,7 @@ export function Header() {
 
   return (
     <header className="sticky top-0 z-40 w-full bg-background/95 backdrop-blur-lg border-b border-border">
-      <div className="container mx-auto px-4">
+      <div className="container max-w-6xl mx-auto px-4">
         <div className="flex items-center justify-between h-16">
           {/* Logo */}
           <Link href="/" className="flex items-center gap-2">
@@ -85,8 +107,12 @@ export function Header() {
           <div className="flex items-center gap-2">
             {isAuthenticated && user ? (
               <div className="hidden lg:flex items-center gap-2 rounded-full border border-border bg-secondary/40 px-3 py-1.5 text-sm text-muted-foreground">
-                <LayoutDashboard className="h-4 w-4" />
-                <span className="max-w-[160px] truncate">{user.email}</span>
+                {authState === 'authenticated_unverified' ? (
+                  <MailCheck className="h-4 w-4" />
+                ) : (
+                  <LayoutDashboard className="h-4 w-4" />
+                )}
+                <span className="max-w-[160px] truncate">{displayName}</span>
               </div>
             ) : null}
 
@@ -102,10 +128,12 @@ export function Header() {
               <span className="sr-only">Cambiar tema</span>
             </Button>
 
-            {isAuthenticated ? (
+            {isLoading ? null : isAuthenticated ? (
               <>
                 <Button asChild variant="outline" className="hidden sm:flex">
-                  <Link href="/dashboard">Dashboard</Link>
+                  <Link href={primaryActionHref}>
+                    {authState === 'authenticated_unverified' ? 'Verificar correo' : 'Dashboard'}
+                  </Link>
                 </Button>
                 <Button className="hidden sm:flex" onClick={() => void handleLogout()}>
                   <LogOut className="mr-2 h-4 w-4" />
@@ -152,7 +180,7 @@ export function Header() {
                             {link.label}
                           </Link>
                         ))}
-                        {!isAuthenticated ? (
+                        {!isLoading && !isAuthenticated ? (
                           <>
                             <Link
                               href="/login"
@@ -193,18 +221,18 @@ export function Header() {
                         </Button>
                       </div>
 
-                      {isAuthenticated ? (
+                      {!isLoading && isAuthenticated ? (
                         <Button className="mx-4" onClick={() => void handleLogout()}>
                           <LogOut className="mr-2 h-4 w-4" />
                           Cerrar sesion
                         </Button>
-                      ) : (
+                      ) : !isLoading ? (
                         <Button asChild className="mx-4">
                           <Link href="/signup" onClick={() => setOpen(false)}>
                             Crear cuenta
                           </Link>
                         </Button>
-                      )}
+                      ) : null}
                     </div>
                   </SheetContent>
                 </Sheet>

@@ -1,13 +1,12 @@
 'use client'
 
 import { useEffect, type ReactNode } from 'react'
-import Link from 'next/link'
 import { usePathname, useRouter } from 'next/navigation'
-import { Loader2, MailCheck } from 'lucide-react'
+import { Loader2 } from 'lucide-react'
+
 import { useAuth } from './auth-provider'
-import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
-import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
+import { buildVerifyEmailPath, sanitizeNextPath } from '@/lib/auth-routing'
 
 interface AuthGuardProps {
   children: ReactNode
@@ -22,14 +21,28 @@ export function AuthGuard({
 }: AuthGuardProps) {
   const router = useRouter()
   const pathname = usePathname()
-  const { isAuthenticated, isLoading, logoutCurrentSession, user } = useAuth()
+  const { authState, isAuthenticated, isLoading } = useAuth()
+
+  const nextPath = sanitizeNextPath(pathname || '/dashboard') || '/dashboard'
 
   useEffect(() => {
     if (!isLoading && !isAuthenticated) {
-      const next = encodeURIComponent(pathname || '/dashboard')
+      const next = encodeURIComponent(nextPath)
       router.replace(`/login?next=${next}`)
     }
-  }, [isAuthenticated, isLoading, pathname, router])
+  }, [isAuthenticated, isLoading, nextPath, router])
+
+  useEffect(() => {
+    if (!isLoading && requireVerified && authState === 'authenticated_unverified') {
+      router.replace(buildVerifyEmailPath(nextPath))
+    }
+  }, [authState, isLoading, nextPath, requireVerified, router])
+
+  useEffect(() => {
+    if (!isLoading && requireAdmin && authState !== 'authenticated_admin' && authState !== 'anonymous') {
+      router.replace('/dashboard')
+    }
+  }, [authState, isLoading, requireAdmin, router])
 
   if (isLoading || !isAuthenticated) {
     return (
@@ -42,56 +55,23 @@ export function AuthGuard({
     )
   }
 
-  if (requireVerified && user && !user.emailVerified) {
+  if (requireVerified && authState === 'authenticated_unverified') {
     return (
       <Card>
-        <CardContent className="py-8">
-          <Alert>
-            <MailCheck className="h-4 w-4" />
-            <AlertTitle>Verifica tu correo antes de continuar</AlertTitle>
-            <AlertDescription>
-              Tu cuenta ya existe, pero el backend exige correo verificado para registrar y consultar documentos privados.
-            </AlertDescription>
-          </Alert>
-
-          <div className="mt-6 space-y-3 text-sm text-muted-foreground">
-            <p>Abre el enlace de verificacion enviado a {user.email} o introduce el token manualmente.</p>
-            <div className="flex flex-col gap-3 sm:flex-row">
-              <Button asChild>
-                <Link href="/verify-email">Verificar correo</Link>
-              </Button>
-              <Button
-                variant="outline"
-                onClick={() => {
-                  void logoutCurrentSession()
-                }}
-              >
-                Cerrar sesion
-              </Button>
-            </div>
-          </div>
+        <CardContent className="flex items-center justify-center gap-3 py-12 text-muted-foreground">
+          <Loader2 className="h-5 w-5 animate-spin" />
+          Redirigiendo a verificación...
         </CardContent>
       </Card>
     )
   }
 
-  if (requireAdmin && user?.role !== 'admin') {
+  if (requireAdmin && authState !== 'authenticated_admin') {
     return (
       <Card>
-        <CardContent className="py-8">
-          <Alert variant="destructive">
-            <MailCheck className="h-4 w-4" />
-            <AlertTitle>Acceso restringido</AlertTitle>
-            <AlertDescription>
-              Esta sección solo está disponible para administradores.
-            </AlertDescription>
-          </Alert>
-
-          <div className="mt-6">
-            <Button asChild>
-              <Link href="/dashboard">Volver al dashboard</Link>
-            </Button>
-          </div>
+        <CardContent className="flex items-center justify-center gap-3 py-12 text-muted-foreground">
+          <Loader2 className="h-5 w-5 animate-spin" />
+          Redirigiendo al dashboard...
         </CardContent>
       </Card>
     )

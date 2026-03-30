@@ -3,15 +3,15 @@
 import { Suspense, useState } from 'react'
 import Link from 'next/link'
 import { useSearchParams } from 'next/navigation'
-import { ArrowLeft, AlertCircle, Loader2 } from 'lucide-react'
-import { resetPassword } from '@/lib/api'
-import { getApiErrorMessage } from '@/lib/api'
-import { Header, Footer, MobileNav } from '@/components/layout'
+import { AlertCircle, Loader2 } from 'lucide-react'
+
+import { AuthSplitLayout } from '@/components/auth/auth-split-layout'
+import { GuestOnlyRoute } from '@/components/auth/guest-only-route'
 import { Alert, AlertDescription } from '@/components/ui/alert'
 import { Button } from '@/components/ui/button'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
+import { getApiErrorMessage, resetPassword } from '@/lib/api'
 
 function ResetPasswordPageContent() {
   const searchParams = useSearchParams()
@@ -50,102 +50,90 @@ function ResetPasswordPageContent() {
   }
 
   return (
-    <div className="min-h-screen flex flex-col bg-background">
-      <Header />
+    <AuthSplitLayout
+      badge="Nuevo secreto"
+      title="Define una contrasena nueva"
+      description="El token de recuperacion y la nueva credencial se procesan en backend para limpiar sesiones antiguas y dejar una sola verdad sobre el acceso."
+      backHref="/login"
+      backLabel="Volver al login"
+      sideTitle="La recuperacion corta el acceso previo y restablece el control"
+      sideDescription="Usa este flujo para completar el reset desde un enlace de correo o pegando el token de desarrollo."
+      sideStats={[
+        'El cambio invalida todas las sesiones activas del usuario.',
+        'El token puede pegarse manualmente si abriste el correo en otro dispositivo.',
+        'Al terminar, el siguiente paso natural es iniciar sesion de nuevo.',
+      ]}
+    >
+      <GuestOnlyRoute>
+        <div className="space-y-4">
+          <form onSubmit={handleSubmit} className="space-y-4">
+            {error ? (
+              <Alert variant="destructive">
+                <AlertCircle className="h-4 w-4" />
+                <AlertDescription>{error}</AlertDescription>
+              </Alert>
+            ) : null}
 
-      <main className="flex-1 pb-24 md:pb-0">
-        <div className="container mx-auto px-4 py-8 md:py-12">
-          <Link
-            href="/login"
-            className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors mb-6"
-          >
-            <ArrowLeft className="w-4 h-4" />
-            Volver al login
-          </Link>
+            {successMessage ? (
+              <Alert>
+                <AlertDescription>{successMessage}</AlertDescription>
+              </Alert>
+            ) : null}
 
-          <div className="max-w-md mx-auto">
-            <Card>
-              <CardHeader>
-                <CardTitle>Restablecer contrasena</CardTitle>
-                <CardDescription>
-                  Introduce el token recibido y define una contrasena nueva.
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <form onSubmit={handleSubmit} className="space-y-4">
-                  {error ? (
-                    <Alert variant="destructive">
-                      <AlertCircle className="h-4 w-4" />
-                      <AlertDescription>{error}</AlertDescription>
-                    </Alert>
-                  ) : null}
+            <div className="space-y-2">
+              <Label htmlFor="token">Token</Label>
+              <Input
+                id="token"
+                value={token}
+                onChange={(event) => setToken(event.target.value)}
+                required
+              />
+            </div>
 
-                  {successMessage ? (
-                    <Alert>
-                      <AlertDescription>{successMessage}</AlertDescription>
-                    </Alert>
-                  ) : null}
+            <div className="space-y-2">
+              <Label htmlFor="password">Nueva contrasena</Label>
+              <Input
+                id="password"
+                type="password"
+                autoComplete="new-password"
+                value={password}
+                onChange={(event) => setPassword(event.target.value)}
+                required
+              />
+            </div>
 
-                  <div className="space-y-2">
-                    <Label htmlFor="token">Token</Label>
-                    <Input
-                      id="token"
-                      value={token}
-                      onChange={(event) => setToken(event.target.value)}
-                      required
-                    />
-                  </div>
+            <div className="space-y-2">
+              <Label htmlFor="confirm-password">Confirmar contrasena</Label>
+              <Input
+                id="confirm-password"
+                type="password"
+                autoComplete="new-password"
+                value={confirmPassword}
+                onChange={(event) => setConfirmPassword(event.target.value)}
+                required
+              />
+            </div>
 
-                  <div className="space-y-2">
-                    <Label htmlFor="password">Nueva contrasena</Label>
-                    <Input
-                      id="password"
-                      type="password"
-                      autoComplete="new-password"
-                      value={password}
-                      onChange={(event) => setPassword(event.target.value)}
-                      required
-                    />
-                  </div>
+            <Button type="submit" className="w-full" disabled={isSubmitting}>
+              {isSubmitting ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Actualizando contrasena...
+                </>
+              ) : (
+                'Guardar nueva contrasena'
+              )}
+            </Button>
+          </form>
 
-                  <div className="space-y-2">
-                    <Label htmlFor="confirm-password">Confirmar contrasena</Label>
-                    <Input
-                      id="confirm-password"
-                      type="password"
-                      autoComplete="new-password"
-                      value={confirmPassword}
-                      onChange={(event) => setConfirmPassword(event.target.value)}
-                      required
-                    />
-                  </div>
-
-                  <Button type="submit" className="w-full" disabled={isSubmitting}>
-                    {isSubmitting ? (
-                      <>
-                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                        Actualizando contrasena...
-                      </>
-                    ) : (
-                      'Guardar nueva contrasena'
-                    )}
-                  </Button>
-                </form>
-
-                {successMessage ? (
-                  <Button asChild variant="outline" className="mt-4 w-full">
-                    <Link href="/login">Ir a iniciar sesion</Link>
-                  </Button>
-                ) : null}
-              </CardContent>
-            </Card>
-          </div>
+          {successMessage ? (
+            <Button asChild variant="outline" className="w-full">
+              <Link href="/login">Ir a iniciar sesion</Link>
+            </Button>
+          ) : null}
         </div>
-      </main>
-
-      <Footer />
-      <MobileNav />
-    </div>
+      </GuestOnlyRoute>
+    </AuthSplitLayout>
   )
 }
 

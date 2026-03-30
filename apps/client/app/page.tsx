@@ -1,8 +1,13 @@
+ 'use client'
+
 import Link from 'next/link'
 import { ArrowRight, Shield, Lock, Clock, CheckCircle2, FileText, Hash, Blocks, Zap, Globe, Code } from 'lucide-react'
+
+import { useAuth } from '@/components/auth/auth-provider'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
 import { Header, Footer, MobileNav } from '@/components/layout'
+import { buildVerifyEmailPath } from '@/lib/auth-routing'
 
 const features = [
   {
@@ -74,6 +79,13 @@ const steps = [
 ]
 
 export default function LandingPage() {
+  const { authState, isAuthenticated } = useAuth()
+  const registerHref = !isAuthenticated
+    ? '/login?next=%2Fregister'
+    : authState === 'authenticated_unverified'
+      ? buildVerifyEmailPath('/register')
+      : '/register'
+
   return (
     <div className="min-h-screen flex flex-col bg-background">
       <Header />
@@ -110,7 +122,7 @@ export default function LandingPage() {
               
               <div className="mt-10 flex flex-col sm:flex-row items-center justify-center gap-4">
                 <Button asChild size="lg" className="w-full sm:w-auto">
-                  <Link href="/register">
+                  <Link href={registerHref}>
                     Registrar documento
                     <ArrowRight className="ml-2 h-4 w-4" />
                   </Link>

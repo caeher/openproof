@@ -14,6 +14,7 @@ import type {
   Document,
   ForgotPasswordResponse,
   PublicDocumentProof,
+  ResendVerificationResponse,
   PaymentIntent,
   RegisterDocumentRequest,
   RegisterDocumentResponse,
@@ -154,12 +155,13 @@ export async function getDocumentByTransaction(
 }
 
 export async function signup(
+  name: string,
   email: string,
   password: string
 ): Promise<ApiResponse<SignupResponse>> {
   return fetchJson<SignupResponse>('/auth/signup', {
     method: 'POST',
-    body: JSON.stringify({ email, password }),
+    body: JSON.stringify({ name, email, password }),
   })
 }
 
@@ -331,4 +333,13 @@ export async function calculateSHA256(file: File): Promise<string> {
   const hashArray = Array.from(new Uint8Array(hashBuffer))
   const hashHex = hashArray.map((byte) => byte.toString(16).padStart(2, '0')).join('')
   return hashHex
+}
+
+export async function resendVerification(
+  email?: string
+): Promise<ApiResponse<ResendVerificationResponse>> {
+  return fetchJson<ResendVerificationResponse>('/auth/resend-verification', {
+    method: 'POST',
+    body: JSON.stringify(email ? { email } : {}),
+  })
 }

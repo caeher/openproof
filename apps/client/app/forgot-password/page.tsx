@@ -1,19 +1,22 @@
 'use client'
 
-import { useState } from 'react'
+import { Suspense, useState } from 'react'
 import Link from 'next/link'
-import { ArrowLeft, AlertCircle, Loader2 } from 'lucide-react'
-import { forgotPassword } from '@/lib/api'
-import { getApiErrorMessage } from '@/lib/api'
-import { Header, Footer, MobileNav } from '@/components/layout'
+import { useSearchParams } from 'next/navigation'
+import { AlertCircle, Loader2 } from 'lucide-react'
+
+import { AuthSplitLayout } from '@/components/auth/auth-split-layout'
+import { GuestOnlyRoute } from '@/components/auth/guest-only-route'
 import { Alert, AlertDescription } from '@/components/ui/alert'
 import { Button } from '@/components/ui/button'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
+import { forgotPassword, getApiErrorMessage } from '@/lib/api'
+import { sanitizeNextPath } from '@/lib/auth-routing'
 import type { ForgotPasswordResponse } from '@/types'
 
-export default function ForgotPasswordPage() {
+function ForgotPasswordPageContent() {
+  const searchParams = useSearchParams()
   const [email, setEmail] = useState('')
   const [result, setResult] = useState<ForgotPasswordResponse | null>(null)
   const [error, setError] = useState<string | null>(null)
@@ -38,88 +41,87 @@ export default function ForgotPasswordPage() {
     }
   }
 
+  const nextPath = sanitizeNextPath(searchParams.get('next'))
+  const loginHref = nextPath ? `/login?next=${encodeURIComponent(nextPath)}` : '/login'
+
   return (
-    <div className="min-h-screen flex flex-col bg-background">
-      <Header />
+    <AuthSplitLayout
+      badge="Recuperacion"
+      title="Recupera el acceso sin invalidar la trazabilidad"
+      description="Solicita un enlace de restablecimiento. Cuando cambies la contrasena, las sesiones anteriores quedan revocadas desde el backend."
+      backHref={loginHref}
+      backLabel="Volver al login"
+      sideTitle="Rotar password tambien limpia sesiones antiguas"
+      sideDescription="El nuevo flujo mantiene varias sesiones activas al iniciar sesion, pero endurece el sistema cuando se cambia o recupera la credencial principal."
+      sideStats={[
+        'No se revela si el correo existe o no; el backend responde con un mensaje generico.',
+        'El token de desarrollo solo aparece cuando el entorno lo habilita.',
+        'Despues del reset, el siguiente acceso empieza desde una sesion limpia.',
+      ]}
+    >
+      <GuestOnlyRoute>
+        <div className="space-y-4">
+          <form onSubmit={handleSubmit} className="space-y-4">
+            {error ? (
+              <Alert variant="destructive">
+                <AlertCircle className="h-4 w-4" />
+                <AlertDescription>{error}</AlertDescription>
+              </Alert>
+            ) : null}
 
-      <main className="flex-1 pb-24 md:pb-0">
-        <div className="container mx-auto px-4 py-8 md:py-12">
-          <Link
-            href="/login"
-            className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors mb-6"
-          >
-            <ArrowLeft className="w-4 h-4" />
-            Volver al login
-          </Link>
+            {result ? (
+              <Alert>
+                <AlertDescription>{result.message}</AlertDescription>
+              </Alert>
+            ) : null}
 
-          <div className="max-w-md mx-auto">
-            <Card>
-              <CardHeader>
-                <CardTitle>Recuperar contrasena</CardTitle>
-                <CardDescription>
-                  Genera un enlace de recuperacion para restablecer tu acceso.
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <form onSubmit={handleSubmit} className="space-y-4">
-                  {error ? (
-                    <Alert variant="destructive">
-                      <AlertCircle className="h-4 w-4" />
-                      <AlertDescription>{error}</AlertDescription>
-                    </Alert>
-                  ) : null}
+            <div className="space-y-2">
+              <Label htmlFor="email">Correo</Label>
+              <Input
+                id="email"
+                type="email"
+                autoComplete="email"
+                value={email}
+                onChange={(event) => setEmail(event.target.value)}
+                required
+              />
+            </div>
 
-                  {result ? (
-                    <Alert>
-                      <AlertDescription>{result.message}</AlertDescription>
-                    </Alert>
-                  ) : null}
+            <Button type="submit" className="w-full" disabled={isSubmitting}>
+              {isSubmitting ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Generando enlace...
+                </>
+              ) : (
+                'Enviar instrucciones'
+              )}
+            </Button>
+          </form>
 
-                  <div className="space-y-2">
-                    <Label htmlFor="email">Correo</Label>
-                    <Input
-                      id="email"
-                      type="email"
-                      autoComplete="email"
-                      value={email}
-                      onChange={(event) => setEmail(event.target.value)}
-                      required
-                    />
-                  </div>
-
-                  <Button type="submit" className="w-full" disabled={isSubmitting}>
-                    {isSubmitting ? (
-                      <>
-                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                        Generando enlace...
-                      </>
-                    ) : (
-                      'Enviar instrucciones'
-                    )}
-                  </Button>
-                </form>
-
-                {result?.devResetToken ? (
-                  <div className="mt-6 rounded-lg border border-border bg-secondary/40 p-4 text-sm">
-                    <p className="font-medium text-foreground">Token de recuperacion para desarrollo</p>
-                    <p className="mt-1 break-all font-mono text-xs text-muted-foreground">
-                      {result.devResetToken}
-                    </p>
-                    <Button asChild size="sm" className="mt-3">
-                      <Link href={`/reset-password?token=${encodeURIComponent(result.devResetToken)}`}>
-                        Continuar con este token
-                      </Link>
-                    </Button>
-                  </div>
-                ) : null}
-              </CardContent>
-            </Card>
-          </div>
+          {result?.devResetToken ? (
+            <div className="rounded-3xl border border-border bg-secondary/35 p-4 text-sm">
+              <p className="font-medium text-foreground">Token de recuperacion para desarrollo</p>
+              <p className="mt-1 break-all font-mono text-xs text-muted-foreground">
+                {result.devResetToken}
+              </p>
+              <Button asChild size="sm" className="mt-3">
+                <Link href={`/reset-password?token=${encodeURIComponent(result.devResetToken)}`}>
+                  Continuar con este token
+                </Link>
+              </Button>
+            </div>
+          ) : null}
         </div>
-      </main>
+      </GuestOnlyRoute>
+    </AuthSplitLayout>
+  )
+}
 
-      <Footer />
-      <MobileNav />
-    </div>
+export default function ForgotPasswordPage() {
+  return (
+    <Suspense fallback={null}>
+      <ForgotPasswordPageContent />
+    </Suspense>
   )
 }

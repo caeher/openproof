@@ -72,6 +72,7 @@ export interface TxOutput {
 
 export interface AuthUser {
   id: string
+  name: string
   email: string
   role: string
   emailVerified: boolean
@@ -79,6 +80,12 @@ export interface AuthUser {
 }
 
 export type User = AuthUser
+
+export type AuthState =
+  | 'anonymous'
+  | 'authenticated_unverified'
+  | 'authenticated_verified'
+  | 'authenticated_admin'
 
 export interface DeveloperApiKey {
   id: string
@@ -150,6 +157,7 @@ export interface AdminStats {
 
 export interface AdminUser {
   id: string
+  name: string
   email: string
   role: string
   emailVerifiedAt?: string
@@ -276,6 +284,11 @@ export interface CreateApiKeyResponse {
 export interface ForgotPasswordResponse {
   message: string
   devResetToken?: string
+}
+
+export interface ResendVerificationResponse {
+  message: string
+  devVerificationToken?: string
 }
 
 export interface StatusResponse {

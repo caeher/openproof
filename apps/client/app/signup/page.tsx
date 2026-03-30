@@ -1,31 +1,41 @@
 'use client'
 
-import { useState } from 'react'
+import { Suspense, useState } from 'react'
 import Link from 'next/link'
-import { ArrowLeft, AlertCircle, Loader2 } from 'lucide-react'
+import { useSearchParams } from 'next/navigation'
+import { AlertCircle, Loader2, MailCheck } from 'lucide-react'
+
+import { AuthSplitLayout } from '@/components/auth/auth-split-layout'
 import { useAuth } from '@/components/auth/auth-provider'
-import { Header, Footer, MobileNav } from '@/components/layout'
+import { GuestOnlyRoute } from '@/components/auth/guest-only-route'
 import { Alert, AlertDescription } from '@/components/ui/alert'
 import { Button } from '@/components/ui/button'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import { getApiErrorMessage } from '@/lib/api'
+import { getApiErrorMessage, resendVerification } from '@/lib/api'
+import { sanitizeNextPath } from '@/lib/auth-routing'
 import type { SignupResponse } from '@/types'
 
-export default function SignupPage() {
+function SignupPageContent() {
+  const searchParams = useSearchParams()
   const { signupWithPassword } = useAuth()
+  const [name, setName] = useState('')
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [confirmPassword, setConfirmPassword] = useState('')
   const [error, setError] = useState<string | null>(null)
   const [success, setSuccess] = useState<SignupResponse | null>(null)
+  const [resendMessage, setResendMessage] = useState<string | null>(null)
+  const [resendDevToken, setResendDevToken] = useState<string | null>(null)
   const [isSubmitting, setIsSubmitting] = useState(false)
+  const [isResending, setIsResending] = useState(false)
 
   async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault()
     setError(null)
     setSuccess(null)
+    setResendMessage(null)
+    setResendDevToken(null)
 
     if (password !== confirmPassword) {
       setError('Las contrasenas no coinciden.')
@@ -35,13 +45,14 @@ export default function SignupPage() {
     setIsSubmitting(true)
 
     try {
-      const response = await signupWithPassword(email, password)
+      const response = await signupWithPassword(name, email, password)
       if (!response.success || !response.data) {
         setError(getApiErrorMessage(response, 'No fue posible crear la cuenta.'))
         return
       }
 
       setSuccess(response.data)
+      setName('')
       setPassword('')
       setConfirmPassword('')
     } finally {
@@ -49,121 +60,183 @@ export default function SignupPage() {
     }
   }
 
+  async function handleResend() {
+    const targetEmail = success?.user.email || email
+    if (!targetEmail) {
+      return
+    }
+
+    setIsResending(true)
+    setError(null)
+    setResendMessage(null)
+    setResendDevToken(null)
+
+    try {
+      const response = await resendVerification(targetEmail)
+      if (!response.success || !response.data) {
+        setError(getApiErrorMessage(response, 'No fue posible reenviar la verificacion.'))
+        return
+      }
+
+      setResendMessage(response.data.message)
+      setResendDevToken(response.data.devVerificationToken || null)
+    } finally {
+      setIsResending(false)
+    }
+  }
+
+  const nextPath = sanitizeNextPath(searchParams.get('next'))
+  const loginHref = nextPath ? `/login?next=${encodeURIComponent(nextPath)}` : '/login'
+  const verifyTokenHref = (token: string) => {
+    const params = new URLSearchParams({ token })
+    if (nextPath) {
+      params.set('next', nextPath)
+    }
+    return `/verify-email?${params.toString()}`
+  }
+
   return (
-    <div className="min-h-screen flex flex-col bg-background">
-      <Header />
-
-      <main className="flex-1 pb-24 md:pb-0">
-        <div className="container mx-auto px-4 py-8 md:py-12">
-          <Link
-            href="/"
-            className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors mb-6"
-          >
-            <ArrowLeft className="w-4 h-4" />
-            Volver al inicio
+    <AuthSplitLayout
+      badge="Nueva cuenta"
+      title="Crea tu espacio de custodia documental"
+      description="Tu nombre y correo quedan asociados a la cuenta desde el alta. El acceso a registros, historial y API keys se desbloquea en fases segun el estado de verificacion."
+      backHref="/"
+      backLabel="Volver al inicio"
+      sideTitle="Una cuenta, multiples sesiones y una misma prueba auditada"
+      sideDescription="El backend conserva el estado canonico: sesion, verificacion y permisos. El cliente solo consume ese contrato para evitar desalineaciones entre vistas y rutas."
+      sideStats={[
+        'El nombre del usuario ya forma parte del modelo persistido.',
+        'La verificacion por correo puede reenviarse sin volver a crear la cuenta.',
+        'Los tokens de desarrollo siguen visibles solo cuando el backend lo permite.',
+        'Cada redireccion next se filtra antes de usarla en el navegador.',
+      ]}
+      footer={
+        <p>
+          Ya tienes cuenta?{' '}
+          <Link href={loginHref} className="font-medium text-foreground underline-offset-4 hover:underline">
+            Inicia sesion
           </Link>
+        </p>
+      }
+    >
+      <GuestOnlyRoute>
+        <div className="space-y-4">
+          <form onSubmit={handleSubmit} className="space-y-4">
+            {error ? (
+              <Alert variant="destructive">
+                <AlertCircle className="h-4 w-4" />
+                <AlertDescription>{error}</AlertDescription>
+              </Alert>
+            ) : null}
 
-          <div className="max-w-md mx-auto">
-            <Card>
-              <CardHeader>
-                <CardTitle>Crear cuenta</CardTitle>
-                <CardDescription>
-                  Tu correo verificado sera la base para la propiedad de tus documentos.
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <form onSubmit={handleSubmit} className="space-y-4">
-                  {error ? (
-                    <Alert variant="destructive">
-                      <AlertCircle className="h-4 w-4" />
-                      <AlertDescription>{error}</AlertDescription>
-                    </Alert>
-                  ) : null}
+            {success ? (
+              <Alert className="border-emerald-200 bg-emerald-50 text-emerald-950">
+                <MailCheck className="h-4 w-4" />
+                <AlertDescription>
+                  Cuenta creada para {success.user.name}. Revisa {success.user.email} y valida el correo antes de registrar documentos o emitir API keys.
+                </AlertDescription>
+              </Alert>
+            ) : null}
 
-                  {success ? (
-                    <Alert>
-                      <AlertDescription>
-                        Cuenta creada para {success.user.email}. Revisa tu correo y verifica la cuenta antes de registrar documentos.
-                      </AlertDescription>
-                    </Alert>
-                  ) : null}
+            {resendMessage ? (
+              <Alert>
+                <AlertDescription>{resendMessage}</AlertDescription>
+              </Alert>
+            ) : null}
 
-                  <div className="space-y-2">
-                    <Label htmlFor="email">Correo</Label>
-                    <Input
-                      id="email"
-                      type="email"
-                      autoComplete="email"
-                      value={email}
-                      onChange={(event) => setEmail(event.target.value)}
-                      required
-                    />
-                  </div>
+            <div className="space-y-2">
+              <Label htmlFor="name">Nombre</Label>
+              <Input
+                id="name"
+                autoComplete="name"
+                value={name}
+                onChange={(event) => setName(event.target.value)}
+                required
+              />
+            </div>
 
-                  <div className="space-y-2">
-                    <Label htmlFor="password">Contrasena</Label>
-                    <Input
-                      id="password"
-                      type="password"
-                      autoComplete="new-password"
-                      value={password}
-                      onChange={(event) => setPassword(event.target.value)}
-                      required
-                    />
-                  </div>
+            <div className="space-y-2">
+              <Label htmlFor="email">Correo</Label>
+              <Input
+                id="email"
+                type="email"
+                autoComplete="email"
+                value={email}
+                onChange={(event) => setEmail(event.target.value)}
+                required
+              />
+            </div>
 
-                  <div className="space-y-2">
-                    <Label htmlFor="confirm-password">Confirmar contrasena</Label>
-                    <Input
-                      id="confirm-password"
-                      type="password"
-                      autoComplete="new-password"
-                      value={confirmPassword}
-                      onChange={(event) => setConfirmPassword(event.target.value)}
-                      required
-                    />
-                  </div>
+            <div className="space-y-2">
+              <Label htmlFor="password">Contrasena</Label>
+              <Input
+                id="password"
+                type="password"
+                autoComplete="new-password"
+                value={password}
+                onChange={(event) => setPassword(event.target.value)}
+                required
+              />
+            </div>
 
-                  <Button type="submit" className="w-full" disabled={isSubmitting}>
-                    {isSubmitting ? (
-                      <>
-                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                        Creando cuenta...
-                      </>
-                    ) : (
-                      'Crear cuenta'
-                    )}
+            <div className="space-y-2">
+              <Label htmlFor="confirm-password">Confirmar contrasena</Label>
+              <Input
+                id="confirm-password"
+                type="password"
+                autoComplete="new-password"
+                value={confirmPassword}
+                onChange={(event) => setConfirmPassword(event.target.value)}
+                required
+              />
+            </div>
+
+            <Button type="submit" className="w-full" disabled={isSubmitting}>
+              {isSubmitting ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Creando cuenta...
+                </>
+              ) : (
+                'Crear cuenta'
+              )}
+            </Button>
+          </form>
+
+          {success ? (
+            <div className="rounded-3xl border border-border bg-secondary/35 p-4 text-sm">
+              <div className="flex flex-col gap-3 sm:flex-row">
+                <Button type="button" variant="outline" onClick={() => void handleResend()} disabled={isResending}>
+                  {isResending ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
+                  Reenviar verificacion
+                </Button>
+                {success.devVerificationToken ? (
+                  <Button asChild>
+                    <Link href={verifyTokenHref(success.devVerificationToken)}>
+                      Abrir token de desarrollo
+                    </Link>
                   </Button>
-                </form>
-
-                {success?.devVerificationToken ? (
-                  <div className="mt-6 rounded-lg border border-border bg-secondary/40 p-4 text-sm">
-                    <p className="font-medium text-foreground">Token de verificacion para desarrollo</p>
-                    <p className="mt-1 break-all font-mono text-xs text-muted-foreground">
-                      {success.devVerificationToken}
-                    </p>
-                    <Button asChild size="sm" className="mt-3">
-                      <Link href={`/verify-email?token=${encodeURIComponent(success.devVerificationToken)}`}>
-                        Verificar este correo
-                      </Link>
-                    </Button>
-                  </div>
                 ) : null}
-
-                <p className="mt-6 text-sm text-muted-foreground">
-                  Ya tienes cuenta?{' '}
-                  <Link href="/login" className="text-foreground hover:underline">
-                    Inicia sesion
-                  </Link>
-                </p>
-              </CardContent>
-            </Card>
-          </div>
+                {resendDevToken ? (
+                  <Button asChild variant="secondary">
+                    <Link href={verifyTokenHref(resendDevToken)}>
+                      Usar ultimo token dev
+                    </Link>
+                  </Button>
+                ) : null}
+              </div>
+            </div>
+          ) : null}
         </div>
-      </main>
+      </GuestOnlyRoute>
+    </AuthSplitLayout>
+  )
+}
 
-      <Footer />
-      <MobileNav />
-    </div>
+export default function SignupPage() {
+  return (
+    <Suspense fallback={null}>
+      <SignupPageContent />
+    </Suspense>
   )
 }

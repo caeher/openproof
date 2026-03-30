@@ -10,6 +10,7 @@ import {
 import { getSession, login, logout, signup } from '@/lib/api'
 import type {
   ApiResponse,
+  AuthState,
   AuthUser,
   SessionResponse,
   SignupResponse,
@@ -17,6 +18,7 @@ import type {
 
 interface AuthContextValue {
   user: AuthUser | null
+  authState: AuthState
   isLoading: boolean
   isAuthenticated: boolean
   refreshSession: () => Promise<AuthUser | null>
@@ -25,6 +27,7 @@ interface AuthContextValue {
     password: string
   ) => Promise<ApiResponse<SessionResponse>>
   signupWithPassword: (
+    name: string,
     email: string,
     password: string
   ) => Promise<ApiResponse<SignupResponse>>
@@ -33,9 +36,26 @@ interface AuthContextValue {
 
 const AuthContext = createContext<AuthContextValue | undefined>(undefined)
 
+export function deriveAuthState(user: AuthUser | null): AuthState {
+  if (!user) {
+    return 'anonymous'
+  }
+
+  if (user.role === 'admin' && user.emailVerified) {
+    return 'authenticated_admin'
+  }
+
+  if (user.emailVerified) {
+    return 'authenticated_verified'
+  }
+
+  return 'authenticated_unverified'
+}
+
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<AuthUser | null>(null)
   const [isLoading, setIsLoading] = useState(true)
+  const authState = deriveAuthState(user)
 
   async function refreshSession() {
     const response = await getSession()
@@ -90,8 +110,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     return response
   }
 
-  async function signupWithPassword(email: string, password: string) {
-    return signup(email, password)
+  async function signupWithPassword(name: string, email: string, password: string) {
+    return signup(name, email, password)
   }
 
   async function logoutCurrentSession() {
@@ -106,8 +126,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     <AuthContext.Provider
       value={{
         user,
+        authState,
         isLoading,
-        isAuthenticated: user !== null,
+        isAuthenticated: authState !== 'anonymous',
         refreshSession,
         loginWithPassword,
         signupWithPassword,

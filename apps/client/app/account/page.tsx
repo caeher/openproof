@@ -2,7 +2,8 @@
 
 import { useEffect, useState } from 'react'
 import Link from 'next/link'
-import { ArrowLeft, KeyRound, Loader2, ShieldCheck } from 'lucide-react'
+import { ArrowLeft, KeyRound, Loader2, ShieldCheck, MailCheck } from 'lucide-react'
+
 import { AuthGuard } from '@/components/auth/auth-guard'
 import { useAuth } from '@/components/auth/auth-provider'
 import { Footer, Header, MobileNav } from '@/components/layout'
@@ -12,6 +13,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { changeAccountPassword, getAccountProfile, getApiErrorMessage } from '@/lib/api'
+import { buildVerifyEmailPath } from '@/lib/auth-routing'
 import type { AccountProfile } from '@/types'
 
 function formatTimestamp(value?: string) {
@@ -34,6 +36,7 @@ export default function AccountPage() {
   const [isSaving, setIsSaving] = useState(false)
   const [currentPassword, setCurrentPassword] = useState('')
   const [newPassword, setNewPassword] = useState('')
+  const verifyHref = buildVerifyEmailPath('/billing')
 
   async function loadProfile() {
     const response = await getAccountProfile()
@@ -107,7 +110,7 @@ export default function AccountPage() {
           </Link>
 
           <div className="max-w-4xl mx-auto">
-            <AuthGuard requireVerified>
+            <AuthGuard>
               <div className="mb-8">
                 <div className="inline-flex items-center gap-2 rounded-full bg-secondary px-3 py-1.5 text-sm font-medium text-foreground">
                   <ShieldCheck className="h-4 w-4" />
@@ -133,6 +136,20 @@ export default function AccountPage() {
                 </Alert>
               ) : null}
 
+              {!user?.emailVerified ? (
+                <Alert className="mb-6 border-amber-200 bg-amber-50 text-amber-950">
+                  <MailCheck className="h-4 w-4" />
+                  <AlertDescription className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                    <span>
+                      Puedes administrar perfil y contrasena desde ahora, pero billing, registro y API keys siguen bloqueados hasta validar el correo.
+                    </span>
+                    <Button asChild size="sm" variant="outline">
+                      <Link href={verifyHref}>Verificar correo</Link>
+                    </Button>
+                  </AlertDescription>
+                </Alert>
+              ) : null}
+
               <div className="grid gap-6 lg:grid-cols-[1.1fr_0.9fr]">
                 <Card>
                   <CardHeader>
@@ -148,6 +165,10 @@ export default function AccountPage() {
                     ) : (
                       <div className="space-y-6">
                         <div className="grid gap-4 sm:grid-cols-2">
+                          <div className="rounded-xl border border-border p-4">
+                            <p className="text-sm text-muted-foreground">Nombre</p>
+                            <p className="mt-2 font-semibold text-foreground">{profile.user.name}</p>
+                          </div>
                           <div className="rounded-xl border border-border p-4">
                             <p className="text-sm text-muted-foreground">Correo</p>
                             <p className="mt-2 font-semibold text-foreground">{profile.user.email}</p>
@@ -202,12 +223,20 @@ export default function AccountPage() {
                         </div>
 
                         <div className="flex flex-col gap-3 sm:flex-row">
-                          <Button asChild variant="outline">
-                            <Link href="/billing">Ir a billing</Link>
-                          </Button>
-                          <Button asChild variant="outline">
-                            <Link href="/developers">Gestionar API keys</Link>
-                          </Button>
+                          {profile.user.emailVerified ? (
+                            <>
+                              <Button asChild variant="outline">
+                                <Link href="/billing">Ir a billing</Link>
+                              </Button>
+                              <Button asChild variant="outline">
+                                <Link href="/developers">Gestionar API keys</Link>
+                              </Button>
+                            </>
+                          ) : (
+                            <Button asChild variant="outline">
+                              <Link href={verifyHref}>Verificar correo</Link>
+                            </Button>
+                          )}
                           {user?.role === 'admin' ? (
                             <Button asChild>
                               <Link href="/admin">Abrir admin</Link>

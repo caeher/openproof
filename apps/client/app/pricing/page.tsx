@@ -3,12 +3,14 @@
 import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import { ArrowRight, CreditCard, Loader2, ShieldCheck, Wallet } from 'lucide-react'
+
 import { useAuth } from '@/components/auth/auth-provider'
 import { Footer, Header, MobileNav } from '@/components/layout'
 import { Alert, AlertDescription } from '@/components/ui/alert'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { getPricingPackages } from '@/lib/api'
+import { buildVerifyEmailPath } from '@/lib/auth-routing'
 import type { CreditPackage } from '@/types'
 
 function formatUsd(cents: number) {
@@ -19,10 +21,16 @@ function formatUsd(cents: number) {
 }
 
 export default function PricingPage() {
-  const { isAuthenticated } = useAuth()
+  const { authState, isAuthenticated } = useAuth()
   const [packages, setPackages] = useState<CreditPackage[]>([])
   const [error, setError] = useState<string | null>(null)
   const [isLoading, setIsLoading] = useState(true)
+
+  const billingHref = !isAuthenticated
+    ? '/login?next=%2Fbilling'
+    : authState === 'authenticated_unverified'
+      ? buildVerifyEmailPath('/billing')
+      : '/billing'
 
   useEffect(() => {
     async function loadPackages() {
@@ -105,8 +113,8 @@ export default function PricingPage() {
                     </div>
 
                     <Button asChild className="mt-6 w-full">
-                      <Link href={isAuthenticated ? '/billing' : '/signup'}>
-                        {isAuthenticated ? 'Comprar desde billing' : 'Crear cuenta y comprar'}
+                      <Link href={billingHref}>
+                        {isAuthenticated ? 'Comprar desde billing' : 'Ingresar para comprar'}
                         <ArrowRight className="ml-2 h-4 w-4" />
                       </Link>
                     </Button>

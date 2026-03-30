@@ -2,30 +2,45 @@
 
 import { Suspense, useEffect, useRef, useState } from 'react'
 import Link from 'next/link'
-import { useSearchParams } from 'next/navigation'
-import { ArrowLeft, AlertCircle, Loader2 } from 'lucide-react'
-import { verifyEmail } from '@/lib/api'
-import { getApiErrorMessage } from '@/lib/api'
-import { Header, Footer, MobileNav } from '@/components/layout'
+import { useRouter, useSearchParams } from 'next/navigation'
+import { AlertCircle, Loader2, MailCheck } from 'lucide-react'
+
+import { AuthSplitLayout } from '@/components/auth/auth-split-layout'
+import { deriveAuthState, useAuth } from '@/components/auth/auth-provider'
 import { Alert, AlertDescription } from '@/components/ui/alert'
 import { Button } from '@/components/ui/button'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
+import { getApiErrorMessage, resendVerification, verifyEmail } from '@/lib/api'
+import { resolveAuthenticatedNext, sanitizeNextPath } from '@/lib/auth-routing'
 import type { AuthUser } from '@/types'
 
 function VerifyEmailPageContent() {
+  const router = useRouter()
   const searchParams = useSearchParams()
+  const { authState, isLoading, refreshSession, user } = useAuth()
   const initialToken = searchParams.get('token') || ''
   const autoSubmitted = useRef(false)
   const [token, setToken] = useState(initialToken)
+  const [resendEmail, setResendEmail] = useState('')
   const [error, setError] = useState<string | null>(null)
   const [verifiedUser, setVerifiedUser] = useState<AuthUser | null>(null)
+  const [infoMessage, setInfoMessage] = useState<string | null>(null)
   const [isSubmitting, setIsSubmitting] = useState(false)
+  const [isResending, setIsResending] = useState(false)
+
+  const nextPath = sanitizeNextPath(searchParams.get('next'))
+
+  useEffect(() => {
+    if (!isLoading && (authState === 'authenticated_verified' || authState === 'authenticated_admin')) {
+      router.replace(resolveAuthenticatedNext(authState, nextPath))
+    }
+  }, [authState, isLoading, nextPath, router])
 
   async function submitToken(value: string) {
     setError(null)
     setVerifiedUser(null)
+    setInfoMessage(null)
     setIsSubmitting(true)
 
     try {
@@ -36,6 +51,14 @@ function VerifyEmailPageContent() {
       }
 
       setVerifiedUser(response.data.user)
+
+      const refreshedUser = await refreshSession()
+      if (refreshedUser) {
+        router.replace(resolveAuthenticatedNext(deriveAuthState(refreshedUser), nextPath))
+        return
+      }
+
+      setInfoMessage('Correo verificado. Inicia sesion para continuar con las rutas privadas.')
     } finally {
       setIsSubmitting(false)
     }
@@ -53,81 +76,133 @@ function VerifyEmailPageContent() {
     await submitToken(token)
   }
 
+  async function handleResend() {
+    const targetEmail = user?.email || resendEmail
+    if (!targetEmail) {
+      setError('Indica el correo al que quieres reenviar la verificacion.')
+      return
+    }
+
+    setError(null)
+    setInfoMessage(null)
+    setIsResending(true)
+
+    try {
+      const response = await resendVerification(user ? undefined : targetEmail)
+      if (!response.success || !response.data) {
+        setError(getApiErrorMessage(response, 'No fue posible reenviar la verificacion.'))
+        return
+      }
+
+      setInfoMessage(response.data.message)
+      if (response.data.devVerificationToken) {
+        setToken(response.data.devVerificationToken)
+      }
+    } finally {
+      setIsResending(false)
+    }
+  }
+
+  const loginParams = new URLSearchParams()
+  if (nextPath) {
+    loginParams.set('next', nextPath)
+  }
+  const loginHref = loginParams.size > 0 ? `/login?${loginParams.toString()}` : '/login'
+
   return (
-    <div className="min-h-screen flex flex-col bg-background">
-      <Header />
+    <AuthSplitLayout
+      badge="Correo pendiente"
+      title="Valida tu identidad antes de registrar o integrar"
+      description="Este paso desbloquea las rutas verificadas. Si ya tienes sesion abierta, al confirmar el correo te devolvemos al destino permitido por el estado real de tu cuenta."
+      backHref={loginHref}
+      backLabel="Volver al login"
+      sideTitle="El flujo de verificacion mezcla enlace, token manual y reenvio"
+      sideDescription="La misma pantalla sirve para abrir el enlace del correo, pegar un token o pedir un reenvio. Asi evitamos caminos duplicados y estados inconsistentes."
+      sideStats={[
+        'Si ya existe una sesion, el refresh toma el estado actualizado desde /auth/session.',
+        'Si llegas sin sesion, el correo queda verificado y luego vuelves al login.',
+        'El parametro next solo se usa despues de validarlo y comprobar permisos.',
+      ]}
+    >
+      <div className="space-y-4">
+        <form onSubmit={handleSubmit} className="space-y-4">
+          {error ? (
+            <Alert variant="destructive">
+              <AlertCircle className="h-4 w-4" />
+              <AlertDescription>{error}</AlertDescription>
+            </Alert>
+          ) : null}
 
-      <main className="flex-1 pb-24 md:pb-0">
-        <div className="container mx-auto px-4 py-8 md:py-12">
-          <Link
-            href="/login"
-            className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors mb-6"
-          >
-            <ArrowLeft className="w-4 h-4" />
-            Volver al login
-          </Link>
+          {verifiedUser ? (
+            <Alert className="border-emerald-200 bg-emerald-50 text-emerald-950">
+              <MailCheck className="h-4 w-4" />
+              <AlertDescription>
+                Correo verificado correctamente para {verifiedUser.email}.
+              </AlertDescription>
+            </Alert>
+          ) : null}
 
-          <div className="max-w-md mx-auto">
-            <Card>
-              <CardHeader>
-                <CardTitle>Verificar correo</CardTitle>
-                <CardDescription>
-                  Pega el token recibido o abre el enlace enviado por correo.
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <form onSubmit={handleSubmit} className="space-y-4">
-                  {error ? (
-                    <Alert variant="destructive">
-                      <AlertCircle className="h-4 w-4" />
-                      <AlertDescription>{error}</AlertDescription>
-                    </Alert>
-                  ) : null}
+          {infoMessage ? (
+            <Alert>
+              <AlertDescription>{infoMessage}</AlertDescription>
+            </Alert>
+          ) : null}
 
-                  {verifiedUser ? (
-                    <Alert>
-                      <AlertDescription>
-                        Correo verificado correctamente para {verifiedUser.email}. Ya puedes iniciar sesion y usar las rutas privadas.
-                      </AlertDescription>
-                    </Alert>
-                  ) : null}
+          <div className="space-y-2">
+            <Label htmlFor="token">Token</Label>
+            <Input
+              id="token"
+              value={token}
+              onChange={(event) => setToken(event.target.value)}
+              required
+            />
+          </div>
 
-                  <div className="space-y-2">
-                    <Label htmlFor="token">Token</Label>
-                    <Input
-                      id="token"
-                      value={token}
-                      onChange={(event) => setToken(event.target.value)}
-                      required
-                    />
-                  </div>
+          <Button type="submit" className="w-full" disabled={isSubmitting}>
+            {isSubmitting ? (
+              <>
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                Verificando...
+              </>
+            ) : (
+              'Verificar correo'
+            )}
+          </Button>
+        </form>
 
-                  <Button type="submit" className="w-full" disabled={isSubmitting}>
-                    {isSubmitting ? (
-                      <>
-                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                        Verificando...
-                      </>
-                    ) : (
-                      'Verificar correo'
-                    )}
-                  </Button>
-                </form>
-
-                {verifiedUser ? (
-                  <Button asChild variant="outline" className="mt-4 w-full">
-                    <Link href="/login">Ir a iniciar sesion</Link>
-                  </Button>
-                ) : null}
-              </CardContent>
-            </Card>
+        <div className="rounded-3xl border border-border bg-secondary/35 p-4">
+          <div className="space-y-3 text-sm">
+            <p className="font-medium text-foreground">Reenviar correo de verificacion</p>
+            {user ? (
+              <p className="text-muted-foreground">
+                Se enviara un nuevo correo a {user.email}.
+              </p>
+            ) : (
+              <div className="space-y-2">
+                <Label htmlFor="resend-email">Correo</Label>
+                <Input
+                  id="resend-email"
+                  type="email"
+                  autoComplete="email"
+                  value={resendEmail}
+                  onChange={(event) => setResendEmail(event.target.value)}
+                />
+              </div>
+            )}
+            <Button type="button" variant="outline" onClick={() => void handleResend()} disabled={isResending}>
+              {isResending ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
+              Reenviar verificacion
+            </Button>
           </div>
         </div>
-      </main>
 
-      <Footer />
-      <MobileNav />
-    </div>
+        {verifiedUser ? (
+          <Button asChild variant="outline" className="w-full">
+            <Link href={loginHref}>Ir a iniciar sesion</Link>
+          </Button>
+        ) : null}
+      </div>
+    </AuthSplitLayout>
   )
 }
 
