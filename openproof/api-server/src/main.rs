@@ -1,20 +1,36 @@
 use std::sync::Arc;
 
 use axum::http::Method;
+use lib_authz::{PermissionCheck, RoleBasedPerms};
 use lib_bitcoin_rpc::BitcoinRpcAdapter;
 use openproof_app::workers;
 use openproof_app::OpenProofApp;
 use tower_http::cors::{Any, CorsLayer};
 use tracing_subscriber::EnvFilter;
 
+mod auth;
 mod config;
 mod error;
 mod handlers;
+mod mailer;
 mod routes;
+
+#[derive(Clone)]
+pub struct AuthSettings {
+    pub session_cookie_name: String,
+    pub session_ttl_hours: i64,
+    pub verification_token_ttl_hours: i64,
+    pub password_reset_token_ttl_hours: i64,
+    pub secure_cookies: bool,
+    pub expose_dev_auth_tokens: bool,
+}
 
 pub struct AppState {
     pub pool: sqlx::PgPool,
     pub bitcoin: Arc<dyn core_notarization::BitcoinNodePort>,
+    pub perms: Arc<dyn PermissionCheck>,
+    pub mailer: Arc<dyn mailer::EmailSender>,
+    pub auth: AuthSettings,
 }
 
 #[tokio::main]
@@ -37,6 +53,10 @@ async fn main() {
         &cfg.bitcoin_rpc_user,
         &cfg.bitcoin_rpc_password,
     ));
+    let perms: Arc<dyn PermissionCheck> = Arc::new(RoleBasedPerms);
+    let mailer: Arc<dyn mailer::EmailSender> = Arc::new(mailer::TracingEmailSender {
+        app_base_url: cfg.app_base_url.clone(),
+    });
 
     let app = match OpenProofApp::connect(&cfg.database_url).await {
         Ok(a) => a,
@@ -52,6 +72,16 @@ async fn main() {
     let state = Arc::new(AppState {
         pool: app.pool,
         bitcoin,
+        perms,
+        mailer,
+        auth: AuthSettings {
+            session_cookie_name: cfg.session_cookie_name,
+            session_ttl_hours: cfg.session_ttl_hours,
+            verification_token_ttl_hours: cfg.verification_token_ttl_hours,
+            password_reset_token_ttl_hours: cfg.password_reset_token_ttl_hours,
+            secure_cookies: cfg.secure_cookies,
+            expose_dev_auth_tokens: cfg.expose_dev_auth_tokens,
+        },
     });
 
     let cors = CorsLayer::new()

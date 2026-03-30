@@ -70,7 +70,7 @@ pub async fn find_by_hash(pool: &PgPool, file_hash: &str) -> Result<Option<Docum
     Ok(row.map(|r| row_to_document(&r)))
 }
 
-pub async fn list_for_user(pool: &PgPool, user_id: &str) -> Result<Vec<Document>, sqlx::Error> {
+pub async fn list_for_user(pool: &PgPool, user_id: Uuid) -> Result<Vec<Document>, sqlx::Error> {
     let rows =
         sqlx::query("SELECT * FROM documents WHERE user_id = $1 ORDER BY created_at DESC")
             .bind(user_id)

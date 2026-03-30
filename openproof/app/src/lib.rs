@@ -5,6 +5,8 @@ use sqlx::PgPool;
 pub mod documents;
 pub mod error;
 pub mod outbox;
+pub mod sessions;
+pub mod users;
 pub mod workers;
 
 pub use error::AppError;

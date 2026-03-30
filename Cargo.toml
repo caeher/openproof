@@ -35,3 +35,6 @@ tracing-subscriber = { version = "0.3", features = ["env-filter"] }
 dotenvy = "0.15"
 hex = "0.4"
 log = "0.4"
+argon2 = { version = "0.5", features = ["std"] }
+base64 = "0.22"
+sha2 = "0.10"

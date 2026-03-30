@@ -4,4 +4,7 @@ use thiserror::Error;
 pub enum AuthorizationError {
     #[error("AuthorizationError - Denied: {0}")]
     Denied(String),
+
+    #[error("AuthorizationError - UnverifiedEmail")]
+    UnverifiedEmail,
 }

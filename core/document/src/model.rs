@@ -36,7 +36,7 @@ pub struct Document {
     pub filename: String,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub metadata: Option<serde_json::Value>,
-    pub user_id: String,
+    pub user_id: Uuid,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub transaction_id: Option<String>,
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -58,7 +58,7 @@ pub struct NewDocument {
     pub id: DocumentId,
     pub file_hash: String,
     pub filename: String,
-    pub user_id: String,
+    pub user_id: Uuid,
     pub metadata: Option<serde_json::Value>,
 }
 
