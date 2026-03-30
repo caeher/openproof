@@ -1,4 +1,16 @@
 #[derive(Clone, Debug)]
+pub struct SmtpConfig {
+    pub host: Option<String>,
+    pub port: u16,
+    pub username: Option<String>,
+    pub password: Option<String>,
+    pub from: Option<String>,
+    pub reply_to: Option<String>,
+    pub tls_mode: String,
+    pub timeout_seconds: u64,
+}
+
+#[derive(Clone, Debug)]
 pub struct AppConfig {
     pub app_env: String,
     pub database_url: String,
@@ -24,12 +36,15 @@ pub struct AppConfig {
     pub verify_rate_limit_window_seconds: u64,
     pub webhook_rate_limit_requests: u32,
     pub webhook_rate_limit_window_seconds: u64,
+    pub smtp: SmtpConfig,
 }
 
 impl AppConfig {
     pub fn from_env() -> Result<Self, String> {
+        let app_env = std::env::var("APP_ENV").unwrap_or_else(|_| "development".to_string());
+
         Ok(Self {
-            app_env: std::env::var("APP_ENV").unwrap_or_else(|_| "development".to_string()),
+            app_env: app_env.clone(),
             database_url: std::env::var("DATABASE_URL").map_err(|_| "DATABASE_URL")?,
             bitcoin_rpc_url: std::env::var("BITCOIN_RPC_URL")
                 .unwrap_or_else(|_| "http://127.0.0.1:18332".to_string()),
@@ -70,7 +85,7 @@ impl AppConfig {
             expose_dev_auth_tokens: std::env::var("EXPOSE_DEV_AUTH_TOKENS")
                 .ok()
                 .map(|value| matches!(value.as_str(), "1" | "true" | "TRUE" | "yes" | "YES"))
-                .unwrap_or(true),
+                .unwrap_or(app_env.eq_ignore_ascii_case("development")),
             auth_rate_limit_requests: std::env::var("AUTH_RATE_LIMIT_REQUESTS")
                 .ok()
                 .and_then(|value| value.parse::<u32>().ok())
@@ -95,6 +110,24 @@ impl AppConfig {
                 .ok()
                 .and_then(|value| value.parse::<u64>().ok())
                 .unwrap_or(60),
+            smtp: SmtpConfig {
+                host: std::env::var("SMTP_HOST").ok().filter(|value| !value.trim().is_empty()),
+                port: std::env::var("SMTP_PORT")
+                    .ok()
+                    .and_then(|value| value.parse::<u16>().ok())
+                    .unwrap_or(587),
+                username: std::env::var("SMTP_USERNAME").ok().filter(|value| !value.trim().is_empty()),
+                password: std::env::var("SMTP_PASSWORD").ok().filter(|value| !value.trim().is_empty()),
+                from: std::env::var("SMTP_FROM").ok().filter(|value| !value.trim().is_empty()),
+                reply_to: std::env::var("SMTP_REPLY_TO").ok().filter(|value| !value.trim().is_empty()),
+                tls_mode: std::env::var("SMTP_TLS_MODE")
+                    .unwrap_or_else(|_| "starttls".to_string())
+                    .to_lowercase(),
+                timeout_seconds: std::env::var("SMTP_TIMEOUT_SECONDS")
+                    .ok()
+                    .and_then(|value| value.parse::<u64>().ok())
+                    .unwrap_or(15),
+            },
         })
     }
 }

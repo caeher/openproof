@@ -40,6 +40,7 @@ fn row_to_api_key(row: &sqlx::postgres::PgRow) -> ApiKeyRecord {
 fn row_to_user(row: &sqlx::postgres::PgRow) -> UserRecord {
     UserRecord {
         id: row.get("user_id"),
+        name: row.get("user_name"),
         email: row.get("email"),
         role: row.get("role"),
         email_verified_at: row.try_get("email_verified_at").ok().flatten(),
@@ -140,6 +141,7 @@ pub async fn find_user_by_key_hash(
             ak.rotated_at,
             ak.created_at,
             ak.updated_at,
+            u.name AS user_name,
             u.email,
             u.role,
             u.email_verified_at,

@@ -29,6 +29,7 @@ pub struct AdminOverviewStats {
 #[derive(Debug, Clone)]
 pub struct AdminUserRecord {
     pub id: Uuid,
+    pub name: String,
     pub email: String,
     pub role: String,
     pub email_verified_at: Option<DateTime<Utc>>,
@@ -84,6 +85,7 @@ pub struct BlinkWebhookEventRecord {
 fn row_to_admin_user(row: &sqlx::postgres::PgRow) -> AdminUserRecord {
     AdminUserRecord {
         id: row.get("id"),
+        name: row.get("name"),
         email: row.get("email"),
         role: row.get("role"),
         email_verified_at: row.try_get("email_verified_at").ok().flatten(),
@@ -180,6 +182,7 @@ pub async fn list_users(pool: &PgPool, limit: i64) -> Result<Vec<AdminUserRecord
         r#"
         SELECT
             u.id,
+            u.name,
             u.email,
             u.role,
             u.email_verified_at,
@@ -210,10 +213,11 @@ pub async fn set_user_role(
             UPDATE users
             SET role = $2, updated_at = NOW()
             WHERE id = $1
-            RETURNING id, email, role, email_verified_at, created_at, updated_at
+            RETURNING id, name, email, role, email_verified_at, created_at, updated_at
         )
         SELECT
             updated.id,
+            updated.name,
             updated.email,
             updated.role,
             updated.email_verified_at,

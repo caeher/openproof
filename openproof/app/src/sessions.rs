@@ -34,6 +34,7 @@ fn row_to_session(row: &sqlx::postgres::PgRow) -> SessionRecord {
 fn row_to_user(row: &sqlx::postgres::PgRow) -> UserRecord {
     UserRecord {
         id: row.get("user_id"),
+        name: row.get("name"),
         email: row.get("email"),
         role: row.get("role"),
         email_verified_at: row.try_get("email_verified_at").ok().flatten(),
@@ -48,21 +49,8 @@ pub async fn create_session(
     token_hash: &[u8],
     expires_at: DateTime<Utc>,
 ) -> Result<SessionRecord, sqlx::Error> {
-    let mut tx = pool.begin().await?;
     let now = Utc::now();
     let session_id = Uuid::now_v7();
-
-    sqlx::query(
-        r#"
-        UPDATE sessions
-        SET invalidated_at = $2, updated_at = $2
-        WHERE user_id = $1 AND invalidated_at IS NULL
-        "#,
-    )
-    .bind(user_id)
-    .bind(now)
-    .execute(&mut *tx)
-    .await?;
 
     sqlx::query(
         r#"
@@ -76,7 +64,7 @@ pub async fn create_session(
     .bind(expires_at)
     .bind(now)
     .bind(now)
-    .execute(&mut *tx)
+    .execute(pool)
     .await?;
 
     let row = sqlx::query(
@@ -93,10 +81,9 @@ pub async fn create_session(
         "#,
     )
     .bind(session_id)
-    .fetch_one(&mut *tx)
+    .fetch_one(pool)
     .await?;
 
-    tx.commit().await?;
     Ok(row_to_session(&row))
 }
 
@@ -114,6 +101,7 @@ pub async fn get_user_by_token_hash(
             s.created_at AS session_created_at,
             s.updated_at AS session_updated_at,
             u.id AS user_id,
+            u.name,
             u.email,
             u.role,
             u.email_verified_at,

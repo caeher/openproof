@@ -62,6 +62,7 @@ pub struct AdminStatsResponse {
 #[serde(rename_all = "camelCase")]
 pub struct AdminUserResponse {
     pub id: String,
+    pub name: String,
     pub email: String,
     pub role: String,
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -427,6 +428,7 @@ fn build_alerts(stats: &admin::AdminOverviewStats) -> Vec<String> {
 fn map_user(user: &admin::AdminUserRecord) -> AdminUserResponse {
     AdminUserResponse {
         id: user.id.to_string(),
+        name: user.name.clone(),
         email: user.email.clone(),
         role: user.role.clone(),
         email_verified_at: user.email_verified_at,

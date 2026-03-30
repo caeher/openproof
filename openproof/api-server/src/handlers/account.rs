@@ -15,6 +15,7 @@ use crate::AppState;
 #[serde(rename_all = "camelCase")]
 pub struct AccountUserResponse {
     pub id: String,
+    pub name: String,
     pub email: String,
     pub role: String,
     pub email_verified: bool,
@@ -56,7 +57,7 @@ pub async fn profile(
     State(state): State<Arc<AppState>>,
     headers: HeaderMap,
 ) -> axum::response::Response {
-    let session = match auth::require_verified_session(&headers, &state).await {
+    let session = match auth::require_session(&headers, &state).await {
         Ok(value) => value,
         Err(response) => return response,
     };
@@ -88,7 +89,7 @@ pub async fn change_password(
     headers: HeaderMap,
     Json(body): Json<ChangePasswordRequest>,
 ) -> axum::response::Response {
-    let session = match auth::require_verified_session(&headers, &state).await {
+    let session = match auth::require_session(&headers, &state).await {
         Ok(value) => value,
         Err(response) => return response,
     };
@@ -176,6 +177,7 @@ pub async fn change_password(
 fn map_user(user: &users::UserRecord) -> AccountUserResponse {
     AccountUserResponse {
         id: user.id.to_string(),
+        name: user.name.clone(),
         email: user.email.clone(),
         role: user.role.clone(),
         email_verified: user.is_email_verified(),

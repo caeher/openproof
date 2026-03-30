@@ -16,6 +16,7 @@ pub fn api_router(state: Arc<AppState>) -> Router {
         .route("/api/v1/auth/forgot-password", post(auth::forgot_password))
         .route("/api/v1/auth/reset-password", post(auth::reset_password))
         .route("/api/v1/auth/verify-email", post(auth::verify_email))
+        .route("/api/v1/auth/resend-verification", post(auth::resend_verification))
         .route("/api/v1/auth/session", get(auth::session))
         .route_layer(middleware::from_fn_with_state(
             state.clone(),

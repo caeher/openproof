@@ -34,9 +34,22 @@ async fn main() {
         &cfg.bitcoin_rpc_password,
     ));
     let perms: Arc<dyn PermissionCheck> = Arc::new(RoleBasedPerms);
-    let mailer: Arc<dyn mailer::EmailSender> = Arc::new(mailer::TracingEmailSender {
-        app_base_url: cfg.app_base_url.clone(),
-    });
+    let mailer: Arc<dyn mailer::EmailSender> = match &cfg.smtp.host {
+        Some(_) => match mailer::SmtpEmailSender::from_config(cfg.app_base_url.clone(), &cfg.smtp) {
+            Ok(value) => Arc::new(value),
+            Err(error) => {
+                eprintln!("smtp mailer: {error}");
+                std::process::exit(1);
+            }
+        },
+        None if cfg.app_env.eq_ignore_ascii_case("development") => Arc::new(mailer::TracingEmailSender {
+            app_base_url: cfg.app_base_url.clone(),
+        }),
+        None => {
+            eprintln!("smtp mailer: SMTP_HOST is required outside development");
+            std::process::exit(1);
+        }
+    };
     let blink = match BlinkClient::new(
         cfg.blink_api_url.clone(),
         cfg.blink_api_key.clone(),
@@ -84,6 +97,7 @@ async fn main() {
         },
         runtime: RuntimeSettings {
             app_env: cfg.app_env,
+            app_base_url: cfg.app_base_url,
         },
         rate_limits: RateLimitSettings {
             auth_requests: cfg.auth_rate_limit_requests,

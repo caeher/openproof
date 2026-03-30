@@ -12,6 +12,7 @@ use crate::AppState;
 #[derive(Debug, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct SignupRequest {
+    pub name: String,
     pub email: String,
     pub password: String,
 }
@@ -37,6 +38,12 @@ pub struct ForgotPasswordRequest {
 
 #[derive(Debug, Deserialize)]
 #[serde(rename_all = "camelCase")]
+pub struct ResendVerificationRequest {
+    pub email: Option<String>,
+}
+
+#[derive(Debug, Deserialize)]
+#[serde(rename_all = "camelCase")]
 pub struct ResetPasswordRequest {
     pub token: String,
     pub password: String,
@@ -46,6 +53,7 @@ pub struct ResetPasswordRequest {
 #[serde(rename_all = "camelCase")]
 pub struct AuthUserResponse {
     pub id: String,
+    pub name: String,
     pub email: String,
     pub role: String,
     pub email_verified: bool,
@@ -69,6 +77,14 @@ pub struct SignupResponse {
 
 #[derive(Debug, Serialize)]
 #[serde(rename_all = "camelCase")]
+pub struct ResendVerificationResponse {
+    pub message: String,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub dev_verification_token: Option<String>,
+}
+
+#[derive(Debug, Serialize)]
+#[serde(rename_all = "camelCase")]
 pub struct StatusResponse {
     pub message: String,
 }
@@ -77,6 +93,9 @@ pub async fn signup(
     State(state): State<Arc<AppState>>,
     Json(body): Json<SignupRequest>,
 ) -> axum::response::Response {
+    let Some(name) = auth::normalize_user_name(&body.name) else {
+        return auth::error_json(StatusCode::BAD_REQUEST, "name is required");
+    };
     let Some(email) = auth::normalize_email(&body.email) else {
         return auth::error_json(StatusCode::BAD_REQUEST, "valid email is required");
     };
@@ -89,7 +108,7 @@ pub async fn signup(
         Err(message) => return auth::error_json(StatusCode::INTERNAL_SERVER_ERROR, message),
     };
 
-    let user = match users::create_user_with_password(&state.pool, &email, &password_hash).await {
+    let user = match users::create_user_with_password(&state.pool, &name, &email, &password_hash).await {
         Ok(value) => value,
         Err(sqlx::Error::Database(error)) if error.code().as_deref() == Some("23505") => {
             return auth::error_json(StatusCode::CONFLICT, "email already exists");
@@ -112,9 +131,10 @@ pub async fn signup(
 
     if let Err(error) = state
         .mailer
-        .send_verification_email(&user.email, &verification_token)
+        .send_verification_email(&user.email, &user.name, &verification_token)
+        .await
     {
-        return auth::error_json(StatusCode::BAD_GATEWAY, error);
+        tracing::error!(email = %user.email, error = %error, "failed to send verification email after signup");
     }
 
     auth::json_with_cookie(
@@ -193,6 +213,69 @@ pub async fn logout(
     )
 }
 
+pub async fn resend_verification(
+    State(state): State<Arc<AppState>>,
+    headers: HeaderMap,
+    Json(body): Json<ResendVerificationRequest>,
+) -> axum::response::Response {
+    let session = match auth::maybe_session(&headers, &state).await {
+        Ok(value) => value,
+        Err(response) => return response,
+    };
+
+    let maybe_user = if let Some(session) = session {
+        Some(session.user)
+    } else {
+        let Some(email) = body.email.as_deref().and_then(auth::normalize_email) else {
+            return auth::error_json(StatusCode::BAD_REQUEST, "valid email is required");
+        };
+
+        match users::find_by_email(&state.pool, &email).await {
+            Ok(value) => value,
+            Err(error) => return auth::internal_error(error),
+        }
+    };
+
+    let mut dev_verification_token = None;
+    if let Some(user) = maybe_user {
+        if !user.is_email_verified() {
+            let verification_token = auth::generate_token();
+            let verification_token_hash = auth::hash_token(&verification_token);
+            if let Err(error) = users::store_email_verification_token(
+                &state.pool,
+                user.id,
+                &verification_token_hash,
+                auth::verification_token_expires_at(state.as_ref()),
+            )
+            .await
+            {
+                return auth::internal_error(error);
+            }
+
+            if let Err(error) = state
+                .mailer
+                .send_verification_email(&user.email, &user.name, &verification_token)
+                .await
+            {
+                tracing::error!(email = %user.email, error = %error, "failed to resend verification email");
+            }
+
+            if state.auth.expose_dev_auth_tokens {
+                dev_verification_token = Some(verification_token);
+            }
+        }
+    }
+
+    auth::json_with_cookie(
+        StatusCode::OK,
+        ResendVerificationResponse {
+            message: "if the account exists and is pending verification, instructions were generated".to_string(),
+            dev_verification_token,
+        },
+        None,
+    )
+}
+
 pub async fn verify_email(
     State(state): State<Arc<AppState>>,
     Json(body): Json<VerifyEmailRequest>,
@@ -245,9 +328,10 @@ pub async fn forgot_password(
         }
         if let Err(error) = state
             .mailer
-            .send_password_reset_email(&user.email, &reset_token)
+            .send_password_reset_email(&user.email, &user.name, &reset_token)
+            .await
         {
-            return auth::error_json(StatusCode::BAD_GATEWAY, error);
+            tracing::error!(email = %user.email, error = %error, "failed to send password reset email");
         }
         if state.auth.expose_dev_auth_tokens {
             dev_reset_token = Some(reset_token);
@@ -321,6 +405,7 @@ pub async fn session(
 fn map_user(user: &users::UserRecord) -> AuthUserResponse {
     AuthUserResponse {
         id: user.id.to_string(),
+        name: user.name.clone(),
         email: user.email.clone(),
         role: user.role.clone(),
         email_verified: user.is_email_verified(),

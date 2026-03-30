@@ -29,6 +29,7 @@ pub struct BillingSettings {
 #[derive(Clone)]
 pub struct RuntimeSettings {
     pub app_env: String,
+    pub app_base_url: String,
 }
 
 #[derive(Clone)]

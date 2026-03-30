@@ -36,6 +36,14 @@ pub fn normalize_email(value: &str) -> Option<String> {
     Some(normalized)
 }
 
+pub fn normalize_user_name(value: &str) -> Option<String> {
+    let normalized = value.trim();
+    if normalized.is_empty() || normalized.len() > 120 {
+        return None;
+    }
+    Some(normalized.to_string())
+}
+
 pub fn validate_password(password: &str) -> Result<(), String> {
     if password.len() < MIN_PASSWORD_LEN {
         return Err(format!("password must be at least {MIN_PASSWORD_LEN} characters"));

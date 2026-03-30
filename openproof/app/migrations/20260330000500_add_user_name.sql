@@ -1,0 +1,9 @@
+ALTER TABLE users
+ADD COLUMN name TEXT;
+
+UPDATE users
+SET name = NULLIF(BTRIM(SPLIT_PART(email, '@', 1)), '')
+WHERE name IS NULL;
+
+ALTER TABLE users
+ALTER COLUMN name SET NOT NULL;

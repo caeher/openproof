@@ -5,6 +5,7 @@ use uuid::Uuid;
 #[derive(Debug, Clone)]
 pub struct UserRecord {
     pub id: Uuid,
+    pub name: String,
     pub email: String,
     pub role: String,
     pub email_verified_at: Option<DateTime<Utc>>,
@@ -27,6 +28,7 @@ pub struct UserAuthRecord {
 fn row_to_user(row: &sqlx::postgres::PgRow) -> UserRecord {
     UserRecord {
         id: row.get("id"),
+        name: row.get("name"),
         email: row.get("email"),
         role: row.get("role"),
         email_verified_at: row.try_get("email_verified_at").ok().flatten(),
@@ -37,6 +39,7 @@ fn row_to_user(row: &sqlx::postgres::PgRow) -> UserRecord {
 
 pub async fn create_user_with_password(
     pool: &PgPool,
+    name: &str,
     email: &str,
     password_hash: &str,
 ) -> Result<UserRecord, sqlx::Error> {
@@ -46,11 +49,12 @@ pub async fn create_user_with_password(
 
     sqlx::query(
         r#"
-        INSERT INTO users (id, email, role, email_verified_at, legacy_key, created_at, updated_at)
-        VALUES ($1, $2, 'user', NULL, NULL, $3, $4)
+        INSERT INTO users (id, name, email, role, email_verified_at, legacy_key, created_at, updated_at)
+        VALUES ($1, $2, $3, 'user', NULL, NULL, $4, $5)
         "#,
     )
     .bind(user_id)
+    .bind(name)
     .bind(email)
     .bind(now)
     .bind(now)
@@ -70,7 +74,7 @@ pub async fn create_user_with_password(
     .execute(&mut *tx)
     .await?;
 
-    let row = sqlx::query("SELECT id, email, role, email_verified_at, created_at, updated_at FROM users WHERE id = $1")
+    let row = sqlx::query("SELECT id, name, email, role, email_verified_at, created_at, updated_at FROM users WHERE id = $1")
         .bind(user_id)
         .fetch_one(&mut *tx)
         .await?;
@@ -81,7 +85,7 @@ pub async fn create_user_with_password(
 
 pub async fn find_by_id(pool: &PgPool, user_id: Uuid) -> Result<Option<UserRecord>, sqlx::Error> {
     let row = sqlx::query(
-        "SELECT id, email, role, email_verified_at, created_at, updated_at FROM users WHERE id = $1",
+        "SELECT id, name, email, role, email_verified_at, created_at, updated_at FROM users WHERE id = $1",
     )
     .bind(user_id)
     .fetch_optional(pool)
@@ -91,7 +95,7 @@ pub async fn find_by_id(pool: &PgPool, user_id: Uuid) -> Result<Option<UserRecor
 
 pub async fn find_by_email(pool: &PgPool, email: &str) -> Result<Option<UserRecord>, sqlx::Error> {
     let row = sqlx::query(
-        "SELECT id, email, role, email_verified_at, created_at, updated_at FROM users WHERE email = $1",
+        "SELECT id, name, email, role, email_verified_at, created_at, updated_at FROM users WHERE email = $1",
     )
     .bind(email)
     .fetch_optional(pool)
@@ -107,6 +111,7 @@ pub async fn find_auth_by_email(
         r#"
         SELECT
             u.id,
+            u.name,
             u.email,
             u.role,
             u.email_verified_at,
@@ -136,6 +141,7 @@ pub async fn find_auth_by_id(
         r#"
         SELECT
             u.id,
+            u.name,
             u.email,
             u.role,
             u.email_verified_at,
@@ -188,7 +194,7 @@ pub async fn update_password_for_user(
         UPDATE users
         SET updated_at = $2
         WHERE id = $1
-        RETURNING id, email, role, email_verified_at, created_at, updated_at
+        RETURNING id, name, email, role, email_verified_at, created_at, updated_at
         "#,
     )
     .bind(user_id)
@@ -277,7 +283,7 @@ pub async fn consume_email_verification_token(
         UPDATE users
         SET email_verified_at = COALESCE(email_verified_at, $2), updated_at = $2
         WHERE id = $1
-        RETURNING id, email, role, email_verified_at, created_at, updated_at
+        RETURNING id, name, email, role, email_verified_at, created_at, updated_at
         "#,
     )
     .bind(user_id)
@@ -380,7 +386,7 @@ pub async fn consume_password_reset_token(
         UPDATE users
         SET updated_at = $2
         WHERE id = $1
-        RETURNING id, email, role, email_verified_at, created_at, updated_at
+        RETURNING id, name, email, role, email_verified_at, created_at, updated_at
         "#,
     )
     .bind(user_id)
