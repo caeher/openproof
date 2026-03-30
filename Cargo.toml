@@ -6,6 +6,7 @@ members = [
     "lib/authz",
     "lib/bitcoin-rpc",
     "openproof/app",
+    "openproof/api-server",
 ]
 
 [workspace.package]
