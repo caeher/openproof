@@ -4,6 +4,7 @@ members = [
     "core/document",
     "core/notarization",
     "lib/authz",
+    "lib/bitcoin-rpc",
 ]
 
 [workspace.package]
