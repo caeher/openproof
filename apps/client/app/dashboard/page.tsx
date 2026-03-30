@@ -2,7 +2,9 @@
 
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
-import { ArrowLeft, User, FileText, CheckCircle2, Clock, ArrowRight, Plus, Settings, LogOut } from 'lucide-react'
+import { ArrowLeft, FileText, CheckCircle2, ArrowRight, Plus, Settings, LogOut } from 'lucide-react'
+import { AuthGuard } from '@/components/auth/auth-guard'
+import { useAuth } from '@/components/auth/auth-provider'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
 import { Avatar, AvatarFallback } from '@/components/ui/avatar'
@@ -13,22 +15,25 @@ import { DocumentCard, TimestampDisplay } from '@/components/proof'
 import { getDocuments } from '@/lib/api'
 import type { Document } from '@/types'
 
-// Mock user data
-const mockUser = {
-  id: 'user_1',
-  email: 'usuario@ejemplo.com',
-  name: 'Usuario Demo',
-  createdAt: '2024-01-01T00:00:00Z',
-}
-
 export default function DashboardPage() {
+  const { isLoading: isAuthLoading, logoutCurrentSession, user } = useAuth()
   const [documents, setDocuments] = useState<Document[]>([])
   const [isLoading, setIsLoading] = useState(true)
 
   useEffect(() => {
+    if (isAuthLoading) {
+      return
+    }
+
+    if (!user?.emailVerified) {
+      setDocuments([])
+      setIsLoading(false)
+      return
+    }
+
     async function fetchDocuments() {
       try {
-        const response = await getDocuments(mockUser.id)
+        const response = await getDocuments()
         if (response.success && response.data) {
           setDocuments(response.data)
         }
@@ -40,7 +45,7 @@ export default function DashboardPage() {
     }
 
     fetchDocuments()
-  }, [])
+  }, [isAuthLoading, user?.emailVerified])
 
   const stats = {
     total: documents.length,
@@ -49,6 +54,8 @@ export default function DashboardPage() {
   }
 
   const recentDocuments = documents.slice(0, 3)
+  const displayName = user?.email.split('@')[0] || 'Cuenta'
+  const avatarFallback = displayName.slice(0, 2).toUpperCase()
 
   return (
     <div className="min-h-screen flex flex-col bg-background">
@@ -66,25 +73,26 @@ export default function DashboardPage() {
           </Link>
 
           <div className="max-w-4xl mx-auto">
+            <AuthGuard requireVerified>
             {/* User profile header */}
             <Card className="mb-8">
               <CardContent className="pt-6">
                 <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4">
                   <Avatar className="w-16 h-16">
                     <AvatarFallback className="text-lg bg-secondary">
-                      {mockUser.name.split(' ').map(n => n[0]).join('')}
+                      {avatarFallback}
                     </AvatarFallback>
                   </Avatar>
                   
                   <div className="flex-1">
                     <h1 className="text-xl font-bold text-foreground">
-                      {mockUser.name}
+                      {displayName}
                     </h1>
                     <p className="text-sm text-muted-foreground">
-                      {mockUser.email}
+                      {user?.email}
                     </p>
                     <p className="text-xs text-muted-foreground mt-1">
-                      Miembro desde <TimestampDisplay timestamp={mockUser.createdAt} variant="date-only" />
+                      Miembro desde <TimestampDisplay timestamp={user?.createdAt || new Date().toISOString()} variant="date-only" />
                     </p>
                   </div>
                   
@@ -231,12 +239,19 @@ export default function DashboardPage() {
                   </Link>
                 </Button>
                 <Separator />
-                <Button variant="ghost" className="w-full justify-start text-destructive hover:text-destructive">
+                <Button
+                  variant="ghost"
+                  className="w-full justify-start text-destructive hover:text-destructive"
+                  onClick={() => {
+                    void logoutCurrentSession()
+                  }}
+                >
                   <LogOut className="w-4 h-4 mr-3" />
                   Cerrar sesión
                 </Button>
               </CardContent>
             </Card>
+            </AuthGuard>
           </div>
         </div>
       </main>

@@ -3,10 +3,11 @@
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { ArrowLeft, Search, Filter, FileText, Clock, CheckCircle2, Loader2 } from 'lucide-react'
+import { AuthGuard } from '@/components/auth/auth-guard'
+import { useAuth } from '@/components/auth/auth-provider'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
-import { Badge } from '@/components/ui/badge'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Empty } from '@/components/ui/empty'
 import { Skeleton } from '@/components/ui/skeleton'
@@ -16,15 +17,26 @@ import { getDocuments } from '@/lib/api'
 import type { Document, DocumentStatus } from '@/types'
 
 export default function HistoryPage() {
+  const { isLoading: isAuthLoading, user } = useAuth()
   const [documents, setDocuments] = useState<Document[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [searchQuery, setSearchQuery] = useState('')
   const [statusFilter, setStatusFilter] = useState<DocumentStatus | 'all'>('all')
 
   useEffect(() => {
+    if (isAuthLoading) {
+      return
+    }
+
+    if (!user?.emailVerified) {
+      setDocuments([])
+      setIsLoading(false)
+      return
+    }
+
     async function fetchDocuments() {
       try {
-        const response = await getDocuments('user_1') // Demo user
+        const response = await getDocuments()
         if (response.success && response.data) {
           setDocuments(response.data)
         }
@@ -36,7 +48,7 @@ export default function HistoryPage() {
     }
 
     fetchDocuments()
-  }, [])
+  }, [isAuthLoading, user?.emailVerified])
 
   const filteredDocuments = documents.filter((doc) => {
     const matchesSearch = 
@@ -68,6 +80,7 @@ export default function HistoryPage() {
             Volver al inicio
           </Link>
 
+          <AuthGuard requireVerified>
           {/* Header */}
           <div className="mb-8">
             <h1 className="text-2xl md:text-3xl font-bold text-foreground">
@@ -220,6 +233,7 @@ export default function HistoryPage() {
               }
             />
           )}
+          </AuthGuard>
         </div>
       </main>
       

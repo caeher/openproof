@@ -3,18 +3,26 @@
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { Home, Upload, Search, FolderOpen, User } from 'lucide-react'
+import { useAuth } from '@/components/auth/auth-provider'
 import { cn } from '@/lib/utils'
 
-const navItems = [
+const publicNavItems = [
   { href: '/', label: 'Inicio', icon: Home },
-  { href: '/register', label: 'Registrar', icon: Upload },
   { href: '/verify', label: 'Verificar', icon: Search },
+]
+
+const privateNavItems = [
+  { href: '/register', label: 'Registrar', icon: Upload },
   { href: '/history', label: 'Historial', icon: FolderOpen },
   { href: '/dashboard', label: 'Cuenta', icon: User },
 ]
 
 export function MobileNav() {
   const pathname = usePathname()
+  const { isAuthenticated } = useAuth()
+  const navItems = isAuthenticated
+    ? [...publicNavItems, ...privateNavItems]
+    : publicNavItems
 
   return (
     <nav className="fixed bottom-0 left-0 right-0 z-50 md:hidden">

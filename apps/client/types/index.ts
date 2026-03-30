@@ -5,7 +5,6 @@ export interface Document {
   fileHash: string
   filename: string
   metadata?: DocumentMetadata
-  userId: string
   transactionId?: string
   blockHeight?: number
   timestamp?: string
@@ -13,6 +12,18 @@ export interface Document {
   status: DocumentStatus
   createdAt: string
   updatedAt: string
+  failureReason?: string
+}
+
+export interface PublicDocumentProof {
+  documentId: string
+  fileHash: string
+  transactionId?: string
+  blockHeight?: number
+  timestamp?: string
+  confirmations?: number
+  status: DocumentStatus
+  createdAt: string
 }
 
 export interface DocumentMetadata {
@@ -30,7 +41,7 @@ export type DocumentStatus =
 
 export interface VerificationResult {
   exists: boolean
-  document?: Document
+  document?: Document | PublicDocumentProof
   transactionId?: string
   blockHeight?: number
   timestamp?: string
@@ -59,13 +70,15 @@ export interface TxOutput {
   opReturn?: string
 }
 
-export interface User {
+export interface AuthUser {
   id: string
   email: string
-  name?: string
+  role: string
+  emailVerified: boolean
   createdAt: string
-  documentsCount: number
 }
+
+export type User = AuthUser
 
 // API Response types
 export interface ApiResponse<T> {
@@ -78,7 +91,6 @@ export interface RegisterDocumentRequest {
   fileHash: string
   filename: string
   metadata?: DocumentMetadata
-  userId: string
 }
 
 export interface RegisterDocumentResponse {
@@ -99,6 +111,25 @@ export interface VerifyDocumentResponse {
   blockHeight?: number
   timestamp?: string
   confirmations?: number
+}
+
+export interface SessionResponse {
+  user: AuthUser
+}
+
+export interface SignupResponse {
+  user: AuthUser
+  emailVerificationRequired: boolean
+  devVerificationToken?: string
+}
+
+export interface ForgotPasswordResponse {
+  message: string
+  devResetToken?: string
+}
+
+export interface StatusResponse {
+  message: string
 }
 
 // UI State types

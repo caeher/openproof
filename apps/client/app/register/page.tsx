@@ -3,6 +3,7 @@
 import { useState, useCallback } from 'react'
 import Link from 'next/link'
 import { ArrowLeft, CheckCircle2, AlertCircle, Info } from 'lucide-react'
+import { AuthGuard } from '@/components/auth/auth-guard'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
 import { Alert, AlertDescription } from '@/components/ui/alert'
@@ -72,7 +73,6 @@ export default function RegisterPage() {
         fileHash: hash,
         filename: file.name,
         metadata,
-        userId: 'user_demo', // In production, this would come from auth
       })
       
       if (response.success && response.data) {
@@ -114,6 +114,7 @@ export default function RegisterPage() {
           </Link>
 
           <div className="max-w-2xl mx-auto">
+            <AuthGuard requireVerified>
             {/* Header */}
             <div className="text-center mb-8">
               <h1 className="text-2xl md:text-3xl font-bold text-foreground">
@@ -342,6 +343,7 @@ export default function RegisterPage() {
                 </CardContent>
               </Card>
             )}
+            </AuthGuard>
           </div>
         </div>
       </main>

@@ -1,32 +1,48 @@
 'use client'
 
 import Link from 'next/link'
-import { usePathname } from 'next/navigation'
-import { Menu, Shield, Sun, Moon } from 'lucide-react'
-import { useState, useEffect, useId } from 'react'
+import { usePathname, useRouter } from 'next/navigation'
+import { Menu, Shield, Sun, Moon, LogOut, LayoutDashboard } from 'lucide-react'
+import { useState, useEffect } from 'react'
 import { useTheme } from 'next-themes'
+import { useAuth } from '@/components/auth/auth-provider'
 import { cn } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
 import { Sheet, SheetContent, SheetTrigger, SheetTitle } from '@/components/ui/sheet'
 
-const navLinks = [
+const publicNavLinks = [
   { href: '/', label: 'Inicio' },
-  { href: '/register', label: 'Registrar' },
   { href: '/verify', label: 'Verificar' },
-  { href: '/history', label: 'Historial' },
   { href: '/faq', label: 'FAQ' },
   { href: '/api-docs', label: 'API' },
 ]
 
+const privateNavLinks = [
+  { href: '/register', label: 'Registrar' },
+  { href: '/history', label: 'Historial' },
+  { href: '/dashboard', label: 'Cuenta' },
+]
+
 export function Header() {
   const pathname = usePathname()
+  const router = useRouter()
   const [open, setOpen] = useState(false)
   const { theme, setTheme } = useTheme()
   const [mounted, setMounted] = useState(false)
+  const { isAuthenticated, logoutCurrentSession, user } = useAuth()
+  const navLinks = isAuthenticated
+    ? [...publicNavLinks, ...privateNavLinks]
+    : publicNavLinks
 
   useEffect(() => {
     setMounted(true)
   }, [])
+
+  async function handleLogout() {
+    await logoutCurrentSession()
+    setOpen(false)
+    router.push('/')
+  }
 
   return (
     <header className="sticky top-0 z-40 w-full bg-background/95 backdrop-blur-lg border-b border-border">
@@ -63,6 +79,13 @@ export function Header() {
 
           {/* Actions */}
           <div className="flex items-center gap-2">
+            {isAuthenticated && user ? (
+              <div className="hidden lg:flex items-center gap-2 rounded-full border border-border bg-secondary/40 px-3 py-1.5 text-sm text-muted-foreground">
+                <LayoutDashboard className="h-4 w-4" />
+                <span className="max-w-[160px] truncate">{user.email}</span>
+              </div>
+            ) : null}
+
             {/* Theme Toggle */}
             <Button
               variant="ghost"
@@ -75,10 +98,26 @@ export function Header() {
               <span className="sr-only">Cambiar tema</span>
             </Button>
 
-            {/* CTA Button */}
-            <Button asChild className="hidden sm:flex">
-              <Link href="/register">Registrar documento</Link>
-            </Button>
+            {isAuthenticated ? (
+              <>
+                <Button asChild variant="outline" className="hidden sm:flex">
+                  <Link href="/dashboard">Dashboard</Link>
+                </Button>
+                <Button className="hidden sm:flex" onClick={() => void handleLogout()}>
+                  <LogOut className="mr-2 h-4 w-4" />
+                  Cerrar sesion
+                </Button>
+              </>
+            ) : (
+              <>
+                <Button asChild variant="outline" className="hidden sm:flex">
+                  <Link href="/login">Iniciar sesion</Link>
+                </Button>
+                <Button asChild className="hidden sm:flex">
+                  <Link href="/signup">Crear cuenta</Link>
+                </Button>
+              </>
+            )}
 
             {/* Mobile Menu */}
             <div className="md:hidden" suppressHydrationWarning>
@@ -109,6 +148,24 @@ export function Header() {
                             {link.label}
                           </Link>
                         ))}
+                        {!isAuthenticated ? (
+                          <>
+                            <Link
+                              href="/login"
+                              onClick={() => setOpen(false)}
+                              className="px-4 py-3 text-base font-medium rounded-lg text-muted-foreground hover:text-foreground hover:bg-secondary/50"
+                            >
+                              Iniciar sesion
+                            </Link>
+                            <Link
+                              href="/signup"
+                              onClick={() => setOpen(false)}
+                              className="px-4 py-3 text-base font-medium rounded-lg text-muted-foreground hover:text-foreground hover:bg-secondary/50"
+                            >
+                              Crear cuenta
+                            </Link>
+                          </>
+                        ) : null}
                       </nav>
 
                       <div className="flex items-center justify-between px-4 pt-4 border-t border-border">
@@ -132,11 +189,18 @@ export function Header() {
                         </Button>
                       </div>
 
-                      <Button asChild className="mx-4">
-                        <Link href="/register" onClick={() => setOpen(false)}>
-                          Registrar documento
-                        </Link>
-                      </Button>
+                      {isAuthenticated ? (
+                        <Button className="mx-4" onClick={() => void handleLogout()}>
+                          <LogOut className="mr-2 h-4 w-4" />
+                          Cerrar sesion
+                        </Button>
+                      ) : (
+                        <Button asChild className="mx-4">
+                          <Link href="/signup" onClick={() => setOpen(false)}>
+                            Crear cuenta
+                          </Link>
+                        </Button>
+                      )}
                     </div>
                   </SheetContent>
                 </Sheet>

@@ -15,7 +15,7 @@ import {
   ProofProcess,
 } from '@/components/proof'
 import { getBitcoinTransaction, getDocumentByTransaction } from '@/lib/api'
-import type { BitcoinTransaction, Document } from '@/types'
+import type { BitcoinTransaction, PublicDocumentProof } from '@/types'
 
 /** Try to recover a 32-byte SHA-256 hex digest from OP_RETURN script hex (best-effort). */
 function extractSha256FromOutputs(outputs: { opReturn?: string }[]): string {
@@ -38,7 +38,7 @@ export default function PublicVerificationPage({
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [transaction, setTransaction] = useState<BitcoinTransaction | null>(null)
-  const [registryDoc, setRegistryDoc] = useState<Document | null>(null)
+  const [registryDoc, setRegistryDoc] = useState<PublicDocumentProof | null>(null)
   const [copied, setCopied] = useState(false)
 
   useEffect(() => {
@@ -92,7 +92,9 @@ export default function PublicVerificationPage({
     }
   }
 
-  const displayFilename = registryDoc?.filename ?? 'Registro en blockchain'
+  const displayFilename = registryDoc
+    ? `Documento ${registryDoc.documentId.slice(0, 8)}`
+    : 'Registro en blockchain'
   const displayHash =
     registryDoc?.fileHash ||
     (transaction ? extractSha256FromOutputs(transaction.outputs) : '')

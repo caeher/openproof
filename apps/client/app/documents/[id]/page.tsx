@@ -3,6 +3,8 @@
 import { useState, useEffect, use } from 'react'
 import Link from 'next/link'
 import { ArrowLeft, Share2, Download, FileText, Calendar, Hash, Blocks, Clock, ExternalLink } from 'lucide-react'
+import { AuthGuard } from '@/components/auth/auth-guard'
+import { useAuth } from '@/components/auth/auth-provider'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
@@ -26,11 +28,23 @@ export default function DocumentDetailPage({
   params: Promise<{ id: string }> 
 }) {
   const { id } = use(params)
+  const { isLoading: isAuthLoading, user } = useAuth()
   const [document, setDocument] = useState<Document | null>(null)
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
+    if (isAuthLoading) {
+      return
+    }
+
+    if (!user?.emailVerified) {
+      setDocument(null)
+      setError(null)
+      setIsLoading(false)
+      return
+    }
+
     async function fetchDocument() {
       try {
         const response = await getDocument(id)
@@ -47,7 +61,7 @@ export default function DocumentDetailPage({
     }
 
     fetchDocument()
-  }, [id])
+  }, [id, isAuthLoading, user?.emailVerified])
 
   const handleShare = async () => {
     if (!document) return
@@ -85,33 +99,34 @@ export default function DocumentDetailPage({
             Volver al historial
           </Link>
 
-          {isLoading ? (
-            <div className="max-w-3xl mx-auto space-y-6">
-              <Skeleton className="h-8 w-1/3" />
-              <Skeleton className="h-4 w-1/4" />
-              <Card>
-                <CardContent className="p-6 space-y-4">
-                  <Skeleton className="h-6 w-full" />
-                  <Skeleton className="h-6 w-3/4" />
-                  <Skeleton className="h-6 w-1/2" />
-                </CardContent>
-              </Card>
-            </div>
-          ) : error || !document ? (
-            <div className="max-w-xl mx-auto text-center py-12">
-              <FileText className="w-16 h-16 text-muted-foreground mx-auto mb-4" />
-              <h1 className="text-xl font-semibold text-foreground mb-2">
-                {error || 'Documento no encontrado'}
-              </h1>
-              <p className="text-muted-foreground mb-6">
-                El documento que buscas no existe o ha sido eliminado.
-              </p>
-              <Button asChild>
-                <Link href="/history">Ver historial</Link>
-              </Button>
-            </div>
-          ) : (
-            <div className="max-w-3xl mx-auto">
+          <AuthGuard requireVerified>
+            {isLoading ? (
+              <div className="max-w-3xl mx-auto space-y-6">
+                <Skeleton className="h-8 w-1/3" />
+                <Skeleton className="h-4 w-1/4" />
+                <Card>
+                  <CardContent className="p-6 space-y-4">
+                    <Skeleton className="h-6 w-full" />
+                    <Skeleton className="h-6 w-3/4" />
+                    <Skeleton className="h-6 w-1/2" />
+                  </CardContent>
+                </Card>
+              </div>
+            ) : error || !document ? (
+              <div className="max-w-xl mx-auto text-center py-12">
+                <FileText className="w-16 h-16 text-muted-foreground mx-auto mb-4" />
+                <h1 className="text-xl font-semibold text-foreground mb-2">
+                  {error || 'Documento no encontrado'}
+                </h1>
+                <p className="text-muted-foreground mb-6">
+                  El documento que buscas no existe o ha sido eliminado.
+                </p>
+                <Button asChild>
+                  <Link href="/history">Ver historial</Link>
+                </Button>
+              </div>
+            ) : (
+              <div className="max-w-3xl mx-auto">
               {/* Header */}
               <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4 mb-8">
                 <div>
@@ -319,7 +334,8 @@ export default function DocumentDetailPage({
                 </div>
               </div>
             </div>
-          )}
+            )}
+          </AuthGuard>
         </div>
       </main>
       
