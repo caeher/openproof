@@ -3,10 +3,10 @@ use std::sync::Arc;
 use axum::extract::{Path, State};
 use axum::http::{HeaderMap, StatusCode};
 use axum::Json;
-use core_document::{ready_for_notarization, DocumentId, NewDocument};
+use core_document::{DocumentId, NewDocument};
 use lib_authz::AuthorizationError;
+use openproof_app::billing::{self, BillingError};
 use openproof_app::documents;
-use openproof_app::outbox;
 use serde::Deserialize;
 use uuid::Uuid;
 
@@ -117,22 +117,24 @@ pub async fn register(
         user_id: session.subject.user_id,
         metadata: body.metadata,
     };
-    let doc = match documents::insert_document(&state.pool, new).await {
+    let doc = match billing::register_document_with_credits(
+        &state.pool,
+        new,
+        state.billing.document_registration_credit_cost,
+    )
+    .await
+    {
         Ok(d) => d,
-        Err(e) => {
+        Err(BillingError::InsufficientCredits { required, available }) => {
             return err_json(
-                axum::http::StatusCode::INTERNAL_SERVER_ERROR,
-                format!("db: {e}"),
-            );
+                StatusCode::PAYMENT_REQUIRED,
+                format!("insufficient credits: required {required}, available {available}"),
+            )
+        }
+        Err(error) => {
+            return err_json(StatusCode::INTERNAL_SERVER_ERROR, format!("billing: {error}"));
         }
     };
-    let ev = ready_for_notarization(&doc);
-    if let Err(e) = outbox::enqueue(&state.pool, id.0, &ev).await {
-        return err_json(
-            axum::http::StatusCode::INTERNAL_SERVER_ERROR,
-            format!("outbox: {e}"),
-        );
-    }
     ok_json(RegisterDocumentResponse {
         document_id: doc.id.clone(),
         transaction_id: doc.transaction_id.clone(),

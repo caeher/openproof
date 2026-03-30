@@ -6,7 +6,7 @@ const SESSION_COOKIE_NAME =
   process.env.NEXT_PUBLIC_SESSION_COOKIE_NAME ||
   'openproof_session'
 
-const PRIVATE_PREFIXES = ['/dashboard', '/history', '/register', '/documents', '/developers']
+const PRIVATE_PREFIXES = ['/dashboard', '/history', '/register', '/documents', '/developers', '/billing']
 
 export function proxy(request: NextRequest) {
   const { pathname, search } = request.nextUrl

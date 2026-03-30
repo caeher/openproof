@@ -91,6 +91,46 @@ export interface DeveloperApiKey {
   updatedAt: string
 }
 
+export interface CreditAccountSummary {
+  balanceCredits: number
+  purchasedCredits: number
+  consumedCredits: number
+  updatedAt: string
+}
+
+export interface CreditPackage {
+  id: string
+  code: string
+  name: string
+  description?: string
+  priceUsdCents: number
+  credits: number
+}
+
+export interface PaymentIntent {
+  id: string
+  packageId: string
+  packageCode: string
+  packageName: string
+  amountUsdCents: number
+  credits: number
+  status: string
+  blinkInvoiceStatus: string
+  paymentRequest?: string
+  paymentHash?: string
+  expiresAt?: string
+  paidAt?: string
+  createdAt: string
+  updatedAt: string
+}
+
+export interface BillingOverviewResponse {
+  account: CreditAccountSummary
+  packages: CreditPackage[]
+  paymentIntents: PaymentIntent[]
+  documentRegistrationCreditCost: number
+}
+
 // API Response types
 export interface ApiResponse<T> {
   success: boolean

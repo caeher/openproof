@@ -3,7 +3,7 @@ use std::sync::Arc;
 use axum::routing::{get, post};
 use axum::Router;
 
-use crate::handlers::{auth, developers, documents, transactions};
+use crate::handlers::{auth, billing, developers, documents, transactions};
 use crate::AppState;
 
 pub fn api_router(state: Arc<AppState>) -> Router {
@@ -28,6 +28,16 @@ pub fn api_router(state: Arc<AppState>) -> Router {
             "/api/v1/developers/api-keys/{id}/rotate",
             post(developers::rotate_api_key),
         )
+        .route("/api/v1/billing/overview", get(billing::overview))
+        .route(
+            "/api/v1/billing/payment-intents",
+            post(billing::create_payment_intent),
+        )
+        .route(
+            "/api/v1/billing/payment-intents/{id}/reconcile",
+            post(billing::reconcile_payment_intent),
+        )
+        .route("/api/v1/billing/blink/webhook", post(billing::blink_webhook))
         .route(
             "/api/v1/documents",
             get(documents::list).post(documents::register),

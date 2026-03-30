@@ -32,6 +32,7 @@ export default function RegisterPage() {
     transactionId?: string
     documentId: string
   } | null>(null)
+  const needsCredits = Boolean(error && error.toLowerCase().includes('insufficient credits'))
 
   const handleFileSelect = useCallback(async (selectedFile: File) => {
     setFile(selectedFile)
@@ -85,7 +86,8 @@ export default function RegisterPage() {
         throw new Error(response.error || 'Error desconocido')
       }
     } catch (err) {
-      setError('Error al registrar el documento. Por favor, intenta de nuevo.')
+      const message = err instanceof Error ? err.message : 'Error al registrar el documento. Por favor, intenta de nuevo.'
+      setError(message)
       setStep('confirm')
     } finally {
       setIsSubmitting(false)
@@ -146,6 +148,22 @@ export default function RegisterPage() {
                 <AlertDescription>{error}</AlertDescription>
               </Alert>
             )}
+
+            {needsCredits ? (
+              <Card className="mb-6 border-accent/20">
+                <CardContent className="pt-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+                  <div>
+                    <h2 className="font-semibold text-foreground">Necesitas saldo para registrar</h2>
+                    <p className="text-sm text-muted-foreground">
+                      Compra un paquete de creditos y vuelve a intentar el registro.
+                    </p>
+                  </div>
+                  <Button asChild>
+                    <Link href="/billing">Ir a billing</Link>
+                  </Button>
+                </CardContent>
+              </Card>
+            ) : null}
 
             {/* Step content */}
             {step === 'upload' && (

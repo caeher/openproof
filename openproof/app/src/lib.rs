@@ -3,6 +3,7 @@
 use sqlx::PgPool;
 
 pub mod api_keys;
+pub mod billing;
 pub mod documents;
 pub mod error;
 pub mod outbox;

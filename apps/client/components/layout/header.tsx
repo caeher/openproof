@@ -21,6 +21,7 @@ const privateNavLinks = [
   { href: '/register', label: 'Registrar' },
   { href: '/history', label: 'Historial' },
   { href: '/developers', label: 'Developers' },
+  { href: '/billing', label: 'Billing' },
   { href: '/dashboard', label: 'Cuenta' },
 ]
 

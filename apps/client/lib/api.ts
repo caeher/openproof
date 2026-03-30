@@ -3,11 +3,14 @@
 import type {
   ApiResponse,
   BitcoinTransaction,
+  BillingOverviewResponse,
+  CreditPackage,
   CreateApiKeyResponse,
   DeveloperApiKey,
   Document,
   ForgotPasswordResponse,
   PublicDocumentProof,
+  PaymentIntent,
   RegisterDocumentRequest,
   RegisterDocumentResponse,
   SessionResponse,
@@ -167,6 +170,32 @@ export async function rotateApiKey(
 ): Promise<ApiResponse<CreateApiKeyResponse>> {
   return fetchJson<CreateApiKeyResponse>(
     `/developers/api-keys/${encodeURIComponent(id)}/rotate`,
+    {
+      method: 'POST',
+    }
+  )
+}
+
+export async function getBillingOverview(): Promise<ApiResponse<BillingOverviewResponse>> {
+  return fetchJson<BillingOverviewResponse>('/billing/overview', {
+    cache: 'no-store',
+  })
+}
+
+export async function createBillingPaymentIntent(
+  packageId: string
+): Promise<ApiResponse<PaymentIntent>> {
+  return fetchJson<PaymentIntent>('/billing/payment-intents', {
+    method: 'POST',
+    body: JSON.stringify({ packageId }),
+  })
+}
+
+export async function reconcileBillingPaymentIntent(
+  id: string
+): Promise<ApiResponse<PaymentIntent>> {
+  return fetchJson<PaymentIntent>(
+    `/billing/payment-intents/${encodeURIComponent(id)}/reconcile`,
     {
       method: 'POST',
     }

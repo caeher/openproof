@@ -3,12 +3,15 @@ use std::sync::Arc;
 use axum::http::Method;
 use lib_authz::{PermissionCheck, RoleBasedPerms};
 use lib_bitcoin_rpc::BitcoinRpcAdapter;
+use tracing_subscriber::EnvFilter;
+
+use crate::blink::BlinkClient;
 use openproof_app::workers;
 use openproof_app::OpenProofApp;
 use tower_http::cors::{Any, CorsLayer};
-use tracing_subscriber::EnvFilter;
 
 mod auth;
+mod blink;
 mod config;
 mod error;
 mod handlers;
@@ -25,12 +28,19 @@ pub struct AuthSettings {
     pub expose_dev_auth_tokens: bool,
 }
 
+#[derive(Clone)]
+pub struct BillingSettings {
+    pub document_registration_credit_cost: i64,
+}
+
 pub struct AppState {
     pub pool: sqlx::PgPool,
     pub bitcoin: Arc<dyn core_notarization::BitcoinNodePort>,
+    pub blink: Arc<BlinkClient>,
     pub perms: Arc<dyn PermissionCheck>,
     pub mailer: Arc<dyn mailer::EmailSender>,
     pub auth: AuthSettings,
+    pub billing: BillingSettings,
 }
 
 #[tokio::main]
@@ -57,6 +67,17 @@ async fn main() {
     let mailer: Arc<dyn mailer::EmailSender> = Arc::new(mailer::TracingEmailSender {
         app_base_url: cfg.app_base_url.clone(),
     });
+    let blink = match BlinkClient::new(
+        cfg.blink_api_url.clone(),
+        cfg.blink_api_key.clone(),
+        cfg.blink_webhook_secret.clone(),
+    ) {
+        Ok(value) => Arc::new(value),
+        Err(error) => {
+            eprintln!("blink client: {error}");
+            std::process::exit(1);
+        }
+    };
 
     let app = match OpenProofApp::connect(&cfg.database_url).await {
         Ok(a) => a,
@@ -68,10 +89,16 @@ async fn main() {
 
     let pool = app.pool.clone();
     tokio::spawn(workers::run_outbox_worker(pool, bitcoin.clone()));
+    tokio::spawn(blink::run_billing_reconcile_worker(
+        app.pool.clone(),
+        blink.clone(),
+        cfg.billing_reconcile_interval_seconds,
+    ));
 
     let state = Arc::new(AppState {
         pool: app.pool,
         bitcoin,
+        blink,
         perms,
         mailer,
         auth: AuthSettings {
@@ -81,6 +108,9 @@ async fn main() {
             password_reset_token_ttl_hours: cfg.password_reset_token_ttl_hours,
             secure_cookies: cfg.secure_cookies,
             expose_dev_auth_tokens: cfg.expose_dev_auth_tokens,
+        },
+        billing: BillingSettings {
+            document_registration_credit_cost: cfg.document_registration_credit_cost,
         },
     });
 

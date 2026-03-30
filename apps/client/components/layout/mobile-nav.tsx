@@ -2,7 +2,7 @@
 
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import { Home, Upload, Search, FolderOpen, User } from 'lucide-react'
+import { Home, Upload, Search, FolderOpen, User, Wallet } from 'lucide-react'
 import { useAuth } from '@/components/auth/auth-provider'
 import { cn } from '@/lib/utils'
 
@@ -14,6 +14,7 @@ const publicNavItems = [
 const privateNavItems = [
   { href: '/register', label: 'Registrar', icon: Upload },
   { href: '/history', label: 'Historial', icon: FolderOpen },
+  { href: '/billing', label: 'Billing', icon: Wallet },
   { href: '/dashboard', label: 'Cuenta', icon: User },
 ]
 
