@@ -2,6 +2,7 @@
 resolver = "2"
 members = [
     "core/document",
+    "core/notarization",
 ]
 
 [workspace.package]
