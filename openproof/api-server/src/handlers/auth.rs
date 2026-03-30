@@ -177,8 +177,10 @@ pub async fn logout(
     headers: HeaderMap,
 ) -> axum::response::Response {
     if let Ok(Some(session)) = auth::maybe_session(&headers, &state).await {
-        if let Err(error) = sessions::invalidate_session_by_token_hash(&state.pool, &session.token_hash).await {
-            return auth::internal_error(error);
+        if let Some(token_hash) = session.session_token_hash.as_deref() {
+            if let Err(error) = sessions::invalidate_session_by_token_hash(&state.pool, token_hash).await {
+                return auth::internal_error(error);
+            }
         }
     }
 

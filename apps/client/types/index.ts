@@ -80,6 +80,17 @@ export interface AuthUser {
 
 export type User = AuthUser
 
+export interface DeveloperApiKey {
+  id: string
+  name: string
+  keyPrefix: string
+  lastUsedAt?: string
+  revokedAt?: string
+  rotatedAt?: string
+  createdAt: string
+  updatedAt: string
+}
+
 // API Response types
 export interface ApiResponse<T> {
   success: boolean
@@ -121,6 +132,11 @@ export interface SignupResponse {
   user: AuthUser
   emailVerificationRequired: boolean
   devVerificationToken?: string
+}
+
+export interface CreateApiKeyResponse {
+  apiKey: DeveloperApiKey
+  plainTextKey: string
 }
 
 export interface ForgotPasswordResponse {

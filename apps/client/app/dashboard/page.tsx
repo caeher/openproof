@@ -233,9 +233,16 @@ export default function DashboardPage() {
               </CardHeader>
               <CardContent className="space-y-2">
                 <Button variant="ghost" className="w-full justify-start" asChild>
+                  <Link href="/developers">
+                    <Settings className="w-4 h-4 mr-3" />
+                    Developers y API keys
+                  </Link>
+                </Button>
+                <Separator />
+                <Button variant="ghost" className="w-full justify-start" asChild>
                   <Link href="/api-docs">
                     <Settings className="w-4 h-4 mr-3" />
-                    Acceso API
+                    Documentacion API
                   </Link>
                 </Button>
                 <Separator />

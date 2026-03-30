@@ -3,6 +3,8 @@
 import type {
   ApiResponse,
   BitcoinTransaction,
+  CreateApiKeyResponse,
+  DeveloperApiKey,
   Document,
   ForgotPasswordResponse,
   PublicDocumentProof,
@@ -132,6 +134,43 @@ export async function resetPassword(
     method: 'POST',
     body: JSON.stringify({ token, password }),
   })
+}
+
+export async function listApiKeys(): Promise<ApiResponse<DeveloperApiKey[]>> {
+  return fetchJson<DeveloperApiKey[]>('/developers/api-keys', {
+    cache: 'no-store',
+  })
+}
+
+export async function createApiKey(
+  name: string
+): Promise<ApiResponse<CreateApiKeyResponse>> {
+  return fetchJson<CreateApiKeyResponse>('/developers/api-keys', {
+    method: 'POST',
+    body: JSON.stringify({ name }),
+  })
+}
+
+export async function revokeApiKey(
+  id: string
+): Promise<ApiResponse<DeveloperApiKey>> {
+  return fetchJson<DeveloperApiKey>(
+    `/developers/api-keys/${encodeURIComponent(id)}/revoke`,
+    {
+      method: 'POST',
+    }
+  )
+}
+
+export async function rotateApiKey(
+  id: string
+): Promise<ApiResponse<CreateApiKeyResponse>> {
+  return fetchJson<CreateApiKeyResponse>(
+    `/developers/api-keys/${encodeURIComponent(id)}/rotate`,
+    {
+      method: 'POST',
+    }
+  )
 }
 
 export async function calculateSHA256(file: File): Promise<string> {

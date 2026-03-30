@@ -9,8 +9,8 @@ import { Header, Footer, MobileNav } from '@/components/layout'
 const endpoints = [
   {
     method: 'POST',
-    path: '/api/v1/documents/register',
-    description: 'Registra un nuevo documento en la blockchain',
+    path: '/api/v1/documents',
+    description: 'Registra un nuevo documento usando sesion autenticada o API key bearer',
     request: {
       body: `{
   "file_hash": "a7ffc6f8bf1ed76651c14756a061d662f580ff4de43b49fa82d80a4b80f8434a",
@@ -18,8 +18,7 @@ const endpoints = [
   "metadata": {
     "description": "Contract document",
     "tags": ["legal", "2024"]
-  },
-  "user_id": "user_123"
+  }
 }`,
     },
     response: `{
@@ -79,7 +78,7 @@ const endpoints = [
   {
     method: 'GET',
     path: '/api/v1/documents',
-    description: 'Lista todos los documentos del usuario',
+    description: 'Lista los documentos asociados al usuario autenticado o al owner de la API key',
     request: null,
     response: `{
   "success": true,
@@ -91,17 +90,12 @@ const endpoints = [
       "status": "confirmed",
       "created_at": "2024-01-15T10:25:00Z"
     }
-  ],
-  "pagination": {
-    "page": 1,
-    "per_page": 20,
-    "total": 42
-  }
+  ]
 }`,
   },
   {
     method: 'GET',
-    path: '/api/v1/bitcoin/tx/{txid}',
+    path: '/api/v1/transactions/{txid}',
     description: 'Obtiene detalles de una transacción Bitcoin',
     request: null,
     response: `{
@@ -165,9 +159,13 @@ export default function APIDocsPage() {
               </CardHeader>
               <CardContent>
                 <div className="p-4 rounded-lg bg-foreground text-background font-mono text-sm overflow-x-auto">
-                  <pre>{`curl -X POST https://api.proofchain.io/v1/documents/verify \\
+                  <pre>{`curl -X POST https://api.proofchain.io/api/v1/documents \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer YOUR_API_KEY" \
+  -d '{"file_hash": "a7ffc6f8bf1ed76651c14756a061d662...", "filename": "contract.pdf"}'
+
+curl -X POST https://api.proofchain.io/api/v1/documents/verify \
   -H "Content-Type: application/json" \\
-  -H "Authorization: Bearer YOUR_API_KEY" \\
   -d '{"file_hash": "a7ffc6f8bf1ed76651c14756a061d662..."}'`}</pre>
                 </div>
               </CardContent>
@@ -192,7 +190,7 @@ export default function APIDocsPage() {
                 </div>
                 
                 <p className="text-sm text-muted-foreground">
-                  Puedes generar tu API key desde el <Link href="/dashboard" className="text-foreground underline">dashboard</Link>.
+                  Puedes generar y rotar tus API keys desde <Link href="/developers" className="text-foreground underline">Developers</Link> una vez autenticado.
                 </p>
               </CardContent>
             </Card>

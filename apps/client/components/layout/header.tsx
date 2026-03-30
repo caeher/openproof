@@ -20,6 +20,7 @@ const publicNavLinks = [
 const privateNavLinks = [
   { href: '/register', label: 'Registrar' },
   { href: '/history', label: 'Historial' },
+  { href: '/developers', label: 'Developers' },
   { href: '/dashboard', label: 'Cuenta' },
 ]
 

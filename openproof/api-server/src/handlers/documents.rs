@@ -102,7 +102,7 @@ pub async fn register(
     headers: HeaderMap,
     Json(body): Json<RegisterDocumentRequest>,
 ) -> axum::response::Response {
-    let session = match auth::require_verified_session(&headers, &state).await {
+    let session = match auth::require_verified_session_or_api_key(&headers, &state).await {
         Ok(value) => value,
         Err(response) => return response,
     };
@@ -180,7 +180,7 @@ pub async fn get_by_id(
     headers: HeaderMap,
     Path(id): Path<String>,
 ) -> axum::response::Response {
-    let session = match auth::require_verified_session(&headers, &state).await {
+    let session = match auth::require_verified_session_or_api_key(&headers, &state).await {
         Ok(value) => value,
         Err(response) => return response,
     };
@@ -232,7 +232,7 @@ pub async fn list(
     State(state): State<Arc<AppState>>,
     headers: HeaderMap,
 ) -> axum::response::Response {
-    let session = match auth::require_verified_session(&headers, &state).await {
+    let session = match auth::require_verified_session_or_api_key(&headers, &state).await {
         Ok(value) => value,
         Err(response) => return response,
     };

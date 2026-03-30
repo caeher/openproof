@@ -2,6 +2,7 @@
 
 use sqlx::PgPool;
 
+pub mod api_keys;
 pub mod documents;
 pub mod error;
 pub mod outbox;
