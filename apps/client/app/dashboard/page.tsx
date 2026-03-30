@@ -2,23 +2,28 @@
 
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
+import { useRouter } from 'next/navigation'
 import { ArrowLeft, FileText, CheckCircle2, ArrowRight, Plus, Settings, LogOut } from 'lucide-react'
 import { AuthGuard } from '@/components/auth/auth-guard'
 import { useAuth } from '@/components/auth/auth-provider'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
+import { Alert, AlertDescription } from '@/components/ui/alert'
 import { Avatar, AvatarFallback } from '@/components/ui/avatar'
 import { Skeleton } from '@/components/ui/skeleton'
 import { Separator } from '@/components/ui/separator'
 import { Header, Footer, MobileNav } from '@/components/layout'
 import { DocumentCard, TimestampDisplay } from '@/components/proof'
-import { getDocuments } from '@/lib/api'
-import type { Document } from '@/types'
+import { getAccountProfile, getApiErrorMessage, getDocuments } from '@/lib/api'
+import type { AccountProfile, Document } from '@/types'
 
 export default function DashboardPage() {
+  const router = useRouter()
   const { isLoading: isAuthLoading, logoutCurrentSession, user } = useAuth()
   const [documents, setDocuments] = useState<Document[]>([])
+  const [accountProfile, setAccountProfile] = useState<AccountProfile | null>(null)
   const [isLoading, setIsLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
     if (isAuthLoading) {
@@ -33,12 +38,24 @@ export default function DashboardPage() {
 
     async function fetchDocuments() {
       try {
-        const response = await getDocuments()
-        if (response.success && response.data) {
-          setDocuments(response.data)
+        const [documentsResponse, profileResponse] = await Promise.all([
+          getDocuments(),
+          getAccountProfile(),
+        ])
+
+        if (documentsResponse.success && documentsResponse.data) {
+          setDocuments(documentsResponse.data)
+        } else {
+          setError(getApiErrorMessage(documentsResponse, 'No fue posible cargar los documentos.'))
+        }
+
+        if (profileResponse.success && profileResponse.data) {
+          setAccountProfile(profileResponse.data)
+        } else {
+          setError((current) => current || getApiErrorMessage(profileResponse, 'No fue posible cargar la cuenta.'))
         }
       } catch (error) {
-        console.error('Error fetching documents:', error)
+        setError('No fue posible cargar el dashboard.')
       } finally {
         setIsLoading(false)
       }
@@ -54,8 +71,13 @@ export default function DashboardPage() {
   }
 
   const recentDocuments = documents.slice(0, 3)
-  const displayName = user?.email.split('@')[0] || 'Cuenta'
+  const displayName = accountProfile?.user.email.split('@')[0] || user?.email.split('@')[0] || 'Cuenta'
   const avatarFallback = displayName.slice(0, 2).toUpperCase()
+
+  async function handleLogout() {
+    await logoutCurrentSession()
+    router.push('/')
+  }
 
   return (
     <div className="min-h-screen flex flex-col bg-background">
@@ -89,10 +111,10 @@ export default function DashboardPage() {
                       {displayName}
                     </h1>
                     <p className="text-sm text-muted-foreground">
-                      {user?.email}
+                      {accountProfile?.user.email || user?.email}
                     </p>
                     <p className="text-xs text-muted-foreground mt-1">
-                      Miembro desde <TimestampDisplay timestamp={user?.createdAt || new Date().toISOString()} variant="date-only" />
+                      Miembro desde <TimestampDisplay timestamp={accountProfile?.user.createdAt || user?.createdAt || new Date().toISOString()} variant="date-only" />
                     </p>
                   </div>
                   
@@ -107,6 +129,49 @@ export default function DashboardPage() {
                 </div>
               </CardContent>
             </Card>
+
+            {error ? (
+              <Alert className="mb-8" variant="destructive">
+                <AlertDescription>{error}</AlertDescription>
+              </Alert>
+            ) : null}
+
+            {accountProfile ? (
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-8">
+                <Card>
+                  <CardContent className="p-4">
+                    <p className="text-sm text-muted-foreground">Creditos disponibles</p>
+                    <p className="mt-2 text-3xl font-bold text-foreground">
+                      {accountProfile.creditAccount.balanceCredits}
+                    </p>
+                  </CardContent>
+                </Card>
+                <Card>
+                  <CardContent className="p-4">
+                    <p className="text-sm text-muted-foreground">API keys activas</p>
+                    <p className="mt-2 text-3xl font-bold text-foreground">
+                      {accountProfile.activeApiKeys}
+                    </p>
+                  </CardContent>
+                </Card>
+                <Card>
+                  <CardContent className="p-4">
+                    <p className="text-sm text-muted-foreground">Entorno</p>
+                    <p className="mt-2 text-lg font-semibold text-foreground">
+                      {accountProfile.environment}
+                    </p>
+                  </CardContent>
+                </Card>
+              </div>
+            ) : null}
+
+            {accountProfile && accountProfile.creditAccount.balanceCredits <= 2 ? (
+              <Alert className="mb-8">
+                <AlertDescription>
+                  Tu saldo está bajo. Compra más créditos en <Link href="/billing" className="underline underline-offset-4">billing</Link> antes de registrar nuevos documentos.
+                </AlertDescription>
+              </Alert>
+            ) : null}
 
             {/* Quick actions */}
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-8">
@@ -266,7 +331,7 @@ export default function DashboardPage() {
                   variant="ghost"
                   className="w-full justify-start text-destructive hover:text-destructive"
                   onClick={() => {
-                    void logoutCurrentSession()
+                    void handleLogout()
                   }}
                 >
                   <LogOut className="w-4 h-4 mr-3" />

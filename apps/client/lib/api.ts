@@ -25,6 +25,46 @@ import type {
 
 const API_BASE = '/api/v1'
 
+function broadcastUnauthorized() {
+  if (typeof window !== 'undefined') {
+    window.dispatchEvent(new CustomEvent('openproof:unauthorized'))
+  }
+}
+
+function defaultErrorMessage(statusCode: number, fallback: string, apiError?: string) {
+  if (statusCode === 401) {
+    return 'Tu sesión ya no es válida. Inicia sesión de nuevo.'
+  }
+
+  if (statusCode === 402) {
+    return apiError || 'No tienes créditos suficientes para completar la operación.'
+  }
+
+  if (statusCode === 403) {
+    if (apiError?.toLowerCase().includes('email verification')) {
+      return 'Verifica tu correo antes de continuar.'
+    }
+    return apiError || 'No tienes permisos para realizar esta operación.'
+  }
+
+  if (statusCode === 429) {
+    return 'Se alcanzó el límite de solicitudes. Espera un momento y vuelve a intentarlo.'
+  }
+
+  return apiError || fallback
+}
+
+export function getApiErrorMessage<T>(
+  response: ApiResponse<T>,
+  fallback: string
+) {
+  if (typeof response.statusCode === 'number') {
+    return defaultErrorMessage(response.statusCode, fallback, response.error)
+  }
+
+  return response.error || fallback
+}
+
 async function fetchJson<T>(
   path: string,
   init?: RequestInit
@@ -37,8 +77,38 @@ async function fetchJson<T>(
       ...(init?.headers ?? {}),
     },
   })
-  const json = (await res.json()) as ApiResponse<T>
-  return json
+  const contentType = res.headers.get('content-type') || ''
+  const rawBody = contentType.includes('application/json')
+    ? await res.json()
+    : await res.text()
+
+  if (res.status === 401) {
+    broadcastUnauthorized()
+  }
+
+  if (typeof rawBody === 'object' && rawBody !== null && 'success' in rawBody) {
+    return {
+      ...(rawBody as ApiResponse<T>),
+      statusCode: res.status,
+    }
+  }
+
+  if (res.ok) {
+    return {
+      success: true,
+      data: rawBody as T,
+      statusCode: res.status,
+    }
+  }
+
+  return {
+    success: false,
+    error:
+      typeof rawBody === 'string' && rawBody.trim().length > 0
+        ? rawBody
+        : undefined,
+    statusCode: res.status,
+  }
 }
 
 export async function registerDocument(

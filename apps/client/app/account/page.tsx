@@ -11,7 +11,7 @@ import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import { changeAccountPassword, getAccountProfile } from '@/lib/api'
+import { changeAccountPassword, getAccountProfile, getApiErrorMessage } from '@/lib/api'
 import type { AccountProfile } from '@/types'
 
 function formatTimestamp(value?: string) {
@@ -38,7 +38,7 @@ export default function AccountPage() {
   async function loadProfile() {
     const response = await getAccountProfile()
     if (!response.success || !response.data) {
-      throw new Error(response.error || 'No fue posible cargar tu cuenta.')
+      throw new Error(getApiErrorMessage(response, 'No fue posible cargar tu cuenta.'))
     }
 
     setProfile(response.data)
@@ -73,7 +73,7 @@ export default function AccountPage() {
     try {
       const response = await changeAccountPassword(currentPassword, newPassword)
       if (!response.success) {
-        setError(response.error || 'No fue posible actualizar la contraseña.')
+        setError(getApiErrorMessage(response, 'No fue posible actualizar la contraseña.'))
         return
       }
 

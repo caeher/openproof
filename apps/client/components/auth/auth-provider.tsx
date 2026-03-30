@@ -50,6 +50,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     let cancelled = false
+    function handleUnauthorized() {
+      setUser(null)
+    }
 
     async function loadSession() {
       try {
@@ -71,9 +74,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
 
     loadSession()
+    window.addEventListener('openproof:unauthorized', handleUnauthorized)
 
     return () => {
       cancelled = true
+      window.removeEventListener('openproof:unauthorized', handleUnauthorized)
     }
   }, [])
 

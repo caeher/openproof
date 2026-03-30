@@ -21,7 +21,7 @@ import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import { createApiKey, listApiKeys, revokeApiKey, rotateApiKey } from '@/lib/api'
+import { createApiKey, getApiErrorMessage, listApiKeys, revokeApiKey, rotateApiKey } from '@/lib/api'
 import type { CreateApiKeyResponse, DeveloperApiKey } from '@/types'
 
 function formatTimestamp(value?: string) {
@@ -48,7 +48,7 @@ export default function DevelopersPage() {
   async function loadKeys() {
     const response = await listApiKeys()
     if (!response.success || !response.data) {
-      throw new Error(response.error || 'No fue posible cargar las API keys.')
+      throw new Error(getApiErrorMessage(response, 'No fue posible cargar las API keys.'))
     }
     setApiKeys(response.data)
   }
@@ -89,7 +89,7 @@ export default function DevelopersPage() {
     try {
       const response = await createApiKey(name)
       if (!response.success || !response.data) {
-        setError(response.error || 'No fue posible crear la API key.')
+        setError(getApiErrorMessage(response, 'No fue posible crear la API key.'))
         return
       }
 
@@ -114,7 +114,7 @@ export default function DevelopersPage() {
     try {
       const response = await revokeApiKey(id)
       if (!response.success) {
-        setError(response.error || 'No fue posible revocar la API key.')
+        setError(getApiErrorMessage(response, 'No fue posible revocar la API key.'))
         return
       }
 
@@ -137,7 +137,7 @@ export default function DevelopersPage() {
     try {
       const response = await rotateApiKey(id)
       if (!response.success || !response.data) {
-        setError(response.error || 'No fue posible rotar la API key.')
+        setError(getApiErrorMessage(response, 'No fue posible rotar la API key.'))
         return
       }
 

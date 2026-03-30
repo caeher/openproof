@@ -5,6 +5,7 @@ import Link from 'next/link'
 import { useSearchParams } from 'next/navigation'
 import { ArrowLeft, AlertCircle, Loader2 } from 'lucide-react'
 import { resetPassword } from '@/lib/api'
+import { getApiErrorMessage } from '@/lib/api'
 import { Header, Footer, MobileNav } from '@/components/layout'
 import { Alert, AlertDescription } from '@/components/ui/alert'
 import { Button } from '@/components/ui/button'
@@ -36,7 +37,7 @@ function ResetPasswordPageContent() {
     try {
       const response = await resetPassword(token, password)
       if (!response.success || !response.data) {
-        setError(response.error || 'No fue posible restablecer la contrasena.')
+        setError(getApiErrorMessage(response, 'No fue posible restablecer la contrasena.'))
         return
       }
 

@@ -11,6 +11,7 @@ import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
+import { getApiErrorMessage } from '@/lib/api'
 
 function LoginPageContent() {
   const router = useRouter()
@@ -29,7 +30,7 @@ function LoginPageContent() {
     try {
       const response = await loginWithPassword(email, password)
       if (!response.success || !response.data) {
-        setError(response.error || 'No fue posible iniciar sesion.')
+        setError(getApiErrorMessage(response, 'No fue posible iniciar sesion.'))
         return
       }
 

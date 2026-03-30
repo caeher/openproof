@@ -4,6 +4,7 @@ import { useState } from 'react'
 import Link from 'next/link'
 import { ArrowLeft, AlertCircle, Loader2 } from 'lucide-react'
 import { forgotPassword } from '@/lib/api'
+import { getApiErrorMessage } from '@/lib/api'
 import { Header, Footer, MobileNav } from '@/components/layout'
 import { Alert, AlertDescription } from '@/components/ui/alert'
 import { Button } from '@/components/ui/button'
@@ -27,7 +28,7 @@ export default function ForgotPasswordPage() {
     try {
       const response = await forgotPassword(email)
       if (!response.success || !response.data) {
-        setError(response.error || 'No fue posible generar la recuperacion.')
+        setError(getApiErrorMessage(response, 'No fue posible generar la recuperacion.'))
         return
       }
 

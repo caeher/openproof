@@ -21,6 +21,7 @@ import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import {
   createBillingPaymentIntent,
+  getApiErrorMessage,
   getBillingOverview,
   reconcileBillingPaymentIntent,
 } from '@/lib/api'
@@ -56,7 +57,7 @@ export default function BillingPage() {
   async function loadOverview() {
     const response = await getBillingOverview()
     if (!response.success || !response.data) {
-      throw new Error(response.error || 'No fue posible cargar billing.')
+      throw new Error(getApiErrorMessage(response, 'No fue posible cargar billing.'))
     }
 
     setOverview(response.data)
@@ -95,7 +96,7 @@ export default function BillingPage() {
     try {
       const response = await createBillingPaymentIntent(packageId)
       if (!response.success || !response.data) {
-        setError(response.error || 'No fue posible crear el invoice.')
+        setError(getApiErrorMessage(response, 'No fue posible crear el invoice.'))
         return
       }
 
@@ -117,7 +118,7 @@ export default function BillingPage() {
     try {
       const response = await reconcileBillingPaymentIntent(paymentIntent.id)
       if (!response.success || !response.data) {
-        setError(response.error || 'No fue posible reconciliar el pago.')
+        setError(getApiErrorMessage(response, 'No fue posible reconciliar el pago.'))
         return
       }
 

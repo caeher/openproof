@@ -16,6 +16,7 @@ import {
   BlockchainProofCard,
 } from '@/components/proof'
 import { calculateSHA256, verifyDocument } from '@/lib/api'
+import { getApiErrorMessage } from '@/lib/api'
 import type { VerifyDocumentResponse } from '@/types'
 
 type VerificationState = 'idle' | 'verifying' | 'found' | 'not-found' | 'error'
@@ -42,7 +43,7 @@ export default function VerifyPage() {
         setResult(response.data)
         setState(response.data.exists ? 'found' : 'not-found')
       } else {
-        throw new Error(response.error || 'Error desconocido')
+        throw new Error(getApiErrorMessage(response, 'Error desconocido'))
       }
     } catch (err) {
       setError('Error al verificar el documento. Por favor, intenta de nuevo.')

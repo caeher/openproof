@@ -15,7 +15,7 @@ import {
   DocumentMetadataForm,
   TransactionExplorerLink,
 } from '@/components/proof'
-import { calculateSHA256, registerDocument } from '@/lib/api'
+import { calculateSHA256, getApiErrorMessage, registerDocument } from '@/lib/api'
 import type { DocumentMetadata } from '@/types'
 
 type Step = 'upload' | 'preview' | 'confirm' | 'processing' | 'success'
@@ -83,7 +83,7 @@ export default function RegisterPage() {
         })
         setStep('success')
       } else {
-        throw new Error(response.error || 'Error desconocido')
+        throw new Error(getApiErrorMessage(response, 'Error desconocido'))
       }
     } catch (err) {
       const message = err instanceof Error ? err.message : 'Error al registrar el documento. Por favor, intenta de nuevo.'

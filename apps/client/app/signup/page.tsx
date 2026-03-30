@@ -10,6 +10,7 @@ import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
+import { getApiErrorMessage } from '@/lib/api'
 import type { SignupResponse } from '@/types'
 
 export default function SignupPage() {
@@ -36,7 +37,7 @@ export default function SignupPage() {
     try {
       const response = await signupWithPassword(email, password)
       if (!response.success || !response.data) {
-        setError(response.error || 'No fue posible crear la cuenta.')
+        setError(getApiErrorMessage(response, 'No fue posible crear la cuenta.'))
         return
       }
 

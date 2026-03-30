@@ -335,7 +335,7 @@ X-RateLimit-Reset: 1705312260`}</pre>
                 ¿Listo para integrar ProofChain?
               </p>
               <Button asChild>
-                <Link href="/dashboard">Obtener API Key</Link>
+                <Link href="/developers">Obtener API Key</Link>
               </Button>
             </div>
           </div>

@@ -24,6 +24,7 @@ import { Textarea } from '@/components/ui/textarea'
 import {
   adjustAdminCredits,
   getAdminOverview,
+  getApiErrorMessage,
   updateAdminUserRole,
 } from '@/lib/api'
 import type { AdminOverviewResponse } from '@/types'
@@ -62,7 +63,7 @@ export default function AdminPage() {
   async function loadOverview() {
     const response = await getAdminOverview()
     if (!response.success || !response.data) {
-      throw new Error(response.error || 'No fue posible cargar admin.')
+      throw new Error(getApiErrorMessage(response, 'No fue posible cargar admin.'))
     }
 
     setOverview(response.data)
@@ -106,7 +107,7 @@ export default function AdminPage() {
     try {
       const response = await updateAdminUserRole(targetUserId, role)
       if (!response.success) {
-        setError(response.error || 'No fue posible actualizar el rol.')
+        setError(getApiErrorMessage(response, 'No fue posible actualizar el rol.'))
         return
       }
 
@@ -135,7 +136,7 @@ export default function AdminPage() {
       )
 
       if (!response.success) {
-        setError(response.error || 'No fue posible ajustar creditos.')
+        setError(getApiErrorMessage(response, 'No fue posible ajustar creditos.'))
         return
       }
 

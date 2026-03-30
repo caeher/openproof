@@ -19,7 +19,7 @@ import {
   TransactionExplorerLink,
   VerificationBadge,
 } from '@/components/proof'
-import { getDocument } from '@/lib/api'
+import { getApiErrorMessage, getDocument } from '@/lib/api'
 import type { Document } from '@/types'
 
 export default function DocumentDetailPage({ 
@@ -51,7 +51,7 @@ export default function DocumentDetailPage({
         if (response.success && response.data) {
           setDocument(response.data)
         } else {
-          setError(response.error || 'Documento no encontrado')
+          setError(getApiErrorMessage(response, 'Documento no encontrado'))
         }
       } catch (err) {
         setError('Error al cargar el documento')
