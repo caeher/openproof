@@ -12,11 +12,13 @@ import { Card, CardContent } from '@/components/ui/card'
 interface AuthGuardProps {
   children: ReactNode
   requireVerified?: boolean
+  requireAdmin?: boolean
 }
 
 export function AuthGuard({
   children,
   requireVerified = false,
+  requireAdmin = false,
 }: AuthGuardProps) {
   const router = useRouter()
   const pathname = usePathname()
@@ -67,6 +69,28 @@ export function AuthGuard({
                 Cerrar sesion
               </Button>
             </div>
+          </div>
+        </CardContent>
+      </Card>
+    )
+  }
+
+  if (requireAdmin && user?.role !== 'admin') {
+    return (
+      <Card>
+        <CardContent className="py-8">
+          <Alert variant="destructive">
+            <MailCheck className="h-4 w-4" />
+            <AlertTitle>Acceso restringido</AlertTitle>
+            <AlertDescription>
+              Esta sección solo está disponible para administradores.
+            </AlertDescription>
+          </Alert>
+
+          <div className="mt-6">
+            <Button asChild>
+              <Link href="/dashboard">Volver al dashboard</Link>
+            </Button>
           </div>
         </CardContent>
       </Card>

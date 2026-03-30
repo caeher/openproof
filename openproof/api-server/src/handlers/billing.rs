@@ -109,6 +109,17 @@ pub async fn overview(
     })
 }
 
+pub async fn public_packages(
+    State(state): State<Arc<AppState>>,
+) -> axum::response::Response {
+    let packages = match billing::list_credit_packages(&state.pool).await {
+        Ok(value) => value,
+        Err(error) => return billing_error_response(error),
+    };
+
+    ok_json(packages.iter().map(map_package).collect::<Vec<_>>())
+}
+
 pub async fn create_payment_intent(
     State(state): State<Arc<AppState>>,
     headers: HeaderMap,

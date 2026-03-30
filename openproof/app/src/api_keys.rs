@@ -106,6 +106,24 @@ pub async fn list_api_keys_for_user(
     Ok(rows.iter().map(row_to_api_key).collect())
 }
 
+pub async fn count_active_api_keys_for_user(
+    pool: &PgPool,
+    user_id: Uuid,
+) -> Result<i64, sqlx::Error> {
+    let count = sqlx::query_scalar(
+        r#"
+        SELECT COUNT(*)
+        FROM api_keys
+        WHERE user_id = $1 AND revoked_at IS NULL
+        "#,
+    )
+    .bind(user_id)
+    .fetch_one(pool)
+    .await?;
+
+    Ok(count)
+}
+
 pub async fn find_user_by_key_hash(
     pool: &PgPool,
     key_hash: &[u8],

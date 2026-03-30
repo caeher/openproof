@@ -1,5 +1,6 @@
 #[derive(Clone, Debug)]
 pub struct AppConfig {
+    pub app_env: String,
     pub database_url: String,
     pub bitcoin_rpc_url: String,
     pub bitcoin_rpc_user: String,
@@ -17,11 +18,18 @@ pub struct AppConfig {
     pub password_reset_token_ttl_hours: i64,
     pub secure_cookies: bool,
     pub expose_dev_auth_tokens: bool,
+    pub auth_rate_limit_requests: u32,
+    pub auth_rate_limit_window_seconds: u64,
+    pub verify_rate_limit_requests: u32,
+    pub verify_rate_limit_window_seconds: u64,
+    pub webhook_rate_limit_requests: u32,
+    pub webhook_rate_limit_window_seconds: u64,
 }
 
 impl AppConfig {
     pub fn from_env() -> Result<Self, String> {
         Ok(Self {
+            app_env: std::env::var("APP_ENV").unwrap_or_else(|_| "development".to_string()),
             database_url: std::env::var("DATABASE_URL").map_err(|_| "DATABASE_URL")?,
             bitcoin_rpc_url: std::env::var("BITCOIN_RPC_URL")
                 .unwrap_or_else(|_| "http://127.0.0.1:18332".to_string()),
@@ -63,6 +71,30 @@ impl AppConfig {
                 .ok()
                 .map(|value| matches!(value.as_str(), "1" | "true" | "TRUE" | "yes" | "YES"))
                 .unwrap_or(true),
+            auth_rate_limit_requests: std::env::var("AUTH_RATE_LIMIT_REQUESTS")
+                .ok()
+                .and_then(|value| value.parse::<u32>().ok())
+                .unwrap_or(20),
+            auth_rate_limit_window_seconds: std::env::var("AUTH_RATE_LIMIT_WINDOW_SECONDS")
+                .ok()
+                .and_then(|value| value.parse::<u64>().ok())
+                .unwrap_or(300),
+            verify_rate_limit_requests: std::env::var("VERIFY_RATE_LIMIT_REQUESTS")
+                .ok()
+                .and_then(|value| value.parse::<u32>().ok())
+                .unwrap_or(30),
+            verify_rate_limit_window_seconds: std::env::var("VERIFY_RATE_LIMIT_WINDOW_SECONDS")
+                .ok()
+                .and_then(|value| value.parse::<u64>().ok())
+                .unwrap_or(60),
+            webhook_rate_limit_requests: std::env::var("WEBHOOK_RATE_LIMIT_REQUESTS")
+                .ok()
+                .and_then(|value| value.parse::<u32>().ok())
+                .unwrap_or(120),
+            webhook_rate_limit_window_seconds: std::env::var("WEBHOOK_RATE_LIMIT_WINDOW_SECONDS")
+                .ok()
+                .and_then(|value| value.parse::<u64>().ok())
+                .unwrap_or(60),
         })
     }
 }

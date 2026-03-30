@@ -5,9 +5,9 @@ import { Shield, Github, Twitter } from 'lucide-react'
 
 const footerLinks = {
   product: [
+    { href: '/pricing', label: 'Pricing' },
     { href: '/register', label: 'Registrar documento' },
     { href: '/verify', label: 'Verificar documento' },
-    { href: '/history', label: 'Historial' },
     { href: '/dashboard', label: 'Dashboard' },
   ],
   resources: [

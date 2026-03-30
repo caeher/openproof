@@ -1,7 +1,11 @@
 // REST client for the OpenProof Rust API (proxied via Next.js rewrites from /api/v1 -> backend)
 
 import type {
+  AccountProfile,
+  AdminOverviewResponse,
+  AdminUser,
   ApiResponse,
+  CreditLedgerEntry,
   BitcoinTransaction,
   BillingOverviewResponse,
   CreditPackage,
@@ -200,6 +204,55 @@ export async function reconcileBillingPaymentIntent(
       method: 'POST',
     }
   )
+}
+
+export async function getPricingPackages(): Promise<ApiResponse<CreditPackage[]>> {
+  return fetchJson<CreditPackage[]>('/billing/packages', {
+    cache: 'no-store',
+  })
+}
+
+export async function getAccountProfile(): Promise<ApiResponse<AccountProfile>> {
+  return fetchJson<AccountProfile>('/account/profile', {
+    cache: 'no-store',
+  })
+}
+
+export async function changeAccountPassword(
+  currentPassword: string,
+  newPassword: string
+): Promise<ApiResponse<StatusResponse>> {
+  return fetchJson<StatusResponse>('/account/change-password', {
+    method: 'POST',
+    body: JSON.stringify({ currentPassword, newPassword }),
+  })
+}
+
+export async function getAdminOverview(): Promise<ApiResponse<AdminOverviewResponse>> {
+  return fetchJson<AdminOverviewResponse>('/admin/overview', {
+    cache: 'no-store',
+  })
+}
+
+export async function updateAdminUserRole(
+  id: string,
+  role: string
+): Promise<ApiResponse<AdminUser>> {
+  return fetchJson<AdminUser>(`/admin/users/${encodeURIComponent(id)}/role`, {
+    method: 'POST',
+    body: JSON.stringify({ role }),
+  })
+}
+
+export async function adjustAdminCredits(
+  userId: string,
+  deltaCredits: number,
+  reason: string
+): Promise<ApiResponse<CreditLedgerEntry>> {
+  return fetchJson<CreditLedgerEntry>('/admin/credits/adjust', {
+    method: 'POST',
+    body: JSON.stringify({ userId, deltaCredits, reason }),
+  })
 }
 
 export async function calculateSHA256(file: File): Promise<string> {

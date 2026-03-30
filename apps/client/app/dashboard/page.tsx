@@ -97,9 +97,11 @@ export default function DashboardPage() {
                   </div>
                   
                   <div className="flex items-center gap-2 w-full sm:w-auto">
-                    <Button variant="outline" size="sm" className="flex-1 sm:flex-none">
+                    <Button variant="outline" size="sm" className="flex-1 sm:flex-none" asChild>
+                      <Link href="/account">
                       <Settings className="w-4 h-4 mr-2" />
                       Configuración
+                      </Link>
                     </Button>
                   </div>
                 </div>
@@ -232,6 +234,13 @@ export default function DashboardPage() {
                 <CardTitle>Cuenta</CardTitle>
               </CardHeader>
               <CardContent className="space-y-2">
+                <Button variant="ghost" className="w-full justify-start" asChild>
+                  <Link href="/account">
+                    <Settings className="w-4 h-4 mr-3" />
+                    Perfil y seguridad
+                  </Link>
+                </Button>
+                <Separator />
                 <Button variant="ghost" className="w-full justify-start" asChild>
                   <Link href="/billing">
                     <Settings className="w-4 h-4 mr-3" />

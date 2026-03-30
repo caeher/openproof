@@ -16,6 +16,7 @@ mod config;
 mod error;
 mod handlers;
 mod mailer;
+mod rate_limit;
 mod routes;
 
 #[derive(Clone)]
@@ -33,6 +34,21 @@ pub struct BillingSettings {
     pub document_registration_credit_cost: i64,
 }
 
+#[derive(Clone)]
+pub struct RuntimeSettings {
+    pub app_env: String,
+}
+
+#[derive(Clone)]
+pub struct RateLimitSettings {
+    pub auth_requests: u32,
+    pub auth_window_seconds: u64,
+    pub verify_requests: u32,
+    pub verify_window_seconds: u64,
+    pub webhook_requests: u32,
+    pub webhook_window_seconds: u64,
+}
+
 pub struct AppState {
     pub pool: sqlx::PgPool,
     pub bitcoin: Arc<dyn core_notarization::BitcoinNodePort>,
@@ -41,6 +57,9 @@ pub struct AppState {
     pub mailer: Arc<dyn mailer::EmailSender>,
     pub auth: AuthSettings,
     pub billing: BillingSettings,
+    pub runtime: RuntimeSettings,
+    pub rate_limits: RateLimitSettings,
+    pub rate_limiter: Arc<rate_limit::RateLimiter>,
 }
 
 #[tokio::main]
@@ -112,6 +131,18 @@ async fn main() {
         billing: BillingSettings {
             document_registration_credit_cost: cfg.document_registration_credit_cost,
         },
+        runtime: RuntimeSettings {
+            app_env: cfg.app_env,
+        },
+        rate_limits: RateLimitSettings {
+            auth_requests: cfg.auth_rate_limit_requests,
+            auth_window_seconds: cfg.auth_rate_limit_window_seconds,
+            verify_requests: cfg.verify_rate_limit_requests,
+            verify_window_seconds: cfg.verify_rate_limit_window_seconds,
+            webhook_requests: cfg.webhook_rate_limit_requests,
+            webhook_window_seconds: cfg.webhook_rate_limit_window_seconds,
+        },
+        rate_limiter: Arc::new(rate_limit::RateLimiter::default()),
     });
 
     let cors = CorsLayer::new()

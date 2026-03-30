@@ -8,6 +8,7 @@ import { cn } from '@/lib/utils'
 
 const publicNavItems = [
   { href: '/', label: 'Inicio', icon: Home },
+  { href: '/pricing', label: 'Pricing', icon: Wallet },
   { href: '/verify', label: 'Verificar', icon: Search },
 ]
 
@@ -15,14 +16,15 @@ const privateNavItems = [
   { href: '/register', label: 'Registrar', icon: Upload },
   { href: '/history', label: 'Historial', icon: FolderOpen },
   { href: '/billing', label: 'Billing', icon: Wallet },
-  { href: '/dashboard', label: 'Cuenta', icon: User },
+  { href: '/dashboard', label: 'Dashboard', icon: Home },
+  { href: '/account', label: 'Cuenta', icon: User },
 ]
 
 export function MobileNav() {
   const pathname = usePathname()
-  const { isAuthenticated } = useAuth()
+  const { isAuthenticated, user } = useAuth()
   const navItems = isAuthenticated
-    ? [...publicNavItems, ...privateNavItems]
+    ? [...publicNavItems, ...privateNavItems, ...(user?.role === 'admin' ? [{ href: '/admin', label: 'Admin', icon: FolderOpen }] : [])]
     : publicNavItems
 
   return (

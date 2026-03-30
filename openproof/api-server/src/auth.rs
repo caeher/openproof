@@ -209,6 +209,17 @@ pub async fn require_verified_session_or_api_key(
     Ok(session)
 }
 
+pub async fn require_admin_session(
+    headers: &HeaderMap,
+    state: &Arc<AppState>,
+) -> Result<AuthenticatedSession, Response> {
+    let session = require_verified_session(headers, state).await?;
+    if session.subject.role != Role::Admin {
+        return Err(error_json(StatusCode::FORBIDDEN, "admin role required"));
+    }
+    Ok(session)
+}
+
 pub fn session_cookie(state: &AppState, token: &str) -> String {
     let max_age_seconds = state.auth.session_ttl_hours * 3600;
     let secure = if state.auth.secure_cookies {

@@ -131,6 +131,99 @@ export interface BillingOverviewResponse {
   documentRegistrationCreditCost: number
 }
 
+export interface AccountProfile {
+  user: AuthUser
+  creditAccount: CreditAccountSummary
+  activeApiKeys: number
+  environment: string
+}
+
+export interface AdminStats {
+  totalUsers: number
+  verifiedUsers: number
+  adminUsers: number
+  totalCreditBalance: number
+  pendingPaymentIntents: number
+  stalePendingPaymentIntents: number
+  failedWebhookEvents: number
+}
+
+export interface AdminUser {
+  id: string
+  email: string
+  role: string
+  emailVerifiedAt?: string
+  balanceCredits: number
+  createdAt: string
+  updatedAt: string
+}
+
+export interface CreditLedgerEntry {
+  id: string
+  userId: string
+  userEmail: string
+  paymentIntentId?: string
+  kind: string
+  deltaCredits: number
+  balanceAfterCredits: number
+  description?: string
+  referenceType?: string
+  referenceId?: string
+  createdAt: string
+}
+
+export interface AdminPaymentIntent {
+  id: string
+  userId: string
+  userEmail: string
+  packageCode: string
+  packageName: string
+  amountUsdCents: number
+  credits: number
+  status: string
+  blinkInvoiceStatus: string
+  paymentHash?: string
+  expiresAt?: string
+  paidAt?: string
+  createdAt: string
+  updatedAt: string
+}
+
+export interface WebhookEvent {
+  id: string
+  webhookMessageId?: string
+  eventType: string
+  paymentHash?: string
+  processedAt?: string
+  processingError?: string
+  createdAt: string
+}
+
+export interface AuditEvent {
+  id: string
+  actorUserId?: string
+  actorEmail?: string
+  actorRole?: string
+  action: string
+  targetType?: string
+  targetId?: string
+  status: string
+  message?: string
+  metadata?: Record<string, unknown>
+  createdAt: string
+}
+
+export interface AdminOverviewResponse {
+  environment: string
+  stats: AdminStats
+  alerts: string[]
+  users: AdminUser[]
+  ledger: CreditLedgerEntry[]
+  payments: AdminPaymentIntent[]
+  webhookEvents: WebhookEvent[]
+  auditEvents: AuditEvent[]
+}
+
 // API Response types
 export interface ApiResponse<T> {
   success: boolean

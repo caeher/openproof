@@ -128,6 +128,78 @@ pub async fn find_auth_by_email(
     }))
 }
 
+pub async fn find_auth_by_id(
+    pool: &PgPool,
+    user_id: Uuid,
+) -> Result<Option<UserAuthRecord>, sqlx::Error> {
+    let row = sqlx::query(
+        r#"
+        SELECT
+            u.id,
+            u.email,
+            u.role,
+            u.email_verified_at,
+            u.created_at,
+            u.updated_at,
+            pc.password_hash
+        FROM users u
+        INNER JOIN password_credentials pc ON pc.user_id = u.id
+        WHERE u.id = $1
+        "#,
+    )
+    .bind(user_id)
+    .fetch_optional(pool)
+    .await?;
+
+    Ok(row.map(|value| UserAuthRecord {
+        user: row_to_user(&value),
+        password_hash: value.get("password_hash"),
+    }))
+}
+
+pub async fn update_password_for_user(
+    pool: &PgPool,
+    user_id: Uuid,
+    password_hash: &str,
+) -> Result<Option<UserRecord>, sqlx::Error> {
+    let mut tx = pool.begin().await?;
+    let now = Utc::now();
+
+    let updated = sqlx::query(
+        r#"
+        UPDATE password_credentials
+        SET password_hash = $2, updated_at = $3
+        WHERE user_id = $1
+        "#,
+    )
+    .bind(user_id)
+    .bind(password_hash)
+    .bind(now)
+    .execute(&mut *tx)
+    .await?;
+
+    if updated.rows_affected() == 0 {
+        tx.rollback().await?;
+        return Ok(None);
+    }
+
+    let row = sqlx::query(
+        r#"
+        UPDATE users
+        SET updated_at = $2
+        WHERE id = $1
+        RETURNING id, email, role, email_verified_at, created_at, updated_at
+        "#,
+    )
+    .bind(user_id)
+    .bind(now)
+    .fetch_one(&mut *tx)
+    .await?;
+
+    tx.commit().await?;
+    Ok(Some(row_to_user(&row)))
+}
+
 pub async fn store_email_verification_token(
     pool: &PgPool,
     user_id: Uuid,

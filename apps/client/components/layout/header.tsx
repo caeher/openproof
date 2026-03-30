@@ -12,6 +12,7 @@ import { Sheet, SheetContent, SheetTrigger, SheetTitle } from '@/components/ui/s
 
 const publicNavLinks = [
   { href: '/', label: 'Inicio' },
+  { href: '/pricing', label: 'Pricing' },
   { href: '/verify', label: 'Verificar' },
   { href: '/faq', label: 'FAQ' },
   { href: '/api-docs', label: 'API' },
@@ -22,7 +23,8 @@ const privateNavLinks = [
   { href: '/history', label: 'Historial' },
   { href: '/developers', label: 'Developers' },
   { href: '/billing', label: 'Billing' },
-  { href: '/dashboard', label: 'Cuenta' },
+  { href: '/dashboard', label: 'Dashboard' },
+  { href: '/account', label: 'Cuenta' },
 ]
 
 export function Header() {
@@ -33,7 +35,7 @@ export function Header() {
   const [mounted, setMounted] = useState(false)
   const { isAuthenticated, logoutCurrentSession, user } = useAuth()
   const navLinks = isAuthenticated
-    ? [...publicNavLinks, ...privateNavLinks]
+    ? [...publicNavLinks, ...privateNavLinks, ...(user?.role === 'admin' ? [{ href: '/admin', label: 'Admin' }] : [])]
     : publicNavLinks
 
   useEffect(() => {
