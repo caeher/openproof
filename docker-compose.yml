@@ -1,0 +1,59 @@
+# OpenProof full stack: PostgreSQL + Rust API + Next.js client.
+# Bitcoin Core stays external (set BITCOIN_RPC_* in .env or use defaults from .env.example).
+#
+# Usage (from this directory):
+#   docker compose up --build
+#   Frontend: http://localhost:3000
+#   API:      http://localhost:3001
+#   Health:   http://localhost:3001/health
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: openproof
+      POSTGRES_PASSWORD: openproof
+      POSTGRES_DB: openproof
+    ports:
+      - "5432:5432"
+    volumes:
+      - openproof_pg:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U openproof -d openproof"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+      start_period: 10s
+
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "3001:3001"
+    environment:
+      DATABASE_URL: postgres://openproof:openproof@postgres:5432/openproof
+      LISTEN_ADDR: 0.0.0.0:3001
+      BITCOIN_RPC_URL: ${BITCOIN_RPC_URL:-https://bitcoin-core.cubo.caeher.com/}
+      BITCOIN_RPC_USER: ${BITCOIN_RPC_USER:-bitcoin_caeher}
+      BITCOIN_RPC_PASSWORD: ${BITCOIN_RPC_PASSWORD:-bitcoin_caeher}
+      RUST_LOG: ${RUST_LOG:-openproof_api_server=info,tower_http=info}
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  client:
+    build:
+      context: ./apps/client
+      dockerfile: Dockerfile
+      args:
+        BACKEND_URL: http://api:3001
+    ports:
+      - "3000:3000"
+    environment:
+      BACKEND_URL: http://api:3001
+    depends_on:
+      - api
+
+volumes:
+  openproof_pg:

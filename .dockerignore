@@ -1,0 +1,29 @@
+# Rust
+/target
+**/*.rs.bk
+.sqlx
+
+# Node / Next.js
+**/node_modules
+**/.next
+**/out
+**/dist
+
+# Env and secrets
+.env
+.env.*
+!.env.example
+
+# Git and IDE
+.git
+.gitignore
+.cursor
+.vscode
+.idea
+
+# Docs and misc
+*.md
+!README.md
+
+# Client is built in its own image; exclude from API context if copying whole tree
+# (Root Dockerfile uses explicit COPY paths instead.)

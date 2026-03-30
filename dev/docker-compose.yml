@@ -1,0 +1,15 @@
+# Postgres only (quick local DB). Full stack: use docker-compose.yml in the repo root.
+services:
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: openproof
+      POSTGRES_PASSWORD: openproof
+      POSTGRES_DB: openproof
+    ports:
+      - "5432:5432"
+    volumes:
+      - openproof_pg:/var/lib/postgresql/data
+
+volumes:
+  openproof_pg:
