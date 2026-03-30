@@ -5,6 +5,7 @@ members = [
     "core/notarization",
     "lib/authz",
     "lib/bitcoin-rpc",
+    "openproof/app",
 ]
 
 [workspace.package]
