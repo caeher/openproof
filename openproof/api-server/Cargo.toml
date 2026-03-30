@@ -14,6 +14,7 @@ core-document = { path = "../../core/document" }
 core-notarization = { path = "../../core/notarization" }
 lib-bitcoin-rpc = { path = "../../lib/bitcoin-rpc" }
 lib-authz = { path = "../../lib/authz" }
+async-trait = { workspace = true }
 argon2 = { workspace = true }
 sqlx = { workspace = true }
 axum = { workspace = true }
@@ -27,7 +28,7 @@ reqwest = { workspace = true }
 svix = { workspace = true }
 thiserror = { workspace = true }
 tokio = { workspace = true }
-tower = { workspace = true }
+tower = { workspace = true, features = ["util"] }
 tower-http = { workspace = true }
 tracing = { workspace = true }
 tracing-subscriber = { workspace = true }
