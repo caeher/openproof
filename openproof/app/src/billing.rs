@@ -132,12 +132,12 @@ pub async fn get_credit_account_summary(
             ca.created_at,
             ca.updated_at,
             COALESCE((
-                SELECT SUM(delta_credits)
+                SELECT SUM(delta_credits)::BIGINT
                 FROM credit_ledger cl
                 WHERE cl.user_id = ca.user_id AND cl.delta_credits > 0
             ), 0) AS purchased_credits,
             COALESCE((
-                SELECT SUM(ABS(delta_credits))
+                SELECT SUM(ABS(delta_credits))::BIGINT
                 FROM credit_ledger cl
                 WHERE cl.user_id = ca.user_id AND cl.delta_credits < 0
             ), 0) AS consumed_credits
