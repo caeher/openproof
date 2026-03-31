@@ -55,7 +55,7 @@ function ForgotPasswordPageContent() {
       sideDescription="El nuevo flujo mantiene varias sesiones activas al iniciar sesion, pero endurece el sistema cuando se cambia o recupera la credencial principal."
       sideStats={[
         'No se revela si el correo existe o no; el backend responde con un mensaje generico.',
-        'El token de desarrollo solo aparece cuando el entorno lo habilita.',
+        'La recuperación se completa desde el enlace enviado por correo, sin mostrar tokens en pantalla.',
         'Despues del reset, el siguiente acceso empieza desde una sesion limpia.',
       ]}
     >
@@ -99,19 +99,6 @@ function ForgotPasswordPageContent() {
             </Button>
           </form>
 
-          {result?.devResetToken ? (
-            <div className="rounded-3xl border border-border bg-secondary/35 p-4 text-sm">
-              <p className="font-medium text-foreground">Token de recuperacion para desarrollo</p>
-              <p className="mt-1 break-all font-mono text-xs text-muted-foreground">
-                {result.devResetToken}
-              </p>
-              <Button asChild size="sm" className="mt-3">
-                <Link href={`/reset-password?token=${encodeURIComponent(result.devResetToken)}`}>
-                  Continuar con este token
-                </Link>
-              </Button>
-            </div>
-          ) : null}
         </div>
       </GuestOnlyRoute>
     </AuthSplitLayout>

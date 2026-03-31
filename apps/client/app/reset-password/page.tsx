@@ -15,7 +15,7 @@ import { getApiErrorMessage, resetPassword } from '@/lib/api'
 
 function ResetPasswordPageContent() {
   const searchParams = useSearchParams()
-  const [token, setToken] = useState(searchParams.get('token') || '')
+  const token = searchParams.get('token') || ''
   const [password, setPassword] = useState('')
   const [confirmPassword, setConfirmPassword] = useState('')
   const [error, setError] = useState<string | null>(null)
@@ -57,15 +57,24 @@ function ResetPasswordPageContent() {
       backHref="/login"
       backLabel="Volver al login"
       sideTitle="La recuperacion corta el acceso previo y restablece el control"
-      sideDescription="Usa este flujo para completar el reset desde un enlace de correo o pegando el token de desarrollo."
+      sideDescription="Usa este flujo para completar el reset desde el enlace firmado que llega por correo."
       sideStats={[
         'El cambio invalida todas las sesiones activas del usuario.',
-        'El token puede pegarse manualmente si abriste el correo en otro dispositivo.',
+        'El token no se expone ni se pega manualmente desde la interfaz.',
         'Al terminar, el siguiente paso natural es iniciar sesion de nuevo.',
       ]}
     >
       <GuestOnlyRoute>
         <div className="space-y-4">
+          {!token ? (
+            <Alert variant="destructive">
+              <AlertCircle className="h-4 w-4" />
+              <AlertDescription>
+                El enlace de recuperación es inválido o ya no incluye el token necesario. Solicita un nuevo correo desde recuperación de contraseña.
+              </AlertDescription>
+            </Alert>
+          ) : null}
+
           <form onSubmit={handleSubmit} className="space-y-4">
             {error ? (
               <Alert variant="destructive">
@@ -79,16 +88,6 @@ function ResetPasswordPageContent() {
                 <AlertDescription>{successMessage}</AlertDescription>
               </Alert>
             ) : null}
-
-            <div className="space-y-2">
-              <Label htmlFor="token">Token</Label>
-              <Input
-                id="token"
-                value={token}
-                onChange={(event) => setToken(event.target.value)}
-                required
-              />
-            </div>
 
             <div className="space-y-2">
               <Label htmlFor="password">Nueva contrasena</Label>
@@ -129,6 +128,10 @@ function ResetPasswordPageContent() {
           {successMessage ? (
             <Button asChild variant="outline" className="w-full">
               <Link href="/login">Ir a iniciar sesion</Link>
+            </Button>
+          ) : !token ? (
+            <Button asChild variant="outline" className="w-full">
+              <Link href="/forgot-password">Solicitar nuevo enlace</Link>
             </Button>
           ) : null}
         </div>

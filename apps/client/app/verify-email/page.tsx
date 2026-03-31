@@ -21,7 +21,6 @@ function VerifyEmailPageContent() {
   const { authState, isLoading, refreshSession, user } = useAuth()
   const initialToken = searchParams.get('token') || ''
   const autoSubmitted = useRef(false)
-  const [token, setToken] = useState(initialToken)
   const [resendEmail, setResendEmail] = useState('')
   const [error, setError] = useState<string | null>(null)
   const [verifiedUser, setVerifiedUser] = useState<AuthUser | null>(null)
@@ -71,11 +70,6 @@ function VerifyEmailPageContent() {
     }
   }, [initialToken])
 
-  async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
-    event.preventDefault()
-    await submitToken(token)
-  }
-
   async function handleResend() {
     const targetEmail = user?.email || resendEmail
     if (!targetEmail) {
@@ -95,9 +89,6 @@ function VerifyEmailPageContent() {
       }
 
       setInfoMessage(response.data.message)
-      if (response.data.devVerificationToken) {
-        setToken(response.data.devVerificationToken)
-      }
     } finally {
       setIsResending(false)
     }
@@ -113,62 +104,60 @@ function VerifyEmailPageContent() {
     <AuthSplitLayout
       badge="Correo pendiente"
       title="Valida tu identidad antes de registrar o integrar"
-      description="Este paso desbloquea las rutas verificadas. Si ya tienes sesion abierta, al confirmar el correo te devolvemos al destino permitido por el estado real de tu cuenta."
+      description="Este paso desbloquea las rutas verificadas. Si ya tienes sesión abierta, al confirmar el correo te devolvemos al destino permitido por el estado real de tu cuenta."
       backHref={loginHref}
       backLabel="Volver al login"
-      sideTitle="El flujo de verificacion mezcla enlace, token manual y reenvio"
-      sideDescription="La misma pantalla sirve para abrir el enlace del correo, pegar un token o pedir un reenvio. Asi evitamos caminos duplicados y estados inconsistentes."
+      sideTitle="El flujo de verificación usa enlace de correo y reenvío"
+      sideDescription="La pantalla prioriza el enlace firmado que llega por correo y conserva un reenvío controlado si necesitas emitir otro mensaje."
       sideStats={[
         'Si ya existe una sesion, el refresh toma el estado actualizado desde /auth/session.',
         'Si llegas sin sesion, el correo queda verificado y luego vuelves al login.',
-        'El parametro next solo se usa despues de validarlo y comprobar permisos.',
+        'El token no se expone en la interfaz; se procesa automáticamente desde el enlace recibido.',
       ]}
     >
       <div className="space-y-4">
-        <form onSubmit={handleSubmit} className="space-y-4">
-          {error ? (
-            <Alert variant="destructive">
-              <AlertCircle className="h-4 w-4" />
-              <AlertDescription>{error}</AlertDescription>
-            </Alert>
-          ) : null}
+        {error ? (
+          <Alert variant="destructive">
+            <AlertCircle className="h-4 w-4" />
+            <AlertDescription>{error}</AlertDescription>
+          </Alert>
+        ) : null}
 
-          {verifiedUser ? (
-            <Alert className="border-success/30 bg-success/10 text-foreground">
-              <MailCheck className="h-4 w-4" />
-              <AlertDescription>
-                Correo verificado correctamente para {verifiedUser.email}.
-              </AlertDescription>
-            </Alert>
-          ) : null}
+        {verifiedUser ? (
+          <Alert className="border-success/30 bg-success/10 text-foreground">
+            <MailCheck className="h-4 w-4" />
+            <AlertDescription>
+              Correo verificado correctamente para {verifiedUser.email}.
+            </AlertDescription>
+          </Alert>
+        ) : null}
 
-          {infoMessage ? (
-            <Alert>
-              <AlertDescription>{infoMessage}</AlertDescription>
-            </Alert>
-          ) : null}
+        {infoMessage ? (
+          <Alert>
+            <AlertDescription>{infoMessage}</AlertDescription>
+          </Alert>
+        ) : null}
 
-          <div className="space-y-2">
-            <Label htmlFor="token">Token</Label>
-            <Input
-              id="token"
-              value={token}
-              onChange={(event) => setToken(event.target.value)}
-              required
-            />
-          </div>
+        {initialToken ? (
+          <Alert>
+            <AlertDescription>
+              Estamos procesando el enlace de verificación que llegó en tu correo.
+            </AlertDescription>
+          </Alert>
+        ) : (
+          <Alert>
+            <AlertDescription>
+              Abre el enlace que enviamos por correo o solicita un nuevo mensaje desde esta misma pantalla.
+            </AlertDescription>
+          </Alert>
+        )}
 
-          <Button type="submit" className="w-full" disabled={isSubmitting}>
-            {isSubmitting ? (
-              <>
-                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                Verificando...
-              </>
-            ) : (
-              'Verificar correo'
-            )}
+        {isSubmitting ? (
+          <Button type="button" className="w-full" disabled>
+            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+            Verificando...
           </Button>
-        </form>
+        ) : null}
 
         <div className="rounded-3xl border border-border bg-secondary/35 p-4">
           <div className="space-y-3 text-sm">

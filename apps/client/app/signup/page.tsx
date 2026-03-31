@@ -26,7 +26,6 @@ function SignupPageContent() {
   const [error, setError] = useState<string | null>(null)
   const [success, setSuccess] = useState<SignupResponse | null>(null)
   const [resendMessage, setResendMessage] = useState<string | null>(null)
-  const [resendDevToken, setResendDevToken] = useState<string | null>(null)
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [isResending, setIsResending] = useState(false)
 
@@ -35,7 +34,6 @@ function SignupPageContent() {
     setError(null)
     setSuccess(null)
     setResendMessage(null)
-    setResendDevToken(null)
 
     if (password !== confirmPassword) {
       setError('Las contrasenas no coinciden.')
@@ -69,7 +67,6 @@ function SignupPageContent() {
     setIsResending(true)
     setError(null)
     setResendMessage(null)
-    setResendDevToken(null)
 
     try {
       const response = await resendVerification(targetEmail)
@@ -79,7 +76,6 @@ function SignupPageContent() {
       }
 
       setResendMessage(response.data.message)
-      setResendDevToken(response.data.devVerificationToken || null)
     } finally {
       setIsResending(false)
     }
@@ -87,13 +83,6 @@ function SignupPageContent() {
 
   const nextPath = sanitizeNextPath(searchParams.get('next'))
   const loginHref = nextPath ? `/login?next=${encodeURIComponent(nextPath)}` : '/login'
-  const verifyTokenHref = (token: string) => {
-    const params = new URLSearchParams({ token })
-    if (nextPath) {
-      params.set('next', nextPath)
-    }
-    return `/verify-email?${params.toString()}`
-  }
 
   return (
     <AuthSplitLayout
@@ -107,7 +96,7 @@ function SignupPageContent() {
       sideStats={[
         'El nombre del usuario ya forma parte del modelo persistido.',
         'La verificacion por correo puede reenviarse sin volver a crear la cuenta.',
-        'Los tokens de desarrollo siguen visibles solo cuando el backend lo permite.',
+        'La activación ocurre desde el enlace del correo, sin exponer tokens en la interfaz.',
         'Cada redireccion next se filtra antes de usarla en el navegador.',
       ]}
       footer={
@@ -210,20 +199,6 @@ function SignupPageContent() {
                   {isResending ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
                   Reenviar verificacion
                 </Button>
-                {success.devVerificationToken ? (
-                  <Button asChild>
-                    <Link href={verifyTokenHref(success.devVerificationToken)}>
-                      Abrir token de desarrollo
-                    </Link>
-                  </Button>
-                ) : null}
-                {resendDevToken ? (
-                  <Button asChild variant="secondary">
-                    <Link href={verifyTokenHref(resendDevToken)}>
-                      Usar ultimo token dev
-                    </Link>
-                  </Button>
-                ) : null}
               </div>
             </div>
           ) : null}
