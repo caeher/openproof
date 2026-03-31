@@ -62,38 +62,34 @@ export function AuthSplitLayout({
           </div>
         </section>
 
-        <aside
-          className="relative hidden overflow-hidden border-l border-border/70 lg:flex lg:min-h-screen lg:flex-col lg:justify-between lg:p-10 lg:text-white xl:p-14"
-          style={{
-            background: "linear-gradient(180deg, #4a8cf6 0%, #2d79e8 100%)",
-          }}
-        >
-          {/* Soft grid pattern */}
-          <div className="absolute inset-0 bg-[linear-gradient(to_right,rgba(255,255,255,0.06)_1px,transparent_1px),linear-gradient(to_bottom,rgba(255,255,255,0.06)_1px,transparent_1px)] bg-[size:28px_28px]" />
+        <aside className="relative hidden overflow-hidden border-l border-border/70 bg-secondary/30 dark:bg-secondary/10 lg:flex lg:min-h-screen lg:flex-col lg:justify-between lg:p-10 xl:p-14">
+          {/* Soft grid pattern matching theme */}
+          <div className="absolute inset-0 bg-[linear-gradient(to_right,hsl(var(--foreground))_1px,transparent_1px),linear-gradient(to_bottom,hsl(var(--foreground))_1px,transparent_1px)] bg-[size:28px_28px] opacity-[0.03] dark:opacity-[0.02]" />
 
           <div className="relative z-10">
             <Link
               href="/"
-              className="inline-flex items-center font-medium text-white/95 transition-opacity hover:opacity-90"
+              className="inline-flex items-center font-medium transition-opacity hover:opacity-80"
             >
+              {/* Centramos explícitamente el icono inside the mark to ensure correct proportions */}
               <BrandLogo
-                markClassName="size-11 rounded-2xl border border-white/20 bg-white/10 p-1.5 backdrop-blur-sm"
-                labelClassName="text-2xl text-white"
+                markClassName="flex items-center justify-center w-10 h-10 rounded-xl"
+                labelClassName="text-2xl text-foreground"
               />
             </Link>
           </div>
 
           <div className="relative z-10 mt-auto max-w-lg space-y-6">
             <blockquote className="space-y-6">
-              <div className="font-serif text-6xl leading-none text-white/25">
+              <div className="font-serif text-6xl leading-none text-muted-foreground/40">
                 "
               </div>
-              <p className="text-2xl font-medium leading-[1.4] text-white/95">
+              <p className="text-2xl font-medium leading-[1.4] text-foreground/90">
                 {sideTitle}
               </p>
 
-              <footer className="flex items-center gap-4 text-sm font-medium text-white/70">
-                <div className="h-px w-10 bg-white/30" />
+              <footer className="flex items-center gap-4 text-sm font-medium text-muted-foreground">
+                <div className="h-px w-10 bg-border" />
                 Caeher
               </footer>
             </blockquote>
