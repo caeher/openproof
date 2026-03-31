@@ -1,220 +1,211 @@
-import Link from 'next/link'
-import { ArrowLeft, HelpCircle, Shield, FileText, Hash, Blocks, Lock, Clock, Globe, Scale } from 'lucide-react'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion'
-import { Header, Footer, MobileNav } from '@/components/layout'
+import {
+  Blocks,
+  Building2,
+  FileSearch,
+  HelpCircle,
+  KeyRound,
+  Landmark,
+  Lock,
+  Scale,
+  Shield,
+} from 'lucide-react'
+
+import { SiteShell } from '@/components/layout'
+import { IconCardGrid, PageIntro, SectionHeading } from '@/components/marketing'
 import { ProofProcess } from '@/components/proof'
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 
 const faqs = [
   {
-    category: 'General',
+    category: 'Producto y alcance',
     icon: HelpCircle,
     questions: [
       {
-        q: '¿Qué es Proof of Existence?',
-        a: 'Proof of Existence (PoE) es un método que permite demostrar que un documento específico existía en un momento determinado. Utiliza funciones hash criptográficas y la blockchain de Bitcoin para crear una prueba inmutable y verificable públicamente del timestamp de cualquier archivo.',
+        q: '¿Qué certifica exactamente OpenProof?',
+        a: 'OpenProof acredita que un hash documental fue registrado y posteriormente confirmado en la blockchain de Bitcoin. La evidencia se apoya en la transacción, el bloque, el timestamp y las confirmaciones asociadas.',
       },
       {
-        q: '¿Para qué sirve registrar un documento?',
-        a: 'Registrar un documento te permite demostrar que existía en una fecha específica. Esto es útil para proteger propiedad intelectual, contratos, investigaciones científicas, código fuente, y cualquier contenido donde necesites probar prioridad temporal o existencia en un momento dado.',
+        q: '¿Sustituye una firma electrónica, una notaría o asesoría legal?',
+        a: 'No. OpenProof aporta evidencia técnica complementaria sobre existencia e integridad del hash. No reemplaza validaciones de identidad, firma, custodia legal ni análisis jurídico de cada jurisdicción.',
       },
       {
-        q: '¿Es esto legalmente válido?',
-        a: 'La prueba de existencia proporciona evidencia criptográfica verificable de que un documento existía en una fecha específica. Aunque no reemplaza los mecanismos legales tradicionales como notarios, puede servir como evidencia complementaria. La validez legal puede variar según la jurisdicción.',
+        q: '¿Qué diferencia a OpenProof de una demo simple de “proof of existence”?',
+        a: 'Además del registro, la plataforma incorpora cuentas, historial, compra de créditos, constancias públicas compartibles, gestión de API keys y verificación sin autenticación para terceros.',
       },
     ],
   },
   {
-    category: 'Privacidad y seguridad',
+    category: 'Privacidad y archivo',
     icon: Lock,
     questions: [
       {
-        q: '¿Se guarda mi archivo en algún servidor?',
-        a: 'No. Tu archivo nunca sale de tu dispositivo. Solo se calcula el hash SHA-256 de forma local en tu navegador y únicamente ese hash (una cadena de 64 caracteres) se envía al servidor para ser registrado en la blockchain.',
+        q: '¿Siempre tengo que subir el archivo?',
+        a: 'No. El producto puede operar en modo hash-only o con upload. Si eliges hash-only, solo se procesa la huella y los metadatos declarados. Si eliges upload, el backend conserva una copia del archivo asociada al registro.',
       },
       {
-        q: '¿Alguien puede ver el contenido de mi documento?',
-        a: 'No. Solo se registra el hash del documento, no su contenido. El hash es una huella digital única que no puede ser revertida para obtener el documento original. Nadie puede saber qué contiene tu archivo a partir del hash.',
+        q: '¿Qué información puede hacerse pública?',
+        a: 'La transacción Bitcoin, la huella del documento y la constancia pública por transacción pueden ser consultadas por terceros. Si el flujo habilitado incluye archivo público o metadatos visibles, esos elementos también podrían quedar expuestos en el viewer.',
       },
       {
-        q: '¿Qué es un hash SHA-256?',
-        a: 'SHA-256 es una función criptográfica que genera una "huella digital" única de 256 bits (64 caracteres hexadecimales) para cualquier archivo. Cualquier cambio mínimo en el archivo produce un hash completamente diferente, lo que garantiza la integridad del documento.',
+        q: '¿El hash revela el contenido del documento?',
+        a: 'No permite reconstruir el archivo, pero sí fija que existía una huella específica en un momento determinado. Si el documento es altamente sensible, conviene evaluar con cuidado cuándo registrar y qué metadatos asociar.',
       },
     ],
   },
   {
-    category: 'Blockchain y Bitcoin',
+    category: 'Blockchain, cuenta e integración',
     icon: Blocks,
     questions: [
       {
-        q: '¿Por qué se usa Bitcoin?',
-        a: 'Bitcoin es la blockchain más segura y descentralizada del mundo. Al anclar el hash en Bitcoin, obtienes una prueba que está respaldada por la red más robusta, con miles de nodos independientes y un historial impecable de seguridad desde 2009.',
+        q: '¿Cómo funciona el consumo del servicio?',
+        a: 'OpenProof opera con créditos prepago. Compras paquetes, se acredita saldo en la cuenta y cada registro descuenta el costo configurado por operación.',
       },
       {
-        q: '¿Qué es una confirmación?',
-        a: 'Una confirmación ocurre cada vez que se mina un nuevo bloque después del bloque que contiene tu transacción. Más confirmaciones significan mayor seguridad. Generalmente, 6 confirmaciones (aproximadamente 1 hora) se consideran irreversibles.',
+        q: '¿Puedo integrarlo con sistemas internos?',
+        a: 'Sí. La cuenta dispone de API keys bearer para conectar ERP, portales, backoffice o automatizaciones con las rutas privadas del backend.',
       },
       {
-        q: '¿Puede alguien modificar o eliminar mi registro?',
-        a: 'No. Una vez que una transacción está confirmada en la blockchain de Bitcoin, es prácticamente imposible modificarla o eliminarla. La blockchain es inmutable por diseño, y cada bloque está vinculado criptográficamente al anterior.',
+        q: '¿Qué limitaciones importantes tiene hoy?',
+        a: 'La plataforma está orientada a operación por cuenta, no a colaboración empresarial compleja. No sustituye un DMS corporativo, no ofrece flujos avanzados de firma y no promete automatizaciones regulatorias por sí sola.',
       },
     ],
   },
   {
-    category: 'Verificación',
+    category: 'Evidencia y cumplimiento',
     icon: Shield,
     questions: [
       {
-        q: '¿Cómo verifico un documento?',
-        a: 'Puedes verificar un documento de dos formas: subiendo el archivo original (se calculará su hash automáticamente) o ingresando directamente el hash SHA-256. El sistema buscará en la blockchain si existe un registro con ese hash.',
+        q: '¿Quién puede verificar un documento?',
+        a: 'Cualquier tercero puede verificar un hash o abrir la constancia pública de una transacción, sin necesidad de iniciar sesión.',
       },
       {
-        q: '¿Qué pasa si el documento fue modificado?',
-        a: 'Cualquier modificación, por mínima que sea, generará un hash completamente diferente. Si el archivo fue alterado, el hash no coincidirá con el registrado y la verificación mostrará que no hay registro para ese documento específico.',
+        q: '¿Qué pasa si el archivo cambió después del registro?',
+        a: 'Cualquier cambio altera el hash. Si la huella recalculada ya no coincide con la registrada, la verificación dejará de corresponder a la evidencia anclada en Bitcoin.',
       },
       {
-        q: '¿Necesito cuenta para verificar?',
-        a: 'No. La verificación es pública y gratuita. Cualquier persona puede verificar la existencia de un documento sin necesidad de crear una cuenta o iniciar sesión.',
+        q: '¿Sirve para entidades reguladas?',
+        a: 'Puede ser útil como capa tecnológica de trazabilidad, pero la adopción en entornos regulados exige evaluar retención, visibilidad pública, flujos de archivo, cumplimiento sectorial y encaje jurídico antes de operar en producción.',
       },
     ],
   },
 ]
 
+const entityUseCases = [
+  {
+    icon: Landmark,
+    title: 'Sector legal',
+    description: 'Actas, borradores contractuales, anexos y evidencia de intercambio documental con referencia temporal verificable.',
+  },
+  {
+    icon: Building2,
+    title: 'Cumplimiento interno',
+    description: 'Respaldo de reportes, políticas, expedientes y documentos de auditoría sin depender de una validación manual posterior.',
+  },
+  {
+    icon: FileSearch,
+    title: 'Procurement y gestión documental',
+    description: 'Ofertas, pliegos, entregables y documentación de proveedores con evidencia pública de existencia.',
+  },
+  {
+    icon: KeyRound,
+    title: 'Operación con API',
+    description: 'Portales o sistemas internos que requieren registrar documentos desde sus propios flujos, bajo la misma cuenta operativa.',
+  },
+]
+
 export default function FAQPage() {
   return (
-    <div className="min-h-screen flex flex-col bg-background">
-      <Header />
-      
-      <main className="container max-w-6xl mx-auto px-4 py-8 md:py-12">
-        <div>
-          {/* Back link */}
-          <Link
-            href="/"
-            className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors mb-6"
-          >
-            <ArrowLeft className="w-4 h-4" />
-            Volver al inicio
-          </Link>
+    <SiteShell>
+      <div className="container py-8 md:py-12">
+        <PageIntro
+          backHref="/"
+          backLabel="Volver al inicio"
+          badge="Preguntas frecuentes"
+          badgeIcon={HelpCircle}
+          title="Lo importante para entender qué hace OpenProof y qué no hace"
+          description="Estas respuestas aterrizan la plataforma sobre sus capacidades actuales: registro documental, constancias públicas, créditos, cuenta e integraciones por API key."
+          align="center"
+        />
 
-          <div>
-            {/* Header */}
-            <div className="text-center mb-12">
-              <h1 className="text-2xl md:text-3xl font-bold text-foreground">
-                Preguntas frecuentes
-              </h1>
-              <p className="mt-2 text-muted-foreground">
-                Todo lo que necesitas saber sobre Proof of Existence
-              </p>
+        <Card className="mt-10 border-border/70 bg-card/90 shadow-none">
+          <CardHeader>
+            <CardTitle className="text-lg">Cómo se construye la evidencia</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-8">
+            <ProofProcess />
+
+            <div className="grid gap-4 sm:grid-cols-2">
+              <div className="rounded-2xl bg-secondary/55 p-4 text-sm leading-7 text-muted-foreground">
+                Puedes registrar desde archivo o desde hash, y el producto mantiene el estado del documento dentro de la cuenta.
+              </div>
+              <div className="rounded-2xl bg-secondary/55 p-4 text-sm leading-7 text-muted-foreground">
+                La evidencia pública vive fuera del panel privado y puede compartirse por transacción cuando el registro ya fue emitido.
+              </div>
+              <div className="rounded-2xl bg-secondary/55 p-4 text-sm leading-7 text-muted-foreground">
+                La parte fuerte del sistema es la trazabilidad técnica, no la sustitución de procesos jurídicos o de firma.
+              </div>
+              <div className="rounded-2xl bg-secondary/55 p-4 text-sm leading-7 text-muted-foreground">
+                Los créditos, la autenticación y las API keys convierten el registro en un flujo operativo, no solo en una página pública.
+              </div>
             </div>
+          </CardContent>
+        </Card>
 
-            {/* How it works visual */}
-            <Card className="mb-12">
-              <CardHeader>
-                <CardTitle className="text-lg">¿Cómo funciona?</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <ProofProcess />
-                
-                <div className="mt-8 grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm">
-                  <div className="p-4 rounded-lg bg-secondary/50">
-                    <div className="flex items-center gap-2 mb-2">
-                      <FileText className="w-4 h-4 text-muted-foreground" />
-                      <span className="font-medium text-foreground">1. Documento</span>
-                    </div>
-                    <p className="text-muted-foreground">
-                      Seleccionas tu archivo en el navegador. El archivo nunca se sube a ningún servidor.
-                    </p>
-                  </div>
-                  
-                  <div className="p-4 rounded-lg bg-secondary/50">
-                    <div className="flex items-center gap-2 mb-2">
-                      <Hash className="w-4 h-4 text-muted-foreground" />
-                      <span className="font-medium text-foreground">2. Hash</span>
-                    </div>
-                    <p className="text-muted-foreground">
-                      Se calcula el hash SHA-256 localmente. Esta huella digital es única para tu archivo.
-                    </p>
-                  </div>
-                  
-                  <div className="p-4 rounded-lg bg-secondary/50">
-                    <div className="flex items-center gap-2 mb-2">
-                      <Blocks className="w-4 h-4 text-muted-foreground" />
-                      <span className="font-medium text-foreground">3. Blockchain</span>
-                    </div>
-                    <p className="text-muted-foreground">
-                      El hash se ancla en la blockchain de Bitcoin mediante una transacción especial.
-                    </p>
-                  </div>
-                  
-                  <div className="p-4 rounded-lg bg-secondary/50">
-                    <div className="flex items-center gap-2 mb-2">
-                      <Clock className="w-4 h-4 text-muted-foreground" />
-                      <span className="font-medium text-foreground">4. Timestamp</span>
-                    </div>
-                    <p className="text-muted-foreground">
-                      El bloque de Bitcoin proporciona un timestamp inmutable y verificable públicamente.
-                    </p>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
+        <section className="mt-14 md:mt-16">
+          <SectionHeading
+            eyebrow="Entidades"
+            title="Casos de uso institucionales realistas"
+            description="La plataforma encaja mejor cuando la entidad necesita una referencia pública verificable del documento, sin venderlo como certificación legal automática."
+            align="center"
+          />
+          <IconCardGrid items={entityUseCases} columns="4" className="mt-8" />
+        </section>
 
-            {/* FAQ sections */}
-            <div className="space-y-8">
-              {faqs.map((section) => {
-                const Icon = section.icon
-                return (
-                  <Card key={section.category}>
-                    <CardHeader>
-                      <CardTitle className="flex items-center gap-2 text-lg">
-                        <Icon className="w-5 h-5 text-muted-foreground" />
-                        {section.category}
-                      </CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                      <Accordion type="single" collapsible className="w-full">
-                        {section.questions.map((faq, index) => (
-                          <AccordionItem key={index} value={`item-${index}`}>
-                            <AccordionTrigger className="text-left text-foreground">
-                              {faq.q}
-                            </AccordionTrigger>
-                            <AccordionContent className="text-muted-foreground leading-relaxed">
-                              {faq.a}
-                            </AccordionContent>
-                          </AccordionItem>
-                        ))}
-                      </Accordion>
-                    </CardContent>
-                  </Card>
-                )
-              })}
+        <section className="mt-14 space-y-8 md:mt-16">
+          {faqs.map((section) => {
+            const Icon = section.icon
+            return (
+              <Card key={section.category} className="border-border/70 bg-card/92 shadow-none">
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2 text-lg">
+                    <Icon className="h-5 w-5 text-muted-foreground" />
+                    {section.category}
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <Accordion type="single" collapsible className="w-full">
+                    {section.questions.map((faq, index) => (
+                      <AccordionItem key={faq.q} value={`${section.category}-${index}`}>
+                        <AccordionTrigger className="text-left text-foreground">
+                          {faq.q}
+                        </AccordionTrigger>
+                        <AccordionContent className="text-sm leading-7 text-muted-foreground">
+                          {faq.a}
+                        </AccordionContent>
+                      </AccordionItem>
+                    ))}
+                  </Accordion>
+                </CardContent>
+              </Card>
+            )
+          })}
+        </section>
+
+        <Card className="mt-14 border-border/70 bg-card/75 shadow-none">
+          <CardContent className="pt-6">
+            <div className="flex items-start gap-3">
+              <Scale className="mt-0.5 h-5 w-5 shrink-0 text-muted-foreground" />
+              <div className="space-y-2">
+                <h3 className="font-semibold text-foreground">Nota de alcance</h3>
+                <p className="text-sm leading-7 text-muted-foreground">
+                  OpenProof es una capa tecnológica para evidencia documental basada en criptografía y Bitcoin. Antes de adoptarlo en procesos sensibles o regulados, conviene revisar retención, visibilidad pública, flujo de archivos y encaje jurídico con el área correspondiente.
+                </p>
+              </div>
             </div>
-
-            {/* Legal notice */}
-            <Card className="mt-12 border-border bg-card/50">
-              <CardContent className="pt-6">
-                <div className="flex items-start gap-3">
-                  <Scale className="w-5 h-5 text-muted-foreground shrink-0 mt-0.5" />
-                  <div>
-                    <h3 className="font-semibold text-foreground mb-2">
-                      Nota legal
-                    </h3>
-                    <p className="text-sm text-muted-foreground leading-relaxed">
-                      OpenProof proporciona una herramienta tecnológica para crear pruebas de existencia 
-                      basadas en criptografía y blockchain. Este servicio no constituye asesoramiento legal 
-                      y no reemplaza los mecanismos legales tradicionales. La validez legal de estas pruebas 
-                      puede variar según la jurisdicción. Consulta con un profesional legal para casos específicos.
-                    </p>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          </div>
-        </div>
-      </main>
-      
-      <Footer />
-      <MobileNav />
-    </div>
+          </CardContent>
+        </Card>
+      </div>
+    </SiteShell>
   )
 }

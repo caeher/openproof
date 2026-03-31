@@ -1,85 +1,125 @@
 'use client'
 
 import Link from 'next/link'
-import { ArrowRight, Shield, Lock, Clock, CheckCircle2, FileText, Hash, Blocks, Zap, Globe, Code, Sparkles } from 'lucide-react'
+import {
+  ArrowRight,
+  Blocks,
+  BriefcaseBusiness,
+  Building2,
+  CheckCircle2,
+  CreditCard,
+  FileSearch,
+  Fingerprint,
+  GraduationCap,
+  KeyRound,
+  Landmark,
+  Network,
+  ShieldCheck,
+  Sparkles,
+  Upload,
+} from 'lucide-react'
 
 import { useAuth } from '@/components/auth/auth-provider'
+import { SiteShell } from '@/components/layout'
+import { IconCardGrid, PageIntro, SectionHeading, StatGrid } from '@/components/marketing'
+import { ProofProcess } from '@/components/proof'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
-import { Header, Footer, MobileNav } from '@/components/layout'
 import { buildVerifyEmailPath } from '@/lib/auth-routing'
 
-const features = [
+const operatingSignals = [
   {
-    icon: Shield,
-    title: 'Prueba inmutable',
-    description: 'Una vez registrado en Bitcoin, el hash de tu documento no puede ser alterado ni eliminado.',
-    color: 'bg-primary/10 text-primary',
+    value: 'SHA-256 local',
+    label: 'Hash antes del registro',
+    description: 'La verificación parte de una huella criptográfica calculada en el navegador o enviada desde tu integración.',
   },
   {
-    icon: Lock,
-    title: 'Privacidad total',
-    description: 'Tu archivo nunca sale de tu dispositivo. Solo se registra el hash criptográfico.',
-    color: 'bg-accent/10 text-accent',
+    value: 'Ruta pública',
+    label: 'Constancia compartible',
+    description: 'Cada transacción confirmada puede abrir una vista pública para terceros sin acceso a tu panel privado.',
   },
   {
-    icon: Clock,
-    title: 'Timestamp verificable',
-    description: 'Demuestra que tu documento existía en una fecha específica con certeza matemática.',
-    color: 'bg-chart-4/15 text-chart-4',
+    value: 'Créditos prepago',
+    label: 'Consumo operativo simple',
+    description: 'Compras saldo cuando lo necesitas y cada registro descuenta el costo configurado del servicio.',
   },
   {
-    icon: Globe,
-    title: 'Verificación pública',
-    description: 'Cualquiera puede verificar la existencia de tu documento sin necesidad de cuenta.',
-    color: 'bg-chart-1/10 text-chart-1',
+    value: 'API keys',
+    label: 'Integración bajo tu cuenta',
+    description: 'Las claves bearer permiten registrar y consultar documentos desde sistemas internos con el mismo control de la cuenta.',
   },
 ]
 
-const useCases = [
+const capabilities = [
   {
-    title: 'Propiedad intelectual',
-    description: 'Protege tus creaciones, diseños y obras originales con timestamp verificable.',
+    icon: Upload,
+    title: 'Registro por archivo o por hash',
+    description: 'Puedes cargar el documento para que OpenProof calcule el hash y conserve el archivo, o trabajar en modo hash-only desde la web o la API.',
   },
   {
-    title: 'Contratos y acuerdos',
-    description: 'Demuestra la existencia de documentos legales en una fecha específica.',
-  },
-  {
-    title: 'Investigación y datos',
-    description: 'Registra datasets y resultados de investigación para prioridad científica.',
-  },
-  {
-    title: 'Código y software',
-    description: 'Prueba la existencia de código fuente y versiones de software.',
-  },
-]
-
-const steps = [
-  {
-    number: '01',
-    icon: FileText,
-    title: 'Sube tu documento',
-    description: 'Selecciona cualquier archivo desde tu dispositivo.',
-  },
-  {
-    number: '02',
-    icon: Hash,
-    title: 'Se genera el hash',
-    description: 'Calculamos el SHA-256 localmente en tu navegador.',
-  },
-  {
-    number: '03',
     icon: Blocks,
-    title: 'Registro en Bitcoin',
-    description: 'El hash se ancla permanentemente en la blockchain.',
+    title: 'Anclaje sobre Bitcoin',
+    description: 'La prueba se consolida cuando la transacción queda confirmada en Bitcoin y puede consultarse por bloque, timestamp y confirmaciones.',
   },
   {
-    number: '04',
-    icon: CheckCircle2,
-    title: 'Prueba verificable',
-    description: 'Recibe tu comprobante con timestamp inmutable.',
+    icon: FileSearch,
+    title: 'Verificación pública',
+    description: 'Cualquier tercero puede verificar un hash o revisar una constancia pública por transacción sin crear una cuenta.',
   },
+  {
+    icon: CreditCard,
+    title: 'Cuenta, billing y saldo',
+    description: 'El producto combina historial documental, compra de créditos Lightning y seguimiento de operaciones desde un mismo panel.',
+  },
+  {
+    icon: KeyRound,
+    title: 'Developer portal',
+    description: 'Las API keys se crean, rotan y revocan desde la cuenta para conectar ERP, backoffice, portales internos o automatizaciones.',
+  },
+  {
+    icon: ShieldCheck,
+    title: 'Evidencia técnica complementaria',
+    description: 'OpenProof acredita existencia e integridad del hash en blockchain, pero no reemplaza firma electrónica, notaría ni análisis legal.',
+  },
+]
+
+const entityUseCases = [
+  {
+    icon: Landmark,
+    title: 'Despachos legales y notarías digitales',
+    description: 'Registrar versiones de contratos, anexos, minutas o constancias previas a su formalización para sostener trazabilidad temporal.',
+  },
+  {
+    icon: GraduationCap,
+    title: 'Universidades y centros de investigación',
+    description: 'Anclar datasets, borradores, resultados o entregables de proyectos para demostrar fecha de existencia antes de circularlos.',
+  },
+  {
+    icon: Building2,
+    title: 'Áreas de cumplimiento y auditoría',
+    description: 'Asegurar evidencia documental de políticas, reportes, actas y respaldos internos con referencia pública verificable.',
+  },
+  {
+    icon: BriefcaseBusiness,
+    title: 'Compras, licitaciones y proveedores',
+    description: 'Fijar evidencia de propuestas, términos, entregables o documentación intercambiada en procesos de procurement.',
+  },
+  {
+    icon: Fingerprint,
+    title: 'Propiedad intelectual y producto',
+    description: 'Probar existencia de especificaciones, manuales, diseños, código fuente o contenido original antes de compartirlos.',
+  },
+  {
+    icon: Network,
+    title: 'Operación digital con integraciones',
+    description: 'Incorporar el registro documental a portales internos, flujos de onboarding, expedientes o sistemas externos mediante API keys.',
+  },
+]
+
+const integrationHighlights = [
+  'Autenticación por sesión o API key bajo la misma cuenta.',
+  'Registro privado, verificación pública y portal de desarrolladores en el mismo producto.',
+  'Billing por créditos con pago Lightning y reconciliación operativa.',
 ]
 
 export default function LandingPage() {
@@ -91,278 +131,209 @@ export default function LandingPage() {
       : '/register'
 
   return (
-    <div className="min-h-screen flex flex-col bg-background">
-      <Header />
-
-      <main className="flex-1">
-        {/* Hero Section */}
-        <section className="relative overflow-hidden">
-          {/* Soft dot pattern */}
-          <div className="absolute inset-0 -z-10" style={{
-            backgroundImage: 'radial-gradient(circle, var(--border) 1px, transparent 1px)',
-            backgroundSize: '24px 24px',
-          }} />
-
-          <div className="container mx-auto px-4 pt-20 pb-24 md:pt-32 md:pb-40">
-            <div className="max-w-3xl mx-auto text-center">
-              <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/10 border border-primary/20 text-sm font-medium text-primary mb-8">
-                <Sparkles className="h-3.5 w-3.5" />
-                Blockchain de Bitcoin
-              </div>
-
-              <h1 className="text-4xl md:text-6xl font-bold text-foreground tracking-tight text-balance leading-[1.1]">
-                Prueba de existencia
-                <span className="block text-primary mt-2">en Bitcoin</span>
-              </h1>
-
-              <p className="mt-8 text-lg md:text-xl text-muted-foreground max-w-2xl mx-auto text-pretty leading-relaxed">
-                Demuestra que tu documento existía en una fecha específica.
-                Registra el hash criptográfico en la blockchain de Bitcoin
-                y obtén una prueba inmutable y verificable públicamente.
-              </p>
-
-              <div className="mt-10 flex flex-col sm:flex-row items-center justify-center gap-3">
-                <Button asChild size="lg" className="w-full sm:w-auto">
-                  <Link href={registerHref}>
-                    Registrar documento
-                    <ArrowRight className="ml-2 h-4 w-4" />
-                  </Link>
-                </Button>
-                <Button asChild variant="outline" size="lg" className="w-full sm:w-auto">
-                  <Link href="/verify">
-                    Verificar documento
-                  </Link>
-                </Button>
-              </div>
-            </div>
-          </div>
-        </section>
-
-        {/* Features Section */}
-        <section className="py-20 md:py-28">
-          <div className="container mx-auto px-4">
-            <div className="text-center mb-16">
-              <h2 className="text-2xl md:text-3xl font-bold text-foreground">
-                Por qué usar OpenProof
-              </h2>
-              <p className="mt-4 text-muted-foreground max-w-lg mx-auto leading-relaxed">
-                La forma más segura y transparente de certificar la existencia de tus documentos.
-              </p>
-            </div>
-
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
-              {features.map((feature) => {
-                const Icon = feature.icon
-                return (
-                  <Card key={feature.title} className="bg-card border-border hover:border-primary/30 transition-colors duration-300">
-                    <CardContent className="p-6">
-                      <div className={`w-11 h-11 rounded-xl ${feature.color} flex items-center justify-center mb-5`}>
-                        <Icon className="w-5 h-5" />
-                      </div>
-                      <h3 className="font-semibold text-foreground mb-2">
-                        {feature.title}
-                      </h3>
-                      <p className="text-sm text-muted-foreground leading-relaxed">
-                        {feature.description}
-                      </p>
-                    </CardContent>
-                  </Card>
-                )
-              })}
-            </div>
-          </div>
-        </section>
-
-        {/* How it works Section */}
-        <section className="py-20 md:py-28 bg-secondary/40">
-          <div className="container mx-auto px-4">
-            <div className="text-center mb-16">
-              <h2 className="text-2xl md:text-3xl font-bold text-foreground">
-                Cómo funciona
-              </h2>
-              <p className="mt-4 text-muted-foreground max-w-lg mx-auto leading-relaxed">
-                Un proceso simple y transparente para certificar tus documentos.
-              </p>
-            </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5">
-              {steps.map((step, index) => {
-                const Icon = step.icon
-                return (
-                  <div key={step.title} className="relative">
-                    {/* Connector line for desktop */}
-                    {index < steps.length - 1 && (
-                      <div className="hidden lg:block absolute top-10 left-[calc(50%+28px)] w-[calc(100%-56px)] h-px border-t border-dashed border-border" />
-                    )}
-
-                    <div className="relative bg-card p-6 rounded-2xl border border-border">
-                      <div className="flex items-start gap-4">
-                        <div className="relative">
-                          <div className="w-14 h-14 rounded-2xl bg-primary/10 flex items-center justify-center">
-                            <Icon className="w-6 h-6 text-primary" />
-                          </div>
-                          <span className="absolute -top-1.5 -right-1.5 w-6 h-6 rounded-lg bg-primary text-primary-foreground text-xs font-bold flex items-center justify-center">
-                            {index + 1}
-                          </span>
-                        </div>
-                        <div className="flex-1 min-w-0 pt-1">
-                          <h3 className="font-semibold text-foreground mb-1.5">
-                            {step.title}
-                          </h3>
-                          <p className="text-sm text-muted-foreground leading-relaxed">
-                            {step.description}
-                          </p>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                )
-              })}
-            </div>
-          </div>
-        </section>
-
-        {/* Use Cases Section */}
-        <section className="py-20 md:py-28">
-          <div className="container mx-auto px-4">
-            <div className="grid md:grid-cols-2 gap-16 items-center">
-              <div>
-                <h2 className="text-2xl md:text-3xl font-bold text-foreground">
-                  Casos de uso
-                </h2>
-                <p className="mt-4 text-muted-foreground leading-relaxed">
-                  Proof of Existence tiene múltiples aplicaciones en diversos campos
-                  donde se necesita demostrar la existencia de información en un momento específico.
-                </p>
-
-                <div className="mt-10 space-y-5">
-                  {useCases.map((useCase) => (
-                    <div key={useCase.title} className="flex gap-4 items-start">
-                      <div className="mt-0.5 w-6 h-6 rounded-lg bg-primary/10 flex items-center justify-center shrink-0">
-                        <CheckCircle2 className="w-3.5 h-3.5 text-primary" />
-                      </div>
-                      <div>
-                        <h4 className="font-medium text-foreground mb-0.5">
-                          {useCase.title}
-                        </h4>
-                        <p className="text-sm text-muted-foreground leading-relaxed">
-                          {useCase.description}
-                        </p>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-
-              <div className="relative">
-                <Card className="bg-card border-border">
-                  <CardContent className="p-6 space-y-4">
-                    <div className="flex items-center gap-3 p-3.5 rounded-xl bg-secondary/60 border border-border">
-                      <div className="w-9 h-9 rounded-lg bg-accent/10 flex items-center justify-center">
-                        <FileText className="w-4 h-4 text-accent" />
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <p className="text-sm font-medium text-foreground truncate">
-                          mi_documento.pdf
-                        </p>
-                        <p className="text-xs text-muted-foreground">
-                          245 KB
-                        </p>
-                      </div>
-                    </div>
-
-                    <div className="p-3.5 rounded-xl bg-primary/5 border border-primary/15">
-                      <p className="text-xs font-medium text-foreground mb-1.5">
-                        SHA-256 Hash
-                      </p>
-                      <code className="text-xs font-mono text-muted-foreground break-all leading-relaxed">
-                        a7ffc6f8bf1ed76651c14756a061d662f580ff4de43b49fa82d80a4b80f8434a
-                      </code>
-                    </div>
-
-                    <div className="flex items-center justify-between p-3.5 rounded-xl bg-secondary/60 border border-border">
-                      <span className="text-sm text-muted-foreground">Estado</span>
-                      <span className="inline-flex items-center gap-1.5 text-sm font-medium text-primary">
-                        <CheckCircle2 className="w-4 h-4" />
-                        Confirmado
-                      </span>
-                    </div>
-                  </CardContent>
-                </Card>
-              </div>
-            </div>
-          </div>
-        </section>
-
-        {/* API Section */}
-        <section className="py-20 md:py-28 bg-secondary/40">
-          <div className="container mx-auto px-4">
-            <div className="max-w-3xl mx-auto text-center">
-              <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-accent/10 border border-accent/20 text-sm font-medium text-accent mb-8">
-                <Code className="w-3.5 h-3.5" />
-                API REST
-              </div>
-
-              <h2 className="text-2xl md:text-3xl font-bold text-foreground">
-                Integra OpenProof en tu aplicación
-              </h2>
-              <p className="mt-4 text-muted-foreground max-w-lg mx-auto leading-relaxed">
-                Nuestra API REST permite registrar y verificar documentos
-                programáticamente desde cualquier plataforma.
-              </p>
-
-              <div className="mt-10 p-5 rounded-2xl bg-card border border-border text-left overflow-x-auto">
-                <pre className="text-sm font-mono text-muted-foreground leading-relaxed">
-                  <code>{`POST /api/v1/documents/register
-{
-  "file_hash": "a7ffc6f8bf1ed...",
-  "filename": "contract.pdf",
-  "user_id": "user_123"
-}`}</code>
-                </pre>
-              </div>
-
-              <div className="mt-8 flex flex-col sm:flex-row items-center justify-center gap-3">
-                <Button asChild variant="outline">
-                  <Link href="/api-docs">
-                    Ver documentación
-                    <ArrowRight className="ml-2 h-4 w-4" />
-                  </Link>
-                </Button>
-              </div>
-            </div>
-          </div>
-        </section>
-
-        {/* CTA Section */}
-        <section className="py-20 md:py-28">
-          <div className="container mx-auto px-4">
-            <div className="max-w-2xl mx-auto text-center">
-              <div className="p-10 md:p-14 rounded-3xl bg-primary/8 border border-primary/15">
-                <h2 className="text-2xl md:text-3xl font-bold text-foreground">
-                  Comienza a certificar tus documentos
-                </h2>
-                <p className="mt-4 text-muted-foreground leading-relaxed">
-                  Registra tu primer documento en la blockchain de Bitcoin
-                  y obtén una prueba de existencia inmutable.
-                </p>
-
-                <div className="mt-8 flex flex-col sm:flex-row items-center justify-center gap-3">
-                  <Button asChild size="lg" className="w-full sm:w-auto">
-                    <Link href="/register">
+    <SiteShell mainClassName="overflow-hidden">
+      <section className="relative border-b border-border/70 bg-[radial-gradient(circle_at_top,rgba(251,191,36,0.16),transparent_32%),linear-gradient(180deg,rgba(255,255,255,0.72)_0%,rgba(255,255,255,0)_100%)] dark:bg-[radial-gradient(circle_at_top,rgba(251,191,36,0.12),transparent_28%),linear-gradient(180deg,rgba(24,24,27,0.65)_0%,rgba(24,24,27,0)_100%)]">
+        <div className="absolute inset-0 -z-10 bg-[radial-gradient(circle,rgba(148,163,184,0.18)_1px,transparent_1px)] [background-size:26px_26px] opacity-40" />
+        <div className="container py-16 md:py-24">
+          <div className="grid gap-10 lg:grid-cols-[1.15fr_0.85fr] lg:items-center">
+            <PageIntro
+              badge="Infraestructura documental sobre Bitcoin"
+              badgeIcon={Sparkles}
+              title="Registra, verifica y comparte evidencia documental con trazabilidad pública"
+              description="OpenProof convierte hashes documentales en pruebas verificables sobre Bitcoin. La plataforma combina registro por archivo o hash, verificación pública, historial privado, créditos prepago y API keys para integraciones bajo una misma cuenta."
+              actions={(
+                <>
+                  <Button asChild size="lg">
+                    <Link href={registerHref}>
                       Registrar documento
                       <ArrowRight className="ml-2 h-4 w-4" />
                     </Link>
                   </Button>
+                  <Button asChild variant="outline" size="lg">
+                    <Link href="/verify">Verificar documento</Link>
+                  </Button>
+                  <Button asChild variant="ghost" size="lg">
+                    <Link href="/api-docs">Ver API</Link>
+                  </Button>
+                </>
+              )}
+            />
+
+            <Card className="border-border/70 bg-card/88 shadow-[0_24px_90px_rgba(15,23,42,0.08)] dark:shadow-[0_30px_90px_rgba(2,6,23,0.35)]">
+              <CardContent className="space-y-6 p-6 md:p-8">
+                <div className="flex items-center justify-between rounded-2xl border border-border/70 bg-secondary/45 px-4 py-3">
+                  <div>
+                    <p className="text-xs uppercase tracking-[0.18em] text-muted-foreground">Modo de registro</p>
+                    <p className="mt-1 text-sm font-medium text-foreground">Hash-only o archivo almacenado</p>
+                  </div>
+                  <CheckCircle2 className="h-5 w-5 text-primary" />
                 </div>
-              </div>
+
+                <ProofProcess currentStep={3} />
+
+                <div className="space-y-3 rounded-2xl border border-primary/15 bg-primary/6 p-5">
+                  <p className="text-xs font-medium uppercase tracking-[0.2em] text-primary">Lo que ve la plataforma</p>
+                  <ul className="space-y-3 text-sm leading-7 text-muted-foreground">
+                    <li>Hash del documento, metadatos declarados y estado del procesamiento.</li>
+                    <li>Saldo de créditos, sesiones, API keys y eventos necesarios para operar la cuenta.</li>
+                    <li>Constancia pública por transacción para terceros, sin exponer el panel privado.</li>
+                  </ul>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+        </div>
+      </section>
+
+      <section className="container py-12 md:py-16">
+        <StatGrid items={operatingSignals} />
+      </section>
+
+      <section className="container py-16 md:py-20">
+        <SectionHeading
+          eyebrow="Capacidades"
+          title="Más cerca de una operación documental que de una simple demo de blockchain"
+          description="OpenProof no solo registra un hash. También incorpora autenticación, historial, créditos, viewers públicos y portal de desarrolladores para integrarlo en flujos reales."
+          align="center"
+        />
+        <IconCardGrid items={capabilities} columns="3" className="mt-10" />
+      </section>
+
+      <section className="border-y border-border/70 bg-secondary/35">
+        <div className="container py-16 md:py-20">
+          <div className="grid gap-10 lg:grid-cols-[0.9fr_1.1fr] lg:items-start">
+            <div className="space-y-6">
+              <SectionHeading
+                eyebrow="Flujo"
+                title="Cómo aterriza la evidencia en el producto"
+                description="El recorrido operativo combina huella criptográfica, consumo de créditos, anclaje en Bitcoin y una constancia verificable para terceros."
+              />
+
+              <Card className="border-border/70 bg-card/80 shadow-none">
+                <CardContent className="space-y-4 p-6">
+                  <p className="text-sm font-medium text-foreground">Dos formas de trabajar</p>
+                  <div className="space-y-3 text-sm leading-7 text-muted-foreground">
+                    <p>
+                      <span className="font-medium text-foreground">Modo hash-only:</span> calculas o envías la huella y operas sin transferir el archivo al backend.
+                    </p>
+                    <p>
+                      <span className="font-medium text-foreground">Modo upload:</span> OpenProof calcula el hash, conserva el archivo asociado y puede servirlo en flujos públicos según la constancia emitida.
+                    </p>
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+
+            <div className="grid gap-5 md:grid-cols-2">
+              <Card className="border-border/70 bg-card/80 shadow-none md:col-span-2">
+                <CardContent className="p-6">
+                  <ProofProcess currentStep={3} />
+                </CardContent>
+              </Card>
+
+              <Card className="border-border/70 bg-card/80 shadow-none">
+                <CardContent className="space-y-3 p-6">
+                  <p className="text-sm font-medium text-foreground">Cuenta y trazabilidad</p>
+                  <p className="text-sm leading-7 text-muted-foreground">
+                    La cuenta concentra historial, saldo, compras de créditos, sesión y creación de API keys para operar bajo una misma identidad.
+                  </p>
+                </CardContent>
+              </Card>
+
+              <Card className="border-border/70 bg-card/80 shadow-none">
+                <CardContent className="space-y-3 p-6">
+                  <p className="text-sm font-medium text-foreground">Evidencia pública</p>
+                  <p className="text-sm leading-7 text-muted-foreground">
+                    Terceros pueden revisar la transacción, bloque, confirmaciones y huella asociada sin depender del acceso a tu panel privado.
+                  </p>
+                </CardContent>
+              </Card>
             </div>
           </div>
-        </section>
-      </main>
+        </div>
+      </section>
 
-      <Footer />
-      <MobileNav />
-    </div>
+      <section className="container py-16 md:py-20">
+        <SectionHeading
+          eyebrow="Casos de uso"
+          title="Dónde encaja esta tecnología dentro de entidades y equipos"
+          description="La propuesta tiene sentido cuando una organización necesita fijar fecha de existencia, integridad y referencia pública de un documento, sin prometer firma ni validez jurídica automática."
+          align="center"
+        />
+        <IconCardGrid items={entityUseCases} columns="3" className="mt-10" />
+      </section>
+
+      <section className="border-y border-border/70 bg-secondary/35">
+        <div className="container py-16 md:py-20">
+          <div className="grid gap-8 lg:grid-cols-[0.92fr_1.08fr] lg:items-center">
+            <div className="space-y-5">
+              <SectionHeading
+                eyebrow="Integración"
+                title="Conecta OpenProof con tus sistemas internos"
+                description="El cliente ya expone un developer portal para administrar claves bearer y un backend con rutas para registrar, consultar y verificar documentos."
+              />
+              <ul className="space-y-3 text-sm leading-7 text-muted-foreground">
+                {integrationHighlights.map((item) => (
+                  <li key={item} className="rounded-2xl border border-border/70 bg-card/80 px-4 py-3">
+                    {item}
+                  </li>
+                ))}
+              </ul>
+              <div className="flex flex-col gap-3 sm:flex-row">
+                <Button asChild variant="outline">
+                  <Link href="/developers">Portal de desarrolladores</Link>
+                </Button>
+                <Button asChild variant="ghost">
+                  <Link href="/pricing">Ver créditos</Link>
+                </Button>
+              </div>
+            </div>
+
+            <Card className="border-border/70 bg-card/92 shadow-none">
+              <CardContent className="space-y-5 p-6">
+                <div>
+                  <p className="text-xs font-medium uppercase tracking-[0.2em] text-muted-foreground">Ejemplo de registro autenticado</p>
+                  <pre className="mt-4 overflow-x-auto rounded-2xl border border-border/70 bg-background px-4 py-5 text-sm leading-7 text-muted-foreground">
+                    <code>{`POST /api/v1/documents/upload
+Authorization: Bearer opk_live_***
+Content-Type: multipart/form-data
+
+file: acta-comite.pdf
+metadata: {"area":"cumplimiento"}`}</code>
+                  </pre>
+                </div>
+
+                <p className="text-sm leading-7 text-muted-foreground">
+                  El producto también expone vistas públicas por transacción para compartir evidencia con terceros sin entregar acceso a la cuenta operativa.
+                </p>
+              </CardContent>
+            </Card>
+          </div>
+        </div>
+      </section>
+
+      <section className="container py-16 md:py-20">
+        <Card className="border-primary/15 bg-primary/6 shadow-none">
+          <CardContent className="space-y-5 px-6 py-10 text-center md:px-10 md:py-14">
+            <SectionHeading
+              title="Empieza con un flujo simple y escálalo cuando haga falta"
+              description="Registra desde la interfaz web, comparte la constancia pública y, cuando el proceso madure, muévelo a una integración con API keys y billing por créditos."
+              align="center"
+            />
+            <div className="flex flex-col justify-center gap-3 sm:flex-row">
+              <Button asChild size="lg">
+                <Link href={registerHref}>
+                  Registrar documento
+                  <ArrowRight className="ml-2 h-4 w-4" />
+                </Link>
+              </Button>
+              <Button asChild variant="outline" size="lg">
+                <Link href="/faq">Revisar preguntas frecuentes</Link>
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+      </section>
+    </SiteShell>
   )
 }

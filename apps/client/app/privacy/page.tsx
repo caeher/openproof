@@ -5,64 +5,64 @@ export default function PrivacyPage() {
     <LegalDocument
       badge="Privacidad"
       title="Política de privacidad de OpenProof"
-      summary="Esta política explica qué datos tratamos, con qué finalidad operativa los utilizamos y bajo qué criterios conservamos la información vinculada a cuentas, registros, pagos y constancias públicas dentro de OpenProof."
+      summary="Esta política describe cómo OpenProof trata información de cuenta, documentos, hashes, archivos cargados, pagos, API keys y constancias públicas para operar una plataforma de evidencia documental sobre Bitcoin."
       updatedAt="30 de marzo de 2026"
       highlights={[
-        'OpenProof trabaja con hashes y metadatos declarados; no necesita subir tu archivo original para anclar la prueba.',
-        'Tratamos datos de cuenta, seguridad, facturación y auditoría para operar el servicio.',
-        'Conservamos información mientras exista una necesidad operativa, legal o antifraude legítima.',
+        'Puedes usar OpenProof en modo hash-only o subir el archivo; ambos flujos implican tratamientos diferentes.',
+        'Tratamos datos de cuenta, seguridad, billing, API keys, operaciones y trazabilidad para operar el servicio.',
+        'Las constancias públicas y registros ya anclados en blockchain no siempre pueden retirarse de forma retroactiva.',
       ]}
       sections={[
         {
-          title: 'Qué información tratamos',
+          title: 'Qué datos tratamos según el flujo que utilices',
           body: [
-            'OpenProof trata datos de cuenta como nombre, correo, credenciales derivadas, sesiones, estado de verificación y eventos asociados al acceso. También procesa hashes de documentos, metadatos suministrados por el usuario, movimientos de crédito, API keys, registros de auditoría y estados de cobro necesarios para prestar el servicio.',
-            'El archivo original no necesita ser transferido al backend para emitir una prueba de existencia. El procesamiento principal se basa en el hash criptográfico del documento y en la información contextual que el usuario decida asociar al registro.',
+            'OpenProof trata datos de cuenta como nombre, correo, credenciales derivadas, sesiones, estado de verificación, rol, avatar, eventos de acceso y API keys. También procesa hashes documentales, nombres de archivo, metadatos declarados, estados del documento, movimientos de créditos, intenciones de pago, eventos de webhook y registros de auditoría asociados a la operación del servicio.',
+            'Si usas un flujo hash-only, el backend procesa principalmente la huella criptográfica y la información contextual que decidas enviar. Si usas upload, OpenProof también almacena el archivo cargado y datos técnicos derivados como tamaño, tipo de contenido o rutas de descarga asociadas al registro.',
           ],
           highlights: [
-            'Los hashes y metadatos asociados pueden formar parte de constancias públicas si existe una transacción publicada.',
-            'La información de autenticación y sesiones se utiliza para proteger el acceso y prevenir uso indebido.',
+            'Los hashes, identificadores de transacción y determinados metadatos pueden aparecer en viewers públicos cuando exista una constancia compartible.',
+            'La información de autenticación, sesión y API keys se usa para proteger acceso, trazabilidad y prevención de abuso.',
           ],
         },
         {
-          title: 'Finalidades del tratamiento',
+          title: 'Para qué usamos la información',
           body: [
-            'Utilizamos la información para crear y gestionar cuentas, autenticar usuarios, emitir pruebas, exponer viewers públicos, controlar permisos, registrar auditoría operativa, procesar pagos, administrar créditos y responder a incidencias de soporte o fraude.',
-            'El tratamiento también puede servir para observabilidad técnica, seguridad de plataforma, prevención de abuso, cumplimiento de obligaciones legales y mejora prudente de confiabilidad del servicio.',
+            'Usamos la información para crear y proteger cuentas, autenticar sesiones, registrar documentos, conservar estados del procesamiento, emitir constancias públicas, permitir verificaciones, exponer archivos cuando el flujo elegido lo habilite, controlar permisos, operar el portal de desarrolladores, procesar pagos Lightning y administrar créditos.',
+            'El tratamiento también cubre observabilidad técnica, hardening, prevención de fraude o abuso, cumplimiento normativo razonable, soporte, resolución de incidentes y mejora controlada de confiabilidad del servicio.',
           ],
           highlights: [
-            'No usamos el contenido del archivo para minería documental ni para entrenamiento de modelos.',
-            'Las métricas técnicas se orientan a continuidad operativa, hardening y capacidad.',
+            'No tratamos el contenido del archivo con fines de minería documental ni entrenamiento de modelos.',
+            'Las métricas y logs técnicos se orientan a continuidad operativa, seguridad y capacidad.',
           ],
         },
         {
-          title: 'Terceros e infraestructura',
+          title: 'Infraestructura, terceros y exposición pública',
           body: [
-            'Determinadas operaciones pueden involucrar proveedores de infraestructura, correo transaccional, servicios de pago Lightning y componentes de hosting. Dichos terceros actúan como encargados o proveedores tecnológicos en la medida necesaria para operar autenticación, mensajería, cobro y publicación de pruebas.',
-            'Cuando una constancia pública se comparte mediante el viewer, la información expuesta dependerá del diseño funcional del servicio y del estado del registro en blockchain. Por ello, el usuario debe revisar qué datos decide adjuntar como metadatos antes de emitir registros con fines de divulgación externa.',
+            'Para prestar el servicio, OpenProof puede apoyarse en hosting, almacenamiento, correo transaccional, infraestructura de pagos Lightning, software de nodo Bitcoin y componentes de observabilidad o seguridad. Cada proveedor solo participa en la medida necesaria para autenticar, cobrar, notificar, almacenar, registrar o servir la evidencia documental.',
+            'Cuando una constancia pública se comparte por transacción, terceros pueden consultar información derivada del registro y del estado on-chain. Si el flujo incluye archivo público o metadatos visibles, esos elementos también pueden quedar accesibles desde la vista pública correspondiente.',
           ],
           highlights: [
-            'El proveedor de pagos Lightning puede recibir información transaccional necesaria para confirmar cobros.',
-            'Los enlaces de verificación o recuperación pueden ser enviados por un proveedor de correo transaccional.',
+            'El proveedor de pagos Lightning recibe la información mínima necesaria para emitir y reconciliar el cobro.',
+            'Los enlaces de verificación, recuperación o avisos operativos pueden enviarse mediante un proveedor de correo transaccional.',
           ],
         },
         {
-          title: 'Conservación y derechos',
+          title: 'Retención, derechos y límites de supresión',
           body: [
-            'Conservamos la información mientras exista una base operativa, contractual, legal o antifraude que justifique su mantenimiento. Los datos vinculados a contabilidad, auditoría, seguridad o trazabilidad pueden persistir incluso si la cuenta deja de estar activa.',
-            'El usuario puede solicitar revisión, actualización o aclaración sobre la información de cuenta y sobre el tratamiento aplicable según el entorno de despliegue y la normativa correspondiente. Las constancias ya ancladas en blockchain o divulgadas públicamente no siempre pueden eliminarse de forma retroactiva debido a la naturaleza inmutable del registro distribuido.',
+            'Conservamos la información mientras exista una base operativa, contractual, legal, de seguridad o antifraude que lo justifique. Los datos vinculados a contabilidad, auditoría, trazabilidad, pagos, sesiones, API keys, soporte o seguridad pueden persistir incluso cuando la cuenta deja de operar activamente.',
+            'Puedes solicitar revisión o actualización de la información de cuenta conforme al entorno de despliegue y a la normativa aplicable. Sin embargo, los registros ya anclados en blockchain, las constancias públicas ya compartidas o la evidencia necesaria para auditoría y defensa frente a fraude no siempre pueden borrarse de forma retroactiva.',
           ],
           highlights: [
-            'La supresión técnica no equivale necesariamente a borrar huellas públicas ya publicadas en blockchain.',
-            'Las solicitudes deben evaluarse junto con requisitos legales, de seguridad y de preservación de evidencia.',
+            'Eliminar una copia interna no implica remover la huella pública ya publicada on-chain o en viewers compartidos.',
+            'Las solicitudes deben balancearse con obligaciones legales, seguridad operativa y preservación de evidencia.',
           ],
         },
       ]}
       footerNote={
         <p>
-          Si necesitas una evaluación específica de privacidad para un caso de uso regulado, alto
-          volumen o exposición pública intensiva, conviene revisar previamente el flujo de metadatos,
-          viewers públicos y retención junto con tu equipo legal y de cumplimiento.
+          Si tu implementación involucra expedientes sensibles, alto volumen, viewers públicos o
+          integraciones institucionales, conviene revisar de antemano el flujo de hashes, archivos,
+          metadatos, descargas públicas y retención con tu equipo legal, de seguridad y de cumplimiento.
         </p>
       }
     />

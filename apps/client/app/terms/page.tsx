@@ -5,64 +5,64 @@ export default function TermsPage() {
     <LegalDocument
       badge="Términos del servicio"
       title="Condiciones de uso de OpenProof"
-      summary="Estas condiciones regulan el acceso y uso de la plataforma OpenProof, incluyendo cuentas, créditos, rutas privadas, API keys y constancias públicas generadas a partir de registros anclados en la blockchain de Bitcoin."
+      summary="Estas condiciones regulan el uso de OpenProof como plataforma de evidencia documental sobre Bitcoin, incluyendo cuentas, créditos, API keys, uploads, verificación pública y constancias asociadas a transacciones blockchain."
       updatedAt="30 de marzo de 2026"
       highlights={[
-        'El servicio opera con créditos prepago y no genera cargos recurrentes automáticos.',
-        'El titular de la cuenta es responsable por el uso de sus sesiones y API keys.',
-        'OpenProof puede aplicar controles de seguridad y disponibilidad para proteger la plataforma.',
+        'OpenProof opera con créditos prepago y no implica suscripciones automáticas por defecto.',
+        'La cuenta, las sesiones y las API keys quedan bajo responsabilidad del titular que las opera.',
+        'La plataforma ofrece evidencia técnica y trazabilidad documental, no certificación legal automática.',
       ]}
       sections={[
         {
-          title: 'Alcance del servicio',
+          title: 'Alcance y naturaleza del servicio',
           body: [
-            'OpenProof proporciona una infraestructura para registrar hashes documentales, consultar estados de procesamiento y compartir constancias públicas asociadas a transacciones Bitcoin. La plataforma no sustituye asesoría legal, notarial o regulatoria y debe usarse como evidencia tecnológica complementaria.',
-            'El usuario es responsable de verificar que el contenido, los metadatos y el contexto jurídico del documento sean adecuados para el fin previsto antes de emitir o compartir una constancia pública.',
+            'OpenProof proporciona infraestructura para registrar documentos o hashes, consultar estados, comprar créditos, emitir constancias públicas y verificar evidencia asociada a transacciones Bitcoin. El servicio debe entenderse como una capa tecnológica de trazabilidad documental, no como sustituto de asesoría legal, custodia notarial, firma electrónica avanzada o certificación regulatoria.',
+            'El usuario es responsable de evaluar si el documento, los metadatos, el nivel de exposición pública y el contexto jurídico del registro son adecuados para el fin previsto antes de emitir o compartir una constancia.',
           ],
           highlights: [
-            'La prueba emitida acredita la existencia de un hash en una fecha y estado de blockchain determinados.',
-            'La validez jurídica final depende del marco normativo aplicable y del proceso donde se presente la evidencia.',
+            'La plataforma acredita la existencia e integridad de una huella documental en un estado de blockchain determinado.',
+            'La validez jurídica final depende de la jurisdicción, del caso concreto y de la forma en que se presente la evidencia.',
           ],
         },
         {
-          title: 'Cuenta, acceso y seguridad operativa',
+          title: 'Cuenta, acceso y API keys',
           body: [
-            'Para operar rutas privadas, el usuario debe mantener una cuenta válida, custodiar credenciales, sesiones activas y API keys, y notificar cualquier indicio de uso indebido. OpenProof puede suspender sesiones, exigir verificación adicional o rotación de credenciales cuando detecte actividad anómala o riesgo razonable.',
-            'La segregación entre sesión, verificación de correo y permisos es parte del modelo de seguridad. El acceso a funciones sensibles puede limitarse hasta que el estado de la cuenta cumpla los requisitos operativos vigentes.',
+            'Para usar rutas privadas, registrar documentos, gestionar billing o crear API keys, debes mantener una cuenta válida y custodiar con diligencia tus credenciales, sesiones, dispositivos y claves de integración. OpenProof puede suspender sesiones, exigir verificación adicional o forzar rotación cuando detecte actividad anómala, abuso o riesgo razonable.',
+            'Las acciones ejecutadas mediante la interfaz o mediante API key se atribuyen a la cuenta emisora salvo evidencia técnica en contrario. El acceso a funciones sensibles puede limitarse si la cuenta no cumple requisitos operativos como verificación de correo o controles de seguridad vigentes.',
           ],
           highlights: [
-            'La compartición insegura de credenciales o tokens queda bajo responsabilidad del titular de la cuenta.',
-            'Las acciones ejecutadas mediante API key se atribuyen a la cuenta emisora salvo evidencia técnica en contrario.',
+            'Compartir credenciales, cookies o API keys de forma insegura es responsabilidad del titular de la cuenta.',
+            'Rotar o revocar API keys comprometidas forma parte de tu deber operativo básico.',
           ],
         },
         {
-          title: 'Créditos, pagos y consumo',
+          title: 'Créditos, pagos y registros documentales',
           body: [
-            'Los paquetes de créditos se habilitan una vez confirmado el pago correspondiente a través de la infraestructura de cobro integrada. Cada registro consume el saldo configurado en backend al momento de la operación, y dicho costo puede variar por ajustes de producto, riesgo o capacidad operativa.',
-            'Salvo disposición legal aplicable, los créditos consumidos por operaciones ejecutadas correctamente no son reembolsables. OpenProof podrá anular, revertir o revisar acreditaciones en caso de fraude, duplicidad, error material o incumplimiento de estas condiciones.',
+            'Los paquetes de créditos se habilitan una vez confirmado el pago correspondiente a través de la infraestructura de cobro integrada. Cada registro consume el saldo configurado para esa operación al momento de ejecutarse, independientemente de que hayas enviado solo el hash o un archivo completo.',
+            'Salvo disposición legal aplicable, los créditos consumidos por operaciones ejecutadas correctamente no son reembolsables. OpenProof podrá revisar, anular o revertir acreditaciones en caso de fraude, duplicidad, error material, abuso del sistema o incumplimiento de estas condiciones.',
           ],
           highlights: [
-            'No existen suscripciones automáticas ni renovaciones recurrentes implícitas.',
-            'El saldo disponible y los movimientos relevantes quedan reflejados en la cuenta del usuario.',
+            'No existen renovaciones automáticas implícitas salvo que una condición específica lo indique expresamente.',
+            'El saldo y los movimientos relevantes se reflejan en la cuenta, pero la confirmación final depende del estado operativo del pago y del backend.',
           ],
         },
         {
-          title: 'Disponibilidad, límites y uso aceptable',
+          title: 'Disponibilidad, exposición pública y uso aceptable',
           body: [
-            'El servicio se ofrece sobre una base best-effort con medidas de hardening, observabilidad, rate limiting, mantenimiento programado y mitigación de abuso. OpenProof puede restringir tráfico, degradar temporalmente funciones o bloquear cuentas y claves cuando sea necesario para preservar estabilidad, seguridad o cumplimiento.',
-            'Está prohibido utilizar la plataforma para actividades ilícitas, automatización abusiva, evasión de controles, falsificación de procedencia, scraping no autorizado o cualquier uso que comprometa terceros, la red Bitcoin o la integridad operativa del servicio.',
+            'El servicio se ofrece sobre una base best-effort con medidas de seguridad, observabilidad, rate limiting, mantenimiento y mitigación de abuso. OpenProof puede restringir tráfico, degradar temporalmente funciones, deshabilitar viewers, bloquear cuentas o revocar claves cuando sea necesario para preservar estabilidad, seguridad, cumplimiento o continuidad operativa.',
+            'Está prohibido utilizar la plataforma para actividades ilícitas, automatización abusiva, evasión de controles, falsificación de procedencia, scraping no autorizado, publicación irresponsable de material sensible o cualquier uso que comprometa terceros, la red Bitcoin o la integridad operativa del servicio.',
           ],
           highlights: [
-            'Los límites de uso pueden variar por entorno, tipo de ruta o perfil de riesgo.',
-            'Las constancias públicas no deben presentarse como certificaciones de contenido ni como validación de identidad de firmantes.',
+            'Los límites de uso pueden variar por entorno, tipo de ruta, volumen o perfil de riesgo.',
+            'Las constancias públicas no deben presentarse como certificación de contenido, autoría material ni identidad de firmantes.',
           ],
         },
       ]}
       footerNote={
         <p>
-          Si tienes preguntas contractuales, operativas o de seguridad sobre estas condiciones,
-          utiliza los canales de soporte vigentes antes de desplegar integraciones críticas o
-          flujos de alto volumen.
+          Si vas a desplegar integraciones críticas, viewers públicos a gran escala o procesos
+          institucionales sensibles, revisa estas condiciones junto con tus áreas legal, técnica
+          y de seguridad antes de mover el flujo a producción.
         </p>
       }
     />

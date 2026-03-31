@@ -1,241 +1,176 @@
 import Link from 'next/link'
-import { ArrowLeft, Shield, Lock, Globe, Zap, Target, Users, Code, ArrowRight } from 'lucide-react'
+import {
+  ArrowRight,
+  Blocks,
+  CreditCard,
+  FileSearch,
+  Fingerprint,
+  Network,
+  Scale,
+  ShieldCheck,
+  Sparkles,
+} from 'lucide-react'
+
+import { SiteShell } from '@/components/layout'
+import { IconCardGrid, PageIntro, SectionHeading, StatGrid } from '@/components/marketing'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
-import { Header, Footer, MobileNav } from '@/components/layout'
 
-const values = [
+const productPrinciples = [
   {
-    icon: Lock,
-    title: 'Privacidad primero',
-    description: 'Tu archivo nunca abandona tu dispositivo. Solo procesamos hashes criptográficos.',
+    icon: Fingerprint,
+    title: 'Privacidad por diseño operativo',
+    description: 'La plataforma puede trabajar con hash-only o con archivo cargado, para que cada flujo decida cuánto material necesita transferir o conservar.',
   },
   {
-    icon: Globe,
-    title: 'Descentralizado',
-    description: 'Utilizamos la blockchain más segura del mundo para garantizar la inmutabilidad.',
+    icon: Blocks,
+    title: 'Bitcoin como capa de evidencia',
+    description: 'La propuesta central es un anclaje verificable en la blockchain más observada del mercado, con bloque, timestamp y confirmaciones consultables.',
   },
   {
-    icon: Zap,
-    title: 'Simple de usar',
-    description: 'Tecnología compleja, experiencia simple. Cualquiera puede certificar documentos.',
+    icon: CreditCard,
+    title: 'Operación simple',
+    description: 'Cuentas, saldo, billing y consumo por créditos convierten la notarización técnica en un flujo operativo concreto.',
   },
   {
-    icon: Code,
-    title: 'Open source',
-    description: 'Código abierto y auditable. Transparencia total en cómo funcionamos.',
+    icon: Network,
+    title: 'Pensado para integrarse',
+    description: 'API keys, rutas privadas y viewers públicos permiten conectar la evidencia con portales, expedientes y sistemas internos.',
   },
 ]
 
-const team = [
-  { name: 'Ana García', role: 'Fundadora & CEO', initial: 'AG' },
-  { name: 'Carlos Ruiz', role: 'CTO', initial: 'CR' },
-  { name: 'María López', role: 'Head of Product', initial: 'ML' },
+const platformSignals = [
+  {
+    value: 'Cuenta + API',
+    label: 'Dos modos de operar',
+    description: 'Puedes registrar desde el panel web o desde integraciones autenticadas con bearer keys.',
+  },
+  {
+    value: 'Público / privado',
+    label: 'Separación de vistas',
+    description: 'El historial privado vive en tu cuenta y la evidencia compartible se publica por transacción cuando corresponde.',
+  },
+  {
+    value: 'Bitcoin + billing',
+    label: 'Tecnología y operación',
+    description: 'OpenProof une el anclaje en blockchain con compra de créditos y trazabilidad del uso del servicio.',
+  },
+]
+
+const entityUseCases = [
+  {
+    icon: Scale,
+    title: 'Evidencia previa a formalización legal',
+    description: 'Bufetes, estudios y equipos legales pueden fijar una referencia temporal de documentos antes de firma, protocolización o circulación externa.',
+  },
+  {
+    icon: ShieldCheck,
+    title: 'Cumplimiento, control y auditoría',
+    description: 'Áreas de compliance pueden respaldar reportes, políticas, evidencias internas o actas con una huella verificable en blockchain.',
+  },
+  {
+    icon: FileSearch,
+    title: 'Gestión documental y procurement',
+    description: 'Procesos de compras, entregables, expedientes o documentación sensible ganan trazabilidad cuando necesitan una referencia externa verificable.',
+  },
+  {
+    icon: Sparkles,
+    title: 'Producto, IP e innovación',
+    description: 'Equipos de producto, investigación o propiedad intelectual pueden demostrar existencia de especificaciones, diseños o material original en una fecha determinada.',
+  },
 ]
 
 export default function AboutPage() {
   return (
-    <div className="min-h-screen flex flex-col bg-background">
-      <Header />
-      
-      <main className="flex-1 pb-24 md:pb-0">
-        {/* Hero section */}
-        <section className="py-16 md:py-24 border-b border-border">
-          <div className="container mx-auto px-4">
-            {/* Back link */}
-            <Link
-              href="/"
-              className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors mb-8"
-            >
-              <ArrowLeft className="w-4 h-4" />
-              Volver al inicio
-            </Link>
+    <SiteShell>
+      <div className="container py-8 md:py-12">
+        <PageIntro
+          backHref="/"
+          backLabel="Volver al inicio"
+          badge="Sobre OpenProof"
+          badgeIcon={Sparkles}
+          title="OpenProof toma evidencia documental y la vuelve verificable fuera de la organización"
+          description="La plataforma existe para equipos y entidades que necesitan probar que un documento o una versión concreta ya existía en una fecha determinada, con una referencia técnica pública basada en Bitcoin y sin convertir eso en una promesa jurídica exagerada."
+        />
 
-            <div className="max-w-3xl">
-              <h1 className="text-3xl md:text-4xl font-bold text-foreground mb-6">
-                Democratizando la prueba de existencia
-              </h1>
-              <p className="text-lg text-muted-foreground leading-relaxed mb-8">
-                OpenProof nace de una idea simple pero poderosa: todos deberían poder 
-                demostrar que sus ideas, creaciones y documentos existían en un momento 
-                específico, sin depender de intermediarios costosos o burocráticos.
+        <section className="mt-12 md:mt-14">
+          <StatGrid items={platformSignals} className="xl:grid-cols-3" />
+        </section>
+
+        <section className="mt-14 grid gap-8 lg:grid-cols-[1fr_0.9fr] lg:items-start md:mt-16">
+          <div className="space-y-5">
+            <SectionHeading
+              eyebrow="Qué resuelve"
+              title="Una capa de trazabilidad documental para procesos que necesitan fecha, integridad y evidencia compartible"
+              description="OpenProof no pretende custodiar todo el ciclo documental de una entidad. Su papel es más preciso: vincular una huella criptográfica con un registro verificable y permitir que terceros revisen la evidencia sin entrar al sistema privado."
+            />
+            <div className="space-y-4 text-base leading-8 text-muted-foreground">
+              <p>
+                En la práctica, la plataforma conecta el registro del documento con una cuenta operativa, historial privado, compra de créditos y una ruta pública por transacción. Eso la vuelve útil para organizaciones que necesitan algo más que una captura de pantalla o un correo con fecha.
               </p>
-              <p className="text-lg text-muted-foreground leading-relaxed">
-                Utilizamos la tecnología blockchain de Bitcoin para crear pruebas 
-                inmutables, verificables públicamente, y accesibles para cualquiera 
-                con conexión a internet.
+              <p>
+                También delimita claramente su alcance: no reemplaza firma electrónica, identidad de firmantes, custodia legal ni gobernanza documental de nivel corporativo. Su valor está en la evidencia técnica y en la facilidad para integrarla a un proceso existente.
               </p>
             </div>
           </div>
+
+          <Card className="border-border/70 bg-card/88 shadow-none">
+            <CardContent className="space-y-4 p-6">
+              <p className="text-sm font-medium text-foreground">Lo que realmente ofrece hoy</p>
+              <ul className="space-y-3 text-sm leading-7 text-muted-foreground">
+                <li>Registro documental por archivo o hash, con estado y trazabilidad en la cuenta.</li>
+                <li>Verificación pública por hash o por transacción Bitcoin.</li>
+                <li>Créditos prepago y billing integrado para operar el consumo.</li>
+                <li>API keys para integraciones bajo la misma identidad de usuario.</li>
+              </ul>
+            </CardContent>
+          </Card>
         </section>
 
-        {/* Mission section */}
-        <section className="py-16 md:py-24 bg-card/50 border-b border-border">
-          <div className="container mx-auto px-4">
-            <div className="max-w-3xl mx-auto text-center">
-              <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-secondary text-sm font-medium text-foreground mb-6">
-                <Target className="w-4 h-4" />
-                Nuestra misión
-              </div>
-              
-              <h2 className="text-2xl md:text-3xl font-bold text-foreground mb-6">
-                Proteger la propiedad intelectual mediante tecnología accesible
-              </h2>
-              
-              <p className="text-lg text-muted-foreground leading-relaxed">
-                Creemos que la innovación y la creatividad deben ser protegidas. 
-                Ya sea un inventor independiente, un artista, un investigador o una empresa, 
-                todos merecen herramientas para demostrar la originalidad y antigüedad de su trabajo.
-              </p>
-            </div>
-          </div>
+        <section className="mt-14 md:mt-16">
+          <SectionHeading
+            eyebrow="Principios"
+            title="Cómo está pensada la plataforma"
+            description="Estos principios ordenan el producto y explican por qué el mensaje público debe ser preciso: OpenProof sirve mejor cuando se presenta como infraestructura documental, no como sustituto universal de procesos legales."
+            align="center"
+          />
+          <IconCardGrid items={productPrinciples} columns="4" className="mt-8" />
         </section>
 
-        {/* Values section */}
-        <section className="py-16 md:py-24">
-          <div className="container mx-auto px-4">
-            <div className="text-center mb-12">
-              <h2 className="text-2xl md:text-3xl font-bold text-foreground mb-4">
-                Nuestros valores
-              </h2>
-              <p className="text-muted-foreground max-w-xl mx-auto">
-                Los principios que guían cada decisión que tomamos
-              </p>
-            </div>
-
-            <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4 max-w-6xl mx-auto">
-              {values.map((value) => {
-                const Icon = value.icon
-                return (
-                  <Card key={value.title} className="text-center">
-                    <CardContent className="pt-6">
-                      <div className="w-12 h-12 rounded-full bg-secondary flex items-center justify-center mx-auto mb-4">
-                        <Icon className="w-6 h-6 text-foreground" />
-                      </div>
-                      <h3 className="font-semibold text-foreground mb-2">
-                        {value.title}
-                      </h3>
-                      <p className="text-sm text-muted-foreground">
-                        {value.description}
-                      </p>
-                    </CardContent>
-                  </Card>
-                )
-              })}
-            </div>
-          </div>
+        <section className="mt-14 md:mt-16">
+          <SectionHeading
+            eyebrow="Entidades"
+            title="Casos de uso institucionales donde encaja mejor"
+            description="La tecnología aporta valor cuando la entidad necesita fijar evidencia externa de existencia e integridad de documentos o versiones críticas."
+            align="center"
+          />
+          <IconCardGrid items={entityUseCases} columns="4" className="mt-8" />
         </section>
 
-        {/* Team section */}
-        <section className="py-16 md:py-24 bg-card/50 border-y border-border">
-          <div className="container mx-auto px-4">
-            <div className="text-center mb-12">
-              <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-secondary text-sm font-medium text-foreground mb-6">
-                <Users className="w-4 h-4" />
-                Equipo
-              </div>
-              
-              <h2 className="text-2xl md:text-3xl font-bold text-foreground mb-4">
-                Las personas detrás de OpenProof
-              </h2>
-              <p className="text-muted-foreground max-w-xl mx-auto">
-                Un equipo apasionado por la criptografía, blockchain y la experiencia de usuario
-              </p>
-            </div>
-
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 max-w-3xl mx-auto">
-              {team.map((member) => (
-                <Card key={member.name} className="text-center">
-                  <CardContent className="pt-6">
-                    <div className="w-16 h-16 rounded-full bg-secondary flex items-center justify-center mx-auto mb-4">
-                      <span className="text-lg font-bold text-foreground">
-                        {member.initial}
-                      </span>
-                    </div>
-                    <h3 className="font-semibold text-foreground">
-                      {member.name}
-                    </h3>
-                    <p className="text-sm text-muted-foreground">
-                      {member.role}
-                    </p>
-                  </CardContent>
-                </Card>
-              ))}
-            </div>
-          </div>
-        </section>
-
-        {/* Technology section */}
-        <section className="py-16 md:py-24">
-          <div className="container mx-auto px-4">
-            <div className="max-w-3xl mx-auto">
-              <h2 className="text-2xl md:text-3xl font-bold text-foreground mb-6">
-                La tecnología detrás
-              </h2>
-              
-              <div className="prose prose-neutral dark:prose-invert max-w-none">
-                <p className="text-muted-foreground leading-relaxed mb-6">
-                  OpenProof utiliza la función hash SHA-256, la misma que asegura la blockchain 
-                  de Bitcoin. Cuando subes un archivo, calculamos su hash de forma local en tu 
-                  navegador, garantizando que el contenido nunca abandona tu dispositivo.
-                </p>
-                
-                <p className="text-muted-foreground leading-relaxed mb-6">
-                  Este hash se ancla en la blockchain de Bitcoin utilizando una transacción 
-                  OP_RETURN, que permite almacenar pequeñas cantidades de datos de forma 
-                  permanente e inmutable. El timestamp del bloque proporciona una prueba 
-                  criptográfica de cuándo existía el documento.
-                </p>
-                
-                <p className="text-muted-foreground leading-relaxed">
-                  La verificación es simple: cualquiera puede calcular el hash de un archivo 
-                  y comprobar si existe en la blockchain, sin necesidad de confiar en nosotros 
-                  o en ningún intermediario.
+        <section className="mt-14 md:mt-16">
+          <Card className="border-border/70 bg-secondary/35 shadow-none">
+            <CardContent className="grid gap-8 p-6 md:grid-cols-[1fr_auto] md:items-center md:p-8">
+              <div className="space-y-3">
+                <h2 className="text-2xl font-bold tracking-tight text-foreground">Siguiente paso natural</h2>
+                <p className="text-sm leading-7 text-muted-foreground md:text-base">
+                  Si quieres revisar el alcance operativo o preparar una integración, la mejor combinación es FAQ para límites del producto y API docs para rutas y payloads.
                 </p>
               </div>
-              
-              <div className="mt-8 flex flex-col sm:flex-row gap-4">
+              <div className="flex flex-col gap-3 sm:flex-row">
                 <Button asChild variant="outline">
-                  <Link href="/faq">
-                    Leer FAQ
-                  </Link>
+                  <Link href="/faq">Leer FAQ</Link>
                 </Button>
-                <Button asChild variant="outline">
+                <Button asChild>
                   <Link href="/api-docs">
-                    Documentación API
-                  </Link>
-                </Button>
-              </div>
-            </div>
-          </div>
-        </section>
-
-        {/* CTA section */}
-        <section className="py-16 md:py-24 bg-foreground">
-          <div className="container mx-auto px-4">
-            <div className="max-w-2xl mx-auto text-center">
-              <h2 className="text-2xl md:text-3xl font-bold text-background mb-4">
-                Únete a la revolución
-              </h2>
-              <p className="text-background/70 mb-8">
-                Comienza a proteger tus documentos hoy con la tecnología más segura disponible.
-              </p>
-              
-              <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
-                <Button asChild size="lg" variant="secondary">
-                  <Link href="/register">
-                    Registrar documento
+                    Ver API docs
                     <ArrowRight className="ml-2 h-4 w-4" />
                   </Link>
                 </Button>
               </div>
-            </div>
-          </div>
+            </CardContent>
+          </Card>
         </section>
-      </main>
-      
-      <Footer />
-      <MobileNav />
-    </div>
+      </div>
+    </SiteShell>
   )
 }
