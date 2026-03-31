@@ -21,6 +21,7 @@ import type {
   SessionResponse,
   SignupResponse,
   StatusResponse,
+  UpdateAvatarResponse,
   VerifyDocumentResponse,
 } from '@/types'
 
@@ -287,6 +288,15 @@ export async function getPricingPackages(): Promise<ApiResponse<CreditPackage[]>
 export async function getAccountProfile(): Promise<ApiResponse<AccountProfile>> {
   return fetchJson<AccountProfile>('/account/profile', {
     cache: 'no-store',
+  })
+}
+
+export async function updateAccountAvatar(
+  avatarUrl: string | null
+): Promise<ApiResponse<UpdateAvatarResponse>> {
+  return fetchJson<UpdateAvatarResponse>('/account/avatar', {
+    method: 'POST',
+    body: JSON.stringify({ avatarUrl }),
   })
 }
 

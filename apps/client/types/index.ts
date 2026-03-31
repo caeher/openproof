@@ -77,6 +77,7 @@ export interface AuthUser {
   email: string
   role: string
   emailVerified: boolean
+  avatarUrl?: string
   createdAt: string
 }
 
@@ -269,6 +270,11 @@ export interface VerifyDocumentResponse {
 }
 
 export interface SessionResponse {
+  user: AuthUser
+}
+
+export interface UpdateAvatarResponse {
+  message: string
   user: AuthUser
 }
 

@@ -6,17 +6,18 @@ import { useRouter } from 'next/navigation'
 import { ArrowLeft, FileText, CheckCircle2, ArrowRight, Plus, Settings, LogOut, MailCheck } from 'lucide-react'
 
 import { AuthGuard } from '@/components/auth/auth-guard'
+import { UserAvatar } from '@/components/auth/user-avatar'
 import { useAuth } from '@/components/auth/auth-provider'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
 import { Alert, AlertDescription } from '@/components/ui/alert'
-import { Avatar, AvatarFallback } from '@/components/ui/avatar'
 import { Skeleton } from '@/components/ui/skeleton'
 import { Separator } from '@/components/ui/separator'
 import { Header, Footer, MobileNav } from '@/components/layout'
 import { DocumentCard, TimestampDisplay } from '@/components/proof'
 import { getAccountProfile, getApiErrorMessage, getDocuments } from '@/lib/api'
 import { buildVerifyEmailPath } from '@/lib/auth-routing'
+import { getUserDisplayName } from '@/lib/avatar'
 import type { AccountProfile, Document } from '@/types'
 
 export default function DashboardPage() {
@@ -69,8 +70,7 @@ export default function DashboardPage() {
   }
 
   const recentDocuments = documents.slice(0, 3)
-  const displayName = accountProfile?.user.name || user?.name || 'Cuenta'
-  const avatarFallback = displayName.slice(0, 2).toUpperCase()
+  const displayName = getUserDisplayName(accountProfile?.user || user)
   const verifyHref = buildVerifyEmailPath('/register')
 
   async function handleLogout() {
@@ -83,7 +83,7 @@ export default function DashboardPage() {
       <Header />
       
       <main className="flex-1 pb-24 md:pb-0">
-        <div className="container mx-auto px-4 py-8 md:py-12">
+        <div className="container max-w-6xl mx-auto px-4 py-8 md:py-12">
           {/* Back link */}
           <Link
             href="/"
@@ -93,17 +93,17 @@ export default function DashboardPage() {
             Volver al inicio
           </Link>
 
-          <div className="max-w-4xl mx-auto">
+          <div>
             <AuthGuard>
             {/* User profile header */}
             <Card className="mb-8">
               <CardContent className="pt-6">
                 <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4">
-                  <Avatar className="w-16 h-16">
-                    <AvatarFallback className="text-lg bg-secondary">
-                      {avatarFallback}
-                    </AvatarFallback>
-                  </Avatar>
+                  <UserAvatar
+                    user={accountProfile?.user || user}
+                    className="w-16 h-16"
+                    fallbackClassName="text-lg"
+                  />
                   
                   <div className="flex-1">
                     <h1 className="text-xl font-bold text-foreground">
@@ -322,56 +322,6 @@ export default function DashboardPage() {
               </CardContent>
             </Card>
 
-            {/* Account actions */}
-            <Card className="mt-8">
-              <CardHeader>
-                <CardTitle>Cuenta</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-2">
-                <Button variant="ghost" className="w-full justify-start" asChild>
-                  <Link href="/account">
-                    <Settings className="w-4 h-4 mr-3" />
-                    Perfil y seguridad
-                  </Link>
-                </Button>
-                <Separator />
-                {user?.emailVerified ? (
-                  <>
-                    <Button variant="ghost" className="w-full justify-start" asChild>
-                      <Link href="/billing">
-                        <Settings className="w-4 h-4 mr-3" />
-                        Billing y creditos
-                      </Link>
-                    </Button>
-                    <Separator />
-                    <Button variant="ghost" className="w-full justify-start" asChild>
-                      <Link href="/developers">
-                        <Settings className="w-4 h-4 mr-3" />
-                        Developers y API keys
-                      </Link>
-                    </Button>
-                    <Separator />
-                  </>
-                ) : null}
-                <Button variant="ghost" className="w-full justify-start" asChild>
-                  <Link href="/api-docs">
-                    <Settings className="w-4 h-4 mr-3" />
-                    Documentacion API
-                  </Link>
-                </Button>
-                <Separator />
-                <Button
-                  variant="ghost"
-                  className="w-full justify-start text-destructive hover:text-destructive"
-                  onClick={() => {
-                    void handleLogout()
-                  }}
-                >
-                  <LogOut className="w-4 h-4 mr-3" />
-                  Cerrar sesión
-                </Button>
-              </CardContent>
-            </Card>
             </AuthGuard>
           </div>
         </div>

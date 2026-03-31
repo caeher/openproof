@@ -1,13 +1,13 @@
 'use client'
 
 import Link from 'next/link'
-import { usePathname, useRouter } from 'next/navigation'
-import { Menu, Shield, Sun, Moon, LogOut, LayoutDashboard, MailCheck } from 'lucide-react'
+import { usePathname } from 'next/navigation'
+import { Menu, Sun, Moon } from 'lucide-react'
 import { useState, useEffect } from 'react'
 import { useTheme } from 'next-themes'
 import { useAuth } from '@/components/auth/auth-provider'
+import { UserMenu, UserMenuPanel } from '@/components/auth/user-menu'
 import { BrandLogo } from '@/components/layout/brand-logo'
-import { buildVerifyEmailPath } from '@/lib/auth-routing'
 import { cn } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
 import { Sheet, SheetContent, SheetTrigger, SheetTitle } from '@/components/ui/sheet'
@@ -26,22 +26,9 @@ const verifiedNavLinks = [
   { href: '/billing', label: 'Billing' },
 ]
 
-const authNavLinks = [
-  { href: '/dashboard', label: 'Dashboard' },
-  { href: '/account', label: 'Cuenta' },
-]
-
 function getNavLinks(authState: ReturnType<typeof useAuth>['authState']) {
-  if (authState === 'authenticated_admin') {
-    return [...publicNavLinks, ...verifiedNavLinks, ...authNavLinks, { href: '/admin', label: 'Admin' }]
-  }
-
-  if (authState === 'authenticated_verified') {
-    return [...publicNavLinks, ...verifiedNavLinks, ...authNavLinks]
-  }
-
-  if (authState === 'authenticated_unverified') {
-    return [...publicNavLinks, ...authNavLinks, { href: '/verify-email', label: 'Verificar correo' }]
+  if (authState === 'authenticated_admin' || authState === 'authenticated_verified') {
+    return [...publicNavLinks, ...verifiedNavLinks]
   }
 
   return publicNavLinks
@@ -49,26 +36,17 @@ function getNavLinks(authState: ReturnType<typeof useAuth>['authState']) {
 
 export function Header() {
   const pathname = usePathname()
-  const router = useRouter()
   const [open, setOpen] = useState(false)
-  const { theme, setTheme } = useTheme()
+  const { resolvedTheme, setTheme } = useTheme()
   const [mounted, setMounted] = useState(false)
-  const { authState, isAuthenticated, isLoading, logoutCurrentSession, user } = useAuth()
+  const { authState, isAuthenticated, isLoading, user } = useAuth()
   const navLinks = isLoading ? publicNavLinks : getNavLinks(authState)
-  const primaryActionHref = authState === 'authenticated_unverified'
-    ? buildVerifyEmailPath('/register')
-    : '/dashboard'
-  const displayName = user?.name || user?.email || 'Cuenta'
 
   useEffect(() => {
     setMounted(true)
   }, [])
 
-  async function handleLogout() {
-    await logoutCurrentSession()
-    setOpen(false)
-    router.push('/')
-  }
+  const isDark = resolvedTheme === 'dark'
 
   return (
     <header className="sticky top-0 z-40 w-full bg-background/90 backdrop-blur-md border-b border-border">
@@ -80,7 +58,7 @@ export function Header() {
 
           {/* Desktop Navigation */}
           <nav className="hidden md:flex items-center gap-1">
-            {navLinks.map((link) => (
+            {publicNavLinks.map((link) => (
               <Link
                 key={link.href}
                 href={link.href}
@@ -99,49 +77,26 @@ export function Header() {
 
           {/* Actions */}
           <div className="flex items-center gap-2">
-            {isAuthenticated && user ? (
-              <div className="hidden lg:flex items-center gap-2 rounded-full border border-border bg-secondary/50 px-3.5 py-1.5 text-sm text-muted-foreground">
-                {authState === 'authenticated_unverified' ? (
-                  <MailCheck className="h-4 w-4" />
-                ) : (
-                  <LayoutDashboard className="h-4 w-4" />
-                )}
-                <span className="max-w-[160px] truncate">{displayName}</span>
-              </div>
-            ) : null}
-
-            {/* Theme Toggle */}
             <Button
-              variant="ghost"
-              size="icon"
-              onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
-              className="hidden sm:flex"
-            >
-              <Sun className="h-5 w-5 rotate-0 scale-100 transition-all dark:-rotate-90 dark:scale-0" />
-              <Moon className="absolute h-5 w-5 rotate-90 scale-0 transition-all dark:rotate-0 dark:scale-100" />
-              <span className="sr-only">Cambiar tema</span>
+                variant="ghost"
+                size="icon"
+                onClick={() => setTheme(isDark ? 'light' : 'dark')}
+                className="hidden sm:flex"
+              >
+                <Sun className="h-5 w-5 rotate-0 scale-100 transition-all dark:-rotate-90 dark:scale-0" />
+                <Moon className="absolute h-5 w-5 rotate-90 scale-0 transition-all dark:rotate-0 dark:scale-100" />
+                <span className="sr-only">Cambiar tema</span>
             </Button>
-
-            {isLoading ? null : isAuthenticated ? (
-              <>
-                <Button asChild variant="outline" className="hidden sm:flex">
-                  <Link href={primaryActionHref}>
-                    {authState === 'authenticated_unverified' ? 'Verificar correo' : 'Dashboard'}
-                  </Link>
-                </Button>
-                <Button className="hidden sm:flex" onClick={() => void handleLogout()}>
-                  <LogOut className="mr-2 h-4 w-4" />
-                  Cerrar sesión
-                </Button>
-              </>
+            {isLoading ? null : isAuthenticated && user ? (
+              <UserMenu className="hidden sm:inline-flex" />
             ) : (
               <>
                 <Button asChild variant="ghost" className="hidden sm:flex">
                   <Link href="/login">Iniciar sesión</Link>
                 </Button>
-                <Button asChild className="hidden sm:flex">
+                {/* <Button asChild className="hidden sm:flex">
                   <Link href="/signup">Crear cuenta</Link>
-                </Button>
+                </Button> */}
               </>
             )}
 
@@ -158,7 +113,7 @@ export function Header() {
                   <SheetContent side="right" className="w-full max-w-xs bg-background border-l border-border">
                     <SheetTitle className="sr-only">Menú de navegación</SheetTitle>
                     <div className="flex flex-col gap-6 mt-8">
-                      <nav className="flex flex-col gap-1">
+                      <nav className="flex flex-col gap-1 p-4">
                         {navLinks.map((link) => (
                           <Link
                             key={link.href}
@@ -194,38 +149,39 @@ export function Header() {
                         ) : null}
                       </nav>
 
-                      <div className="flex items-center justify-between px-4 pt-4 border-t border-border">
-                        <span className="text-sm text-muted-foreground">Tema</span>
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
-                        >
-                          {theme === 'dark' ? (
-                            <>
-                              <Sun className="h-4 w-4 mr-2" />
-                              Claro
-                            </>
-                          ) : (
-                            <>
-                              <Moon className="h-4 w-4 mr-2" />
-                              Oscuro
-                            </>
-                          )}
-                        </Button>
-                      </div>
-
                       {!isLoading && isAuthenticated ? (
-                        <Button className="mx-4" onClick={() => void handleLogout()}>
-                          <LogOut className="mr-2 h-4 w-4" />
-                          Cerrar sesión
-                        </Button>
+                        <UserMenuPanel
+                          className="mx-4 border border-border rounded-2xl p-4"
+                          onNavigate={() => setOpen(false)}
+                        />
                       ) : !isLoading ? (
-                        <Button asChild className="mx-4">
-                          <Link href="/signup" onClick={() => setOpen(false)}>
-                            Crear cuenta
-                          </Link>
-                        </Button>
+                        <>
+                          <div className="flex items-center justify-between px-6 pt-4 border-t border-border">
+                            <span className="text-sm text-muted-foreground">Tema</span>
+                            <Button
+                              variant="outline"
+                              size="icon"
+                              onClick={() => setTheme(isDark ? 'light' : 'dark')}
+                            >
+                              {isDark ? (
+                                <>
+                                  <Sun className="h-4 w-4" />
+                                  {/* Claro */}
+                                </>
+                              ) : (
+                                <>
+                                  <Moon className="h-4 w-4" />
+                                  {/* Oscuro */}
+                                </>
+                              )}
+                            </Button>
+                          </div>
+                          <Button asChild className="mx-6">
+                            <Link href="/signup" onClick={() => setOpen(false)}>
+                              Crear cuenta
+                            </Link>
+                          </Button>
+                        </>
                       ) : null}
                     </div>
                   </SheetContent>
