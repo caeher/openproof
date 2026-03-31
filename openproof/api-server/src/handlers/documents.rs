@@ -64,6 +64,8 @@ pub struct PublicDocumentProofResponse {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub transaction_id: Option<String>,
     #[serde(skip_serializing_if = "Option::is_none")]
+    pub public_proof_path: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub block_height: Option<i64>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub timestamp: Option<chrono::DateTime<chrono::Utc>>,
@@ -86,6 +88,8 @@ pub struct VerifyDocumentResponse {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub transaction_id: Option<String>,
     #[serde(skip_serializing_if = "Option::is_none")]
+    pub public_proof_path: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub block_height: Option<i64>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub timestamp: Option<chrono::DateTime<chrono::Utc>>,
@@ -95,6 +99,10 @@ pub struct VerifyDocumentResponse {
 
 fn validate_hash(h: &str) -> bool {
     h.len() == 64 && h.chars().all(|c| c.is_ascii_hexdigit())
+}
+
+fn public_proof_path(transaction_id: Option<&String>) -> Option<String> {
+    transaction_id.map(|txid| format!("/p/{txid}"))
 }
 
 pub async fn register(
@@ -163,6 +171,7 @@ pub async fn verify(
         return ok_json(VerifyDocumentResponse {
             exists: false,
             transaction_id: None,
+            public_proof_path: None,
             block_height: None,
             timestamp: None,
             confirmations: None,
@@ -171,6 +180,7 @@ pub async fn verify(
     ok_json(VerifyDocumentResponse {
         exists: true,
         transaction_id: d.transaction_id.clone(),
+        public_proof_path: public_proof_path(d.transaction_id.as_ref()),
         block_height: d.block_height,
         timestamp: d.timestamp,
         confirmations: d.confirmations,
@@ -272,6 +282,7 @@ fn map_public_document(document: &core_document::Document) -> PublicDocumentProo
         document_id: document.id.clone(),
         file_hash: document.file_hash.clone(),
         transaction_id: document.transaction_id.clone(),
+        public_proof_path: public_proof_path(document.transaction_id.as_ref()),
         block_height: document.block_height,
         timestamp: document.timestamp,
         confirmations: document.confirmations,
