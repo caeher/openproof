@@ -205,6 +205,143 @@ async fn admin_routes_require_admin_role(pool: PgPool) {
 }
 
 #[sqlx::test(migrations = "../app/migrations")]
+async fn admin_setup_only_allows_first_admin_registration(pool: PgPool) {
+    let state = test_state(
+        pool.clone(),
+        RateLimitSettings {
+            auth_requests: 20,
+            auth_window_seconds: 300,
+            verify_requests: 30,
+            verify_window_seconds: 60,
+            webhook_requests: 120,
+            webhook_window_seconds: 60,
+        },
+    );
+    let app = api_router(state);
+
+    let before_response = app
+        .clone()
+        .oneshot(
+            Request::builder()
+                .uri("/api/v1/admin/setup")
+                .body(Body::empty())
+                .expect("request"),
+        )
+        .await
+        .expect("response");
+
+    assert_eq!(before_response.status(), StatusCode::OK);
+    let before_body = response_json(before_response).await;
+    assert_eq!(before_body["data"]["adminExists"], Value::Bool(false));
+    assert_eq!(before_body["data"]["registrationEnabled"], Value::Bool(true));
+
+    let create_response = app
+        .clone()
+        .oneshot(
+            Request::builder()
+                .method("POST")
+                .uri("/api/v1/admin/setup")
+                .header("content-type", "application/json")
+                .body(Body::from(
+                    json!({
+                        "name": "Admin Bootstrap",
+                        "email": "admin@example.com",
+                        "password": "password123"
+                    })
+                    .to_string(),
+                ))
+                .expect("request"),
+        )
+        .await
+        .expect("response");
+
+    assert_eq!(create_response.status(), StatusCode::CREATED);
+
+    let after_response = app
+        .clone()
+        .oneshot(
+            Request::builder()
+                .uri("/api/v1/admin/setup")
+                .body(Body::empty())
+                .expect("request"),
+        )
+        .await
+        .expect("response");
+
+    assert_eq!(after_response.status(), StatusCode::OK);
+    let after_body = response_json(after_response).await;
+    assert_eq!(after_body["data"]["adminExists"], Value::Bool(true));
+    assert_eq!(after_body["data"]["registrationEnabled"], Value::Bool(false));
+
+    let second_create_response = app
+        .oneshot(
+            Request::builder()
+                .method("POST")
+                .uri("/api/v1/admin/setup")
+                .header("content-type", "application/json")
+                .body(Body::from(
+                    json!({
+                        "name": "Another Admin",
+                        "email": "another-admin@example.com",
+                        "password": "password123"
+                    })
+                    .to_string(),
+                ))
+                .expect("request"),
+        )
+        .await
+        .expect("response");
+
+    assert_eq!(second_create_response.status(), StatusCode::CONFLICT);
+    let second_create_body = response_json(second_create_response).await;
+    assert_eq!(second_create_body["success"], Value::Bool(false));
+    assert_eq!(
+        second_create_body["error"],
+        Value::String("an admin user already exists".to_string())
+    );
+}
+
+#[sqlx::test(migrations = "../app/migrations")]
+async fn admin_login_rejects_non_admin_users(pool: PgPool) {
+    let state = test_state(
+        pool.clone(),
+        RateLimitSettings {
+            auth_requests: 20,
+            auth_window_seconds: 300,
+            verify_requests: 30,
+            verify_window_seconds: 60,
+            webhook_requests: 120,
+            webhook_window_seconds: 60,
+        },
+    );
+    let app = api_router(state);
+    let _user_id = create_user(&pool, "member@example.com", "password123", "user", true).await;
+
+    let response = app
+        .oneshot(
+            Request::builder()
+                .method("POST")
+                .uri("/api/v1/admin/login")
+                .header("content-type", "application/json")
+                .body(Body::from(
+                    json!({
+                        "email": "member@example.com",
+                        "password": "password123"
+                    })
+                    .to_string(),
+                ))
+                .expect("request"),
+        )
+        .await
+        .expect("response");
+
+    assert_eq!(response.status(), StatusCode::FORBIDDEN);
+    let body = response_json(response).await;
+    assert_eq!(body["success"], Value::Bool(false));
+    assert_eq!(body["error"], Value::String("admin role required".to_string()));
+}
+
+#[sqlx::test(migrations = "../app/migrations")]
 async fn admin_credit_adjustment_is_audited(pool: PgPool) {
     let state = test_state(
         pool.clone(),

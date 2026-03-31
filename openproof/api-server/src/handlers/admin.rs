@@ -42,6 +42,13 @@ pub struct CreateInitialAdminRequest {
     pub password: String,
 }
 
+#[derive(Debug, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct AdminLoginRequest {
+    pub email: String,
+    pub password: String,
+}
+
 #[derive(Debug, Serialize)]
 #[serde(rename_all = "camelCase")]
 pub struct AdminSetupStatusResponse {
@@ -227,6 +234,55 @@ pub async fn setup_status(State(state): State<Arc<AppState>>) -> axum::response:
         admin_exists,
         registration_enabled: !admin_exists,
     })
+}
+
+pub async fn login(
+    State(state): State<Arc<AppState>>,
+    Json(body): Json<AdminLoginRequest>,
+) -> axum::response::Response {
+    let Some(email) = auth::normalize_email(&body.email) else {
+        return err_json(StatusCode::BAD_REQUEST, "valid email is required");
+    };
+
+    let Some(auth_record) = (match users::find_auth_by_email(&state.pool, &email).await {
+        Ok(value) => value,
+        Err(error) => return auth::internal_error(error),
+    }) else {
+        return err_json(StatusCode::UNAUTHORIZED, "invalid credentials");
+    };
+
+    if !auth::verify_password(&body.password, &auth_record.password_hash) {
+        return err_json(StatusCode::UNAUTHORIZED, "invalid credentials");
+    }
+
+    if auth_record.user.role != "admin" {
+        return err_json(StatusCode::FORBIDDEN, "admin role required");
+    }
+
+    if !auth_record.user.is_email_verified() {
+        return err_json(StatusCode::FORBIDDEN, "email verification required");
+    }
+
+    let session_token = auth::generate_token();
+    let session_token_hash = auth::hash_token(&session_token);
+    if let Err(error) = sessions::create_session(
+        &state.pool,
+        auth_record.user.id,
+        &session_token_hash,
+        auth::session_expires_at(state.as_ref()),
+    )
+    .await
+    {
+        return auth::internal_error(error);
+    }
+
+    auth::json_with_cookie(
+        StatusCode::OK,
+        SessionResponse {
+            user: map_auth_user(&auth_record.user),
+        },
+        Some(auth::session_cookie(state.as_ref(), &session_token)),
+    )
 }
 
 pub async fn create_initial_admin(

@@ -12,6 +12,7 @@ pub fn api_router(state: Arc<AppState>) -> Router {
     let auth_routes = Router::new()
         .route("/api/v1/auth/signup", post(auth::signup))
         .route("/api/v1/auth/login", post(auth::login))
+        .route("/api/v1/admin/login", post(admin::login))
         .route("/api/v1/auth/logout", post(auth::logout))
         .route("/api/v1/auth/forgot-password", post(auth::forgot_password))
         .route("/api/v1/auth/reset-password", post(auth::reset_password))
