@@ -113,6 +113,7 @@ cargo run -p openproof-api-server
 - Build the API from the repository root with `Dockerfile`.
 - Build the Next.js apps from `apps/client/Dockerfile` and `apps/admin/Dockerfile`.
 - Keep the API behind a reverse proxy or load balancer that exposes the public URLs used in `APP_BASE_URL`.
+- The API image is optimized for BuildKit caches and constrained builders. On Coolify or similar hosts, keep layer cache enabled and expect the first cold Rust build to be slower than subsequent deployments.
 
 ### Required External Services
 
@@ -127,6 +128,7 @@ cargo run -p openproof-api-server
 - Ensure the published frontend URLs match the `APP_BASE_URL` used by the API.
 - Set `SECURE_COOKIES=true` when running behind HTTPS in non-development environments.
 - Review CORS and proxy behavior if you publish the API and frontend under different origins.
+- For Coolify deployments, give the API builder enough memory for a Rust release build; the Dockerfile now limits cargo parallelism to reduce peak usage on small hosts.
 
 ## Collaboration Guide
 
