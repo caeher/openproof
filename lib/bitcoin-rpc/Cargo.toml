@@ -11,6 +11,7 @@ core-notarization = { path = "../../core/notarization" }
 bitcoin = { workspace = true }
 corepc-client = { workspace = true }
 corepc-types = "0.10"
+minreq = { workspace = true }
 hex = { workspace = true }
 log = { workspace = true }
 serde = { workspace = true }
