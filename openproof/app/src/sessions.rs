@@ -38,6 +38,7 @@ fn row_to_user(row: &sqlx::postgres::PgRow) -> UserRecord {
         email: row.get("email"),
         role: row.get("role"),
         email_verified_at: row.try_get("email_verified_at").ok().flatten(),
+        avatar_url: row.try_get("avatar_url").ok().flatten(),
         created_at: row.get("user_created_at"),
         updated_at: row.get("user_updated_at"),
     }
@@ -105,6 +106,7 @@ pub async fn get_user_by_token_hash(
             u.email,
             u.role,
             u.email_verified_at,
+            u.avatar_url,
             u.created_at AS user_created_at,
             u.updated_at AS user_updated_at
         FROM sessions s

@@ -9,6 +9,7 @@ pub struct UserRecord {
     pub email: String,
     pub role: String,
     pub email_verified_at: Option<DateTime<Utc>>,
+    pub avatar_url: Option<String>,
     pub created_at: DateTime<Utc>,
     pub updated_at: DateTime<Utc>,
 }
@@ -32,6 +33,7 @@ fn row_to_user(row: &sqlx::postgres::PgRow) -> UserRecord {
         email: row.get("email"),
         role: row.get("role"),
         email_verified_at: row.try_get("email_verified_at").ok().flatten(),
+        avatar_url: row.try_get("avatar_url").ok().flatten(),
         created_at: row.get("created_at"),
         updated_at: row.get("updated_at"),
     }
@@ -74,7 +76,7 @@ pub async fn create_user_with_password(
     .execute(&mut *tx)
     .await?;
 
-    let row = sqlx::query("SELECT id, name, email, role, email_verified_at, created_at, updated_at FROM users WHERE id = $1")
+    let row = sqlx::query("SELECT id, name, email, role, email_verified_at, avatar_url, created_at, updated_at FROM users WHERE id = $1")
         .bind(user_id)
         .fetch_one(&mut *tx)
         .await?;
@@ -85,7 +87,7 @@ pub async fn create_user_with_password(
 
 pub async fn find_by_id(pool: &PgPool, user_id: Uuid) -> Result<Option<UserRecord>, sqlx::Error> {
     let row = sqlx::query(
-        "SELECT id, name, email, role, email_verified_at, created_at, updated_at FROM users WHERE id = $1",
+        "SELECT id, name, email, role, email_verified_at, avatar_url, created_at, updated_at FROM users WHERE id = $1",
     )
     .bind(user_id)
     .fetch_optional(pool)
@@ -95,7 +97,7 @@ pub async fn find_by_id(pool: &PgPool, user_id: Uuid) -> Result<Option<UserRecor
 
 pub async fn find_by_email(pool: &PgPool, email: &str) -> Result<Option<UserRecord>, sqlx::Error> {
     let row = sqlx::query(
-        "SELECT id, name, email, role, email_verified_at, created_at, updated_at FROM users WHERE email = $1",
+        "SELECT id, name, email, role, email_verified_at, avatar_url, created_at, updated_at FROM users WHERE email = $1",
     )
     .bind(email)
     .fetch_optional(pool)
@@ -115,6 +117,7 @@ pub async fn find_auth_by_email(
             u.email,
             u.role,
             u.email_verified_at,
+            u.avatar_url,
             u.created_at,
             u.updated_at,
             pc.password_hash
@@ -145,6 +148,7 @@ pub async fn find_auth_by_id(
             u.email,
             u.role,
             u.email_verified_at,
+            u.avatar_url,
             u.created_at,
             u.updated_at,
             pc.password_hash
@@ -194,7 +198,7 @@ pub async fn update_password_for_user(
         UPDATE users
         SET updated_at = $2
         WHERE id = $1
-        RETURNING id, name, email, role, email_verified_at, created_at, updated_at
+        RETURNING id, name, email, role, email_verified_at, avatar_url, created_at, updated_at
         "#,
     )
     .bind(user_id)
@@ -283,7 +287,7 @@ pub async fn consume_email_verification_token(
         UPDATE users
         SET email_verified_at = COALESCE(email_verified_at, $2), updated_at = $2
         WHERE id = $1
-        RETURNING id, name, email, role, email_verified_at, created_at, updated_at
+        RETURNING id, name, email, role, email_verified_at, avatar_url, created_at, updated_at
         "#,
     )
     .bind(user_id)
@@ -327,6 +331,29 @@ pub async fn store_password_reset_token(
 
     tx.commit().await?;
     Ok(())
+}
+
+pub async fn update_avatar_for_user(
+    pool: &PgPool,
+    user_id: Uuid,
+    avatar_url: Option<&str>,
+) -> Result<Option<UserRecord>, sqlx::Error> {
+    let now = Utc::now();
+    let row = sqlx::query(
+        r#"
+        UPDATE users
+        SET avatar_url = $2, updated_at = $3
+        WHERE id = $1
+        RETURNING id, name, email, role, email_verified_at, avatar_url, created_at, updated_at
+        "#,
+    )
+    .bind(user_id)
+    .bind(avatar_url)
+    .bind(now)
+    .fetch_optional(pool)
+    .await?;
+
+    Ok(row.map(|value| row_to_user(&value)))
 }
 
 pub async fn consume_password_reset_token(
@@ -386,7 +413,7 @@ pub async fn consume_password_reset_token(
         UPDATE users
         SET updated_at = $2
         WHERE id = $1
-        RETURNING id, name, email, role, email_verified_at, created_at, updated_at
+        RETURNING id, name, email, role, email_verified_at, avatar_url, created_at, updated_at
         "#,
     )
     .bind(user_id)
