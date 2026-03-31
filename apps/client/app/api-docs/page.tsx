@@ -483,8 +483,8 @@ export default async function APIDocsPage({
     <div className="min-h-screen flex flex-col bg-background">
       <Header />
       
-      <main className="container max-w-6xl mx-auto flex-1 pb-24 md:pb-0">
-        <div className="page-frame">
+      <main className="container max-w-6xl mx-auto px-4 py-8 md:py-12">
+        <div>
           {/* Back link */}
           <Link
             href="/"
