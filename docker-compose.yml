@@ -3,10 +3,13 @@
 #
 # Usage (from this directory):
 #   docker compose up --build
-#   Client:   http://localhost:3000
-#   Admin:    http://localhost:3002
-#   API:      http://localhost:3001
+#   Client:   http://localhost:${CLIENT_PORT:-3000}
+#   Admin:    http://localhost:${ADMIN_PORT:-3002}
+#   API:      http://localhost:${API_PORT:-3001}
 #   Health:   http://localhost:3001/health
+#
+# Port overrides (optional):
+#   CLIENT_PORT=3005 API_PORT=3006 ADMIN_PORT=3007 docker compose up --build
 
 services:
   postgres:
@@ -16,7 +19,7 @@ services:
       POSTGRES_PASSWORD: openproof
       POSTGRES_DB: openproof
     ports:
-      - "5432:5432"
+      - "${POSTGRES_PORT:-5432}:5432"
     volumes:
       - openproof_pg:/var/lib/postgresql/data
     healthcheck:
@@ -31,7 +34,7 @@ services:
       context: .
       dockerfile: Dockerfile
     ports:
-      - "3001:3001"
+      - "${API_PORT:-3001}:3001"
     environment:
       DATABASE_URL: postgres://openproof:openproof@postgres:5432/openproof
       LISTEN_ADDR: 0.0.0.0:3001
@@ -60,7 +63,7 @@ services:
       args:
         BACKEND_URL: http://api:3001
     ports:
-      - "3000:3000"
+      - "${CLIENT_PORT:-3000}:3000"
     environment:
       BACKEND_URL: http://api:3001
     depends_on:
@@ -73,7 +76,7 @@ services:
       args:
         BACKEND_URL: http://api:3001
     ports:
-      - "3002:3000"
+      - "${ADMIN_PORT:-3002}:3000"
     environment:
       BACKEND_URL: http://api:3001
       SESSION_COOKIE_NAME: ${SESSION_COOKIE_NAME:-openproof_session}
