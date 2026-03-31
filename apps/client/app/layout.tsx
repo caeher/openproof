@@ -1,6 +1,5 @@
 import type { Metadata, Viewport } from 'next'
 import { DM_Sans, Fira_Code } from 'next/font/google'
-import { Analytics } from '@vercel/analytics/next'
 import { AuthProvider } from '@/components/auth/auth-provider'
 import { ThemeProvider } from '@/components/theme-provider'
 import './globals.css'
@@ -65,7 +64,6 @@ export default function RootLayout({
             {children}
           </ThemeProvider>
         </AuthProvider>
-        <Analytics />
       </body>
     </html>
   )

@@ -75,7 +75,7 @@ const quickstartExamples = [
 const payload = await response.json()
 
 if (payload.success && payload.data.publicProofPath) {
-  console.log('Viewer público:', payload.data.publicProofPath)
+  const publicViewerUrl = payload.data.publicProofPath
 }`,
   },
   {
