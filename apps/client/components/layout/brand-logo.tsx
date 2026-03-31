@@ -15,8 +15,8 @@ interface BrandLogoProps {
 
 export function BrandMark({ className, alt = '' }: BrandMarkProps) {
   return (
-     <div className="p-1.5 rounded-md bg-foreground">
-        <Shield className="w-5 h-5 text-background" />
+    <div className={cn('p-1.5 rounded-lg bg-primary', className)}>
+      <Shield className="w-5 h-5 text-primary-foreground" />
     </div>
   )
 }
@@ -28,10 +28,10 @@ export function BrandLogo({
   hideLabel = false,
 }: BrandLogoProps) {
   return (
-    <span className={cn('flex items-center gap-3', className)}>
+    <span className={cn('flex items-center gap-2.5', className)}>
       <BrandMark className={markClassName} />
       {hideLabel ? null : (
-        <span className={cn('text-lg font-semibold tracking-tight', labelClassName)}>
+        <span className={cn('text-lg font-semibold tracking-tight text-foreground', labelClassName)}>
           OpenProof
         </span>
       )}

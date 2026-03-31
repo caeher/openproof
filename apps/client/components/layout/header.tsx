@@ -71,11 +71,11 @@ export function Header() {
   }
 
   return (
-    <header className="sticky top-0 z-40 w-full bg-background/95 backdrop-blur-lg border-b border-border">
+    <header className="sticky top-0 z-40 w-full bg-background/90 backdrop-blur-md border-b border-border">
       <div className="container">
         <div className="flex items-center justify-between h-16">
           <Link href="/" aria-label="OpenProof" className="shrink-0">
-            <BrandLogo markClassName="size-9" labelClassName="text-base md:text-lg" />
+            <BrandLogo markClassName="size-8" labelClassName="text-base md:text-lg" />
           </Link>
 
           {/* Desktop Navigation */}
@@ -85,11 +85,11 @@ export function Header() {
                 key={link.href}
                 href={link.href}
                 className={cn(
-                  'px-3 py-2 text-sm font-medium rounded-md transition-colors',
-                  pathname === link.href || 
-                  (link.href !== '/' && pathname.startsWith(link.href))
+                  'px-3.5 py-2 text-sm font-medium rounded-xl transition-colors duration-200',
+                  pathname === link.href ||
+                    (link.href !== '/' && pathname.startsWith(link.href))
                     ? 'text-foreground bg-secondary'
-                    : 'text-muted-foreground hover:text-foreground hover:bg-secondary/50'
+                    : 'text-muted-foreground hover:text-foreground hover:bg-secondary/60'
                 )}
               >
                 {link.label}
@@ -100,7 +100,7 @@ export function Header() {
           {/* Actions */}
           <div className="flex items-center gap-2">
             {isAuthenticated && user ? (
-              <div className="hidden lg:flex items-center gap-2 rounded-full border border-border bg-secondary/40 px-3 py-1.5 text-sm text-muted-foreground">
+              <div className="hidden lg:flex items-center gap-2 rounded-full border border-border bg-secondary/50 px-3.5 py-1.5 text-sm text-muted-foreground">
                 {authState === 'authenticated_unverified' ? (
                   <MailCheck className="h-4 w-4" />
                 ) : (
@@ -131,13 +131,13 @@ export function Header() {
                 </Button>
                 <Button className="hidden sm:flex" onClick={() => void handleLogout()}>
                   <LogOut className="mr-2 h-4 w-4" />
-                  Cerrar sesion
+                  Cerrar sesión
                 </Button>
               </>
             ) : (
               <>
-                <Button asChild variant="outline" className="hidden sm:flex">
-                  <Link href="/login">Iniciar sesion</Link>
+                <Button asChild variant="ghost" className="hidden sm:flex">
+                  <Link href="/login">Iniciar sesión</Link>
                 </Button>
                 <Button asChild className="hidden sm:flex">
                   <Link href="/signup">Crear cuenta</Link>
@@ -155,20 +155,20 @@ export function Header() {
                       <span className="sr-only">Abrir menú</span>
                     </Button>
                   </SheetTrigger>
-                  <SheetContent side="right" className="w-full max-w-xs">
+                  <SheetContent side="right" className="w-full max-w-xs bg-background border-l border-border">
                     <SheetTitle className="sr-only">Menú de navegación</SheetTitle>
                     <div className="flex flex-col gap-6 mt-8">
-                      <nav className="flex flex-col gap-2">
+                      <nav className="flex flex-col gap-1">
                         {navLinks.map((link) => (
                           <Link
                             key={link.href}
                             href={link.href}
                             onClick={() => setOpen(false)}
                             className={cn(
-                              'px-4 py-3 text-base font-medium rounded-lg transition-colors',
+                              'px-4 py-3 text-base font-medium rounded-xl transition-colors duration-200',
                               pathname === link.href
                                 ? 'text-foreground bg-secondary'
-                                : 'text-muted-foreground hover:text-foreground hover:bg-secondary/50'
+                                : 'text-muted-foreground hover:text-foreground hover:bg-secondary/60'
                             )}
                           >
                             {link.label}
@@ -179,14 +179,14 @@ export function Header() {
                             <Link
                               href="/login"
                               onClick={() => setOpen(false)}
-                              className="px-4 py-3 text-base font-medium rounded-lg text-muted-foreground hover:text-foreground hover:bg-secondary/50"
+                              className="px-4 py-3 text-base font-medium rounded-xl text-muted-foreground hover:text-foreground hover:bg-secondary/60"
                             >
-                              Iniciar sesion
+                              Iniciar sesión
                             </Link>
                             <Link
                               href="/signup"
                               onClick={() => setOpen(false)}
-                              className="px-4 py-3 text-base font-medium rounded-lg text-muted-foreground hover:text-foreground hover:bg-secondary/50"
+                              className="px-4 py-3 text-base font-medium rounded-xl text-muted-foreground hover:text-foreground hover:bg-secondary/60"
                             >
                               Crear cuenta
                             </Link>
@@ -218,7 +218,7 @@ export function Header() {
                       {!isLoading && isAuthenticated ? (
                         <Button className="mx-4" onClick={() => void handleLogout()}>
                           <LogOut className="mr-2 h-4 w-4" />
-                          Cerrar sesion
+                          Cerrar sesión
                         </Button>
                       ) : !isLoading ? (
                         <Button asChild className="mx-4">

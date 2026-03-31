@@ -63,11 +63,11 @@ export function MobileNav() {
 
   return (
     <nav className="fixed bottom-0 left-0 right-0 z-50 md:hidden">
-      <div className="bg-background/95 backdrop-blur-lg border-t border-border">
+      <div className="bg-background/90 backdrop-blur-md border-t border-border">
         <div className="flex items-center justify-around px-2 py-2 safe-area-inset-bottom">
           {navItems.map((item) => {
             const Icon = item.icon
-            const isActive = pathname === item.href || 
+            const isActive = pathname === item.href ||
               (item.href !== '/' && pathname.startsWith(item.href))
 
             return (
@@ -75,25 +75,25 @@ export function MobileNav() {
                 key={item.href}
                 href={item.href}
                 className={cn(
-                  'flex flex-col items-center justify-center gap-1 px-3 py-2 rounded-lg',
+                  'flex flex-col items-center justify-center gap-1 px-3 py-2 rounded-xl',
                   'transition-colors duration-200 min-w-[64px]',
                   isActive
-                    ? 'text-foreground'
+                    ? 'text-primary'
                     : 'text-muted-foreground hover:text-foreground'
                 )}
               >
                 <div className={cn(
-                  'p-1.5 rounded-full transition-colors',
-                  isActive && 'bg-accent/10'
+                  'p-1.5 rounded-xl transition-colors duration-200',
+                  isActive && 'bg-primary/10'
                 )}>
                   <Icon className={cn(
                     'w-5 h-5',
-                    isActive && 'text-accent'
+                    isActive && 'text-primary'
                   )} />
                 </div>
                 <span className={cn(
                   'text-[10px] font-medium',
-                  isActive && 'text-accent'
+                  isActive && 'text-primary'
                 )}>
                   {item.label}
                 </span>
