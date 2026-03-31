@@ -8,10 +8,10 @@ import {
   Copy,
   CreditCard,
   Loader2,
-  RefreshCcw,
   ShieldCheck,
   Wallet,
 } from 'lucide-react'
+import QRCode from 'qrcode'
 import { AuthGuard } from '@/components/auth/auth-guard'
 import { useAuth } from '@/components/auth/auth-provider'
 import { Header, Footer, MobileNav } from '@/components/layout'
@@ -46,10 +46,11 @@ export default function BillingPage() {
   const { isLoading: isAuthLoading, user } = useAuth()
   const [overview, setOverview] = useState<BillingOverviewResponse | null>(null)
   const [activeInvoice, setActiveInvoice] = useState<PaymentIntent | null>(null)
+  const [invoiceQrDataUrl, setInvoiceQrDataUrl] = useState<string | null>(null)
   const [error, setError] = useState<string | null>(null)
   const [isLoading, setIsLoading] = useState(true)
   const [creatingPackageId, setCreatingPackageId] = useState<string | null>(null)
-  const [reconcilingPaymentId, setReconcilingPaymentId] = useState<string | null>(null)
+  const [isAutoReconciling, setIsAutoReconciling] = useState(false)
 
   async function loadOverview() {
     const response = await getBillingOverview()
@@ -57,7 +58,22 @@ export default function BillingPage() {
       throw new Error(getApiErrorMessage(response, 'No fue posible cargar billing.'))
     }
 
-    setOverview(response.data)
+    const overviewData = response.data
+
+    setOverview(overviewData)
+    setActiveInvoice((currentInvoice) => {
+      const refreshedCurrentInvoice = currentInvoice
+        ? overviewData.paymentIntents.find((paymentIntent) => paymentIntent.id === currentInvoice.id) ?? null
+        : null
+      const latestPendingInvoice =
+        overviewData.paymentIntents.find((paymentIntent) => paymentIntent.status === 'pending') ?? null
+
+      if (refreshedCurrentInvoice?.status === 'pending') {
+        return refreshedCurrentInvoice
+      }
+
+      return latestPendingInvoice
+    })
   }
 
   useEffect(() => {
@@ -108,30 +124,6 @@ export default function BillingPage() {
     }
   }
 
-  async function handleReconcile(paymentIntent: PaymentIntent) {
-    setError(null)
-    setReconcilingPaymentId(paymentIntent.id)
-
-    try {
-      const response = await reconcileBillingPaymentIntent(paymentIntent.id)
-      if (!response.success || !response.data) {
-        setError(getApiErrorMessage(response, 'No fue posible reconciliar el pago.'))
-        return
-      }
-
-      setActiveInvoice(response.data.status === 'pending' ? response.data : null)
-      await loadOverview()
-    } catch (reconcileError) {
-      setError(
-        reconcileError instanceof Error
-          ? reconcileError.message
-          : 'No fue posible reconciliar el pago.'
-      )
-    } finally {
-      setReconcilingPaymentId(null)
-    }
-  }
-
   async function copyInvoice(paymentRequest?: string) {
     if (!paymentRequest) {
       return
@@ -139,6 +131,94 @@ export default function BillingPage() {
 
     await navigator.clipboard.writeText(paymentRequest)
   }
+
+  useEffect(() => {
+    const paymentRequest = activeInvoice?.paymentRequest
+    if (!paymentRequest) {
+      setInvoiceQrDataUrl(null)
+      return
+    }
+
+    let isCancelled = false
+
+    async function createQrCode() {
+      try {
+        const qrCodeDataUrl = await QRCode.toDataURL(`lightning:${paymentRequest}`, {
+          errorCorrectionLevel: 'M',
+          margin: 1,
+          width: 320,
+          color: {
+            dark: '#111827',
+            light: '#ffffff',
+          },
+        })
+
+        if (!isCancelled) {
+          setInvoiceQrDataUrl(qrCodeDataUrl)
+        }
+      } catch {
+        if (!isCancelled) {
+          setInvoiceQrDataUrl(null)
+        }
+      }
+    }
+
+    void createQrCode()
+
+    return () => {
+      isCancelled = true
+    }
+  }, [activeInvoice?.paymentRequest])
+
+  useEffect(() => {
+    if (!user?.emailVerified || !activeInvoice || activeInvoice.status !== 'pending') {
+      setIsAutoReconciling(false)
+      return
+    }
+
+    const activeInvoiceId = activeInvoice.id
+
+    let isCancelled = false
+    let isRequestInFlight = false
+
+    async function syncPendingInvoice() {
+      if (isCancelled || isRequestInFlight) {
+        return
+      }
+
+      isRequestInFlight = true
+      setIsAutoReconciling(true)
+
+      try {
+        const response = await reconcileBillingPaymentIntent(activeInvoiceId)
+        if (!response.success || !response.data || isCancelled) {
+          return
+        }
+
+        setActiveInvoice(response.data.status === 'pending' ? response.data : null)
+        await loadOverview()
+      } catch {
+        if (!isCancelled) {
+          setIsAutoReconciling(false)
+        }
+      } finally {
+        isRequestInFlight = false
+        if (!isCancelled) {
+          setIsAutoReconciling(false)
+        }
+      }
+    }
+
+    void syncPendingInvoice()
+    const intervalId = window.setInterval(() => {
+      void syncPendingInvoice()
+    }, 8000)
+
+    return () => {
+      isCancelled = true
+      window.clearInterval(intervalId)
+    }
+  }, [activeInvoice?.id, activeInvoice?.status, user?.emailVerified])
 
   return (
     <div className="min-h-screen flex flex-col bg-background">
@@ -180,7 +260,7 @@ export default function BillingPage() {
                   <CardHeader>
                     <CardTitle>Invoice activa</CardTitle>
                     <CardDescription>
-                      Usa tu wallet Lightning para pagar el invoice actual y luego pulsa reconciliar para actualizar el saldo.
+                      Usa tu wallet Lightning para pagar el invoice actual. El estado y el saldo se actualizan automáticamente cuando Blink confirma el pago.
                     </CardDescription>
                   </CardHeader>
                   <CardContent className="space-y-4">
@@ -188,10 +268,30 @@ export default function BillingPage() {
                       <Badge>{activeInvoice.status}</Badge>
                       <Badge variant="secondary">{activeInvoice.blinkInvoiceStatus}</Badge>
                       <Badge variant="outline">{activeInvoice.packageName}</Badge>
+                      <Badge variant="outline" className="gap-1">
+                        {isAutoReconciling ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : null}
+                        Actualización automática
+                      </Badge>
                     </div>
 
-                    <div className="rounded-lg border border-border bg-secondary/30 p-4 font-mono text-xs break-all text-foreground">
-                      {activeInvoice.paymentRequest}
+                    <div className="grid gap-4 lg:grid-cols-[240px_minmax(0,1fr)] lg:items-start">
+                      <div className="rounded-2xl border border-border bg-white p-4 shadow-sm">
+                        {invoiceQrDataUrl ? (
+                          <img
+                            src={invoiceQrDataUrl}
+                            alt="QR Lightning del invoice activo"
+                            className="mx-auto h-full w-full max-w-[208px]"
+                          />
+                        ) : (
+                          <div className="flex aspect-square items-center justify-center rounded-xl bg-slate-100 text-sm text-slate-600">
+                            Generando QR...
+                          </div>
+                        )}
+                      </div>
+
+                      <div className="rounded-lg border border-border bg-secondary/30 p-4 font-mono text-xs break-all text-foreground">
+                        {activeInvoice.paymentRequest}
+                      </div>
                     </div>
 
                     <div className="grid gap-3 md:grid-cols-3 text-sm text-muted-foreground">
@@ -210,21 +310,6 @@ export default function BillingPage() {
                           <CreditCard className="mr-2 h-4 w-4" />
                           Abrir wallet
                         </a>
-                      </Button>
-                      <Button
-                        type="button"
-                        variant="outline"
-                        disabled={reconcilingPaymentId === activeInvoice.id}
-                        onClick={() => {
-                          void handleReconcile(activeInvoice)
-                        }}
-                      >
-                        {reconcilingPaymentId === activeInvoice.id ? (
-                          <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                        ) : (
-                          <RefreshCcw className="mr-2 h-4 w-4" />
-                        )}
-                        Reconciliar pago
                       </Button>
                     </div>
                   </CardContent>
@@ -337,7 +422,7 @@ export default function BillingPage() {
                 <CardHeader>
                   <CardTitle>Pagos recientes</CardTitle>
                   <CardDescription>
-                    Historial de intents generados para esta cuenta, con su estado local y el estado reportado por Blink.
+                    Historial de intents generados para esta cuenta, con sincronización automática del estado reportado por Blink.
                   </CardDescription>
                 </CardHeader>
                 <CardContent>
@@ -383,21 +468,9 @@ export default function BillingPage() {
                                   <Copy className="mr-2 h-4 w-4" />
                                   Copiar
                                 </Button>
-                                <Button
-                                  type="button"
-                                  variant="outline"
-                                  disabled={reconcilingPaymentId === paymentIntent.id}
-                                  onClick={() => {
-                                    void handleReconcile(paymentIntent)
-                                  }}
-                                >
-                                  {reconcilingPaymentId === paymentIntent.id ? (
-                                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                                  ) : (
-                                    <RefreshCcw className="mr-2 h-4 w-4" />
-                                  )}
-                                  Reconciliar
-                                </Button>
+                                <div className="inline-flex items-center rounded-md border border-border px-3 py-2 text-sm text-muted-foreground">
+                                  La factura se sincroniza automaticamente
+                                </div>
                               </div>
                             ) : null}
                           </div>
