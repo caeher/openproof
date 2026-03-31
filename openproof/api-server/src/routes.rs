@@ -63,6 +63,7 @@ pub fn api_router(state: Arc<AppState>) -> Router {
         )
         .route("/api/v1/billing/packages", get(billing::public_packages))
         .route("/api/v1/account/profile", get(account::profile))
+        .route("/api/v1/account/avatar", post(account::update_avatar))
         .route(
             "/api/v1/account/change-password",
             post(account::change_password),

@@ -20,12 +20,23 @@ use uuid::Uuid;
 
 struct StubMailer;
 
+#[async_trait]
 impl EmailSender for StubMailer {
-    fn send_verification_email(&self, _email: &str, _token: &str) -> Result<(), String> {
+    async fn send_verification_email(
+        &self,
+        _email: &str,
+        _name: &str,
+        _token: &str,
+    ) -> Result<(), String> {
         Ok(())
     }
 
-    fn send_password_reset_email(&self, _email: &str, _token: &str) -> Result<(), String> {
+    async fn send_password_reset_email(
+        &self,
+        _email: &str,
+        _name: &str,
+        _token: &str,
+    ) -> Result<(), String> {
         Ok(())
     }
 }
@@ -73,6 +84,7 @@ fn test_state(pool: PgPool, rate_limits: RateLimitSettings) -> Arc<AppState> {
         },
         runtime: RuntimeSettings {
             app_env: "test".to_string(),
+            app_base_url: "http://localhost:3000".to_string(),
         },
         rate_limits,
         rate_limiter: Arc::new(RateLimiter::default()),
@@ -81,7 +93,7 @@ fn test_state(pool: PgPool, rate_limits: RateLimitSettings) -> Arc<AppState> {
 
 async fn create_user(pool: &PgPool, email: &str, password: &str, role: &str, verified: bool) -> Uuid {
     let password_hash = auth::hash_password(password).expect("password hash");
-    let user = users::create_user_with_password(pool, email, &password_hash)
+    let user = users::create_user_with_password(pool, "Test User", email, &password_hash)
         .await
         .expect("create user");
 

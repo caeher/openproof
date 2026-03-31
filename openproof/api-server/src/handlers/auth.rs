@@ -57,6 +57,7 @@ pub struct AuthUserResponse {
     pub email: String,
     pub role: String,
     pub email_verified: bool,
+    pub avatar_url: Option<String>,
     pub created_at: chrono::DateTime<chrono::Utc>,
 }
 
@@ -409,6 +410,7 @@ fn map_user(user: &users::UserRecord) -> AuthUserResponse {
         email: user.email.clone(),
         role: user.role.clone(),
         email_verified: user.is_email_verified(),
+        avatar_url: user.avatar_url.clone(),
         created_at: user.created_at,
     }
 }
