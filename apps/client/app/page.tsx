@@ -132,9 +132,53 @@ export default function LandingPage() {
 
   return (
     <SiteShell mainClassName="overflow-hidden">
-      <section className="relative border-b border-border/70 bg-[radial-gradient(circle_at_top,rgba(251,191,36,0.16),transparent_32%),linear-gradient(180deg,rgba(255,255,255,0.72)_0%,rgba(255,255,255,0)_100%)] dark:bg-[radial-gradient(circle_at_top,rgba(251,191,36,0.12),transparent_28%),linear-gradient(180deg,rgba(24,24,27,0.65)_0%,rgba(24,24,27,0)_100%)]">
-        <div className="absolute inset-0 -z-10 bg-[radial-gradient(circle,rgba(148,163,184,0.18)_1px,transparent_1px)] [background-size:26px_26px] opacity-40" />
-        <div className="container py-16 md:py-24">
+      <section className="relative overflow-hidden border-b border-border/70">
+        {/* Background Elements */}
+        <div className="absolute inset-0 z-0 pointer-events-none bg-background">
+          {/* Dynamic Grid */}
+          <div className="absolute inset-0 bg-[linear-gradient(to_right,hsl(var(--foreground))_1px,transparent_1px),linear-gradient(to_bottom,hsl(var(--foreground))_1px,transparent_1px)] bg-[size:3rem_3rem] [mask-image:radial-gradient(ellipse_60%_70%_at_50%_0%,#000_15%,transparent_100%)] opacity-[0.03]" />
+          
+          {/* Subtle Floating Dots Pattern */}
+          <div className="absolute inset-0 bg-[radial-gradient(circle,hsl(var(--foreground))_1px,transparent_1px)] [background-size:24px_24px] [mask-image:radial-gradient(ellipse_80%_40%_at_50%_0%,#000_60%,transparent_100%)] opacity-[0.06]" />
+
+          {/* Primary Glow Areas */}
+          <div className="absolute left-1/2 top-0 -translate-x-1/2 -translate-y-[20%] w-[800px] h-[500px] rounded-full bg-primary/20 blur-[100px]" />
+          <div className="absolute left-[-10%] top-[10%] w-[400px] h-[400px] rounded-full bg-primary/10 blur-[100px]" />
+          <div className="absolute right-[-5%] bottom-[-10%] w-[400px] h-[400px] rounded-full bg-primary/10 blur-[100px]" />
+
+          {/* Abstract Cryptographic SVG Shapes */}
+          <div 
+            className="absolute top-[15%] left-[2%] md:left-[8%] opacity-[0.05] dark:opacity-[0.03] text-foreground"
+            style={{ animation: 'spin 60s linear infinite' }}
+          >
+            <svg width="240" height="240" viewBox="0 0 240 240" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <circle cx="120" cy="120" r="80" stroke="currentColor" strokeWidth="1" strokeDasharray="4 6"/>
+              <circle cx="120" cy="120" r="110" stroke="currentColor" strokeWidth="0.5" />
+              <path d="M120 10 L120 230 M10 120 L230 120" stroke="currentColor" strokeWidth="0.5"/>
+              <circle cx="120" cy="120" r="12" fill="currentColor" fillOpacity="0.2"/>
+            </svg>
+          </div>
+
+          <div 
+            className="absolute bottom-[15%] right-[2%] md:right-[6%] opacity-[0.05] dark:opacity-[0.03] text-foreground"
+            style={{ animation: 'spin 40s linear infinite reverse' }}
+          >
+            <svg width="180" height="180" viewBox="0 0 180 180" fill="none" xmlns="http://www.w3.org/2000/svg">
+               <polygon points="90,10 160,50 160,130 90,170 20,130 20,50" stroke="currentColor" strokeWidth="1" />
+               <polygon points="90,30 140,60 140,120 90,150 40,120 40,60" stroke="currentColor" strokeWidth="0.5" strokeDasharray="3 4"/>
+               <circle cx="90" cy="90" r="6" fill="currentColor"/>
+            </svg>
+          </div>
+          
+          <div className="absolute top-[60%] left-[80%] opacity-[0.04] dark:opacity-[0.03] text-foreground">
+            <svg width="100" height="100" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg" className="animate-pulse">
+              <rect x="25" y="25" width="50" height="50" stroke="currentColor" strokeWidth="1" transform="rotate(45 50 50)"/>
+              <rect x="35" y="35" width="30" height="30" stroke="currentColor" strokeWidth="1" strokeDasharray="2 2" transform="rotate(45 50 50)"/>
+            </svg>
+          </div>
+        </div>
+
+        <div className="container relative z-10 py-16 md:py-24">
           <div className="grid gap-10 lg:grid-cols-[1.15fr_0.85fr] lg:items-center">
             <PageIntro
               badge="Infraestructura documental sobre Bitcoin"
