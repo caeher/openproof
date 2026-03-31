@@ -14,8 +14,8 @@
   --popover: oklch(0.995 0.003 85);
   --popover-foreground: oklch(0.25 0.02 55);
 
-  /* Muted sage green primary */
-  --primary: oklch(0.58 0.1 160);
+  /* Bitcoin orange primary */
+  --primary: oklch(0.72 0.16 55);
   --primary-foreground: oklch(0.995 0.003 85);
 
   /* Warm blush secondary */
@@ -26,8 +26,8 @@
   --muted: oklch(0.94 0.01 70);
   --muted-foreground: oklch(0.5 0.02 55);
 
-  /* Lavender accent */
-  --accent: oklch(0.72 0.1 290);
+  /* Deep amber accent */
+  --accent: oklch(0.68 0.14 65);
   --accent-foreground: oklch(0.25 0.02 55);
 
   --destructive: oklch(0.62 0.2 25);
@@ -36,25 +36,25 @@
   /* Soft pastel borders */
   --border: oklch(0.9 0.01 70);
   --input: oklch(0.92 0.008 70);
-  --ring: oklch(0.58 0.1 160);
+  --ring: oklch(0.72 0.16 55);
 
-  --chart-1: oklch(0.65 0.12 160);
-  --chart-2: oklch(0.72 0.1 290);
-  --chart-3: oklch(0.78 0.12 65);
-  --chart-4: oklch(0.68 0.14 25);
-  --chart-5: oklch(0.62 0.12 340);
+  --chart-1: oklch(0.78 0.14 65);
+  --chart-2: oklch(0.68 0.16 55);
+  --chart-3: oklch(0.58 0.12 45);
+  --chart-4: oklch(0.72 0.1 75);
+  --chart-5: oklch(0.62 0.08 35);
 
   /* Generous but not excessive radius */
   --radius: 0.75rem;
 
   --sidebar: oklch(0.97 0.005 85);
   --sidebar-foreground: oklch(0.25 0.02 55);
-  --sidebar-primary: oklch(0.58 0.1 160);
+  --sidebar-primary: oklch(0.72 0.16 55);
   --sidebar-primary-foreground: oklch(0.995 0.003 85);
   --sidebar-accent: oklch(0.94 0.01 70);
   --sidebar-accent-foreground: oklch(0.25 0.02 55);
   --sidebar-border: oklch(0.9 0.01 70);
-  --sidebar-ring: oklch(0.58 0.1 160);
+  --sidebar-ring: oklch(0.72 0.16 55);
 
   /* Custom tokens */
   --success: oklch(0.65 0.14 155);
@@ -74,8 +74,8 @@
   --popover: oklch(0.16 0.01 55);
   --popover-foreground: oklch(0.92 0.01 70);
 
-  /* Slightly lifted sage for dark */
-  --primary: oklch(0.68 0.1 160);
+  /* Slightly lifted bitcoin orange for dark */
+  --primary: oklch(0.75 0.16 55);
   --primary-foreground: oklch(0.14 0.01 55);
 
   --secondary: oklch(0.22 0.01 55);
@@ -84,8 +84,8 @@
   --muted: oklch(0.22 0.01 55);
   --muted-foreground: oklch(0.6 0.01 70);
 
-  /* Lavender that reads well on dark */
-  --accent: oklch(0.72 0.1 290);
+  /* Deep amber that reads well on dark */
+  --accent: oklch(0.72 0.14 65);
   --accent-foreground: oklch(0.14 0.01 55);
 
   --destructive: oklch(0.6 0.18 25);
@@ -93,22 +93,22 @@
 
   --border: oklch(0.26 0.01 55);
   --input: oklch(0.22 0.01 55);
-  --ring: oklch(0.68 0.1 160);
+  --ring: oklch(0.75 0.16 55);
 
-  --chart-1: oklch(0.65 0.12 160);
-  --chart-2: oklch(0.72 0.1 290);
-  --chart-3: oklch(0.78 0.12 65);
-  --chart-4: oklch(0.68 0.14 25);
-  --chart-5: oklch(0.62 0.12 340);
+  --chart-1: oklch(0.78 0.14 65);
+  --chart-2: oklch(0.68 0.16 55);
+  --chart-3: oklch(0.58 0.12 45);
+  --chart-4: oklch(0.72 0.1 75);
+  --chart-5: oklch(0.62 0.08 35);
 
   --sidebar: oklch(0.16 0.01 55);
   --sidebar-foreground: oklch(0.92 0.01 70);
-  --sidebar-primary: oklch(0.68 0.1 160);
+  --sidebar-primary: oklch(0.75 0.16 55);
   --sidebar-primary-foreground: oklch(0.14 0.01 55);
   --sidebar-accent: oklch(0.22 0.01 55);
   --sidebar-accent-foreground: oklch(0.92 0.01 70);
   --sidebar-border: oklch(0.26 0.01 55);
-  --sidebar-ring: oklch(0.68 0.1 160);
+  --sidebar-ring: oklch(0.75 0.16 55);
 
   /* Custom tokens */
   --success: oklch(0.65 0.14 155);
