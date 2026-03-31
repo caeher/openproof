@@ -80,6 +80,13 @@ export function login(email: string, password: string) {
   })
 }
 
+export function adminLogin(email: string, password: string) {
+  return fetchJson<SessionResponse>('/admin/login', {
+    method: 'POST',
+    body: JSON.stringify({ email, password }),
+  })
+}
+
 export function logout() {
   return fetchJson<{ message: string }>('/auth/logout', {
     method: 'POST',

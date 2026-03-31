@@ -130,9 +130,9 @@ export default function DashboardPage() {
   }, [overview])
 
   return (
-    <main className="min-h-screen px-6 py-8 md:px-10 lg:px-14">
-      <div className="mx-auto max-w-7xl space-y-6">
-        <header className="rounded-[2rem] border border-[var(--line)] bg-[var(--surface-strong)] p-6 shadow-2xl shadow-black/20 backdrop-blur md:p-8">
+    <main className="min-h-screen px-4 py-4 sm:px-6 sm:py-6 md:px-10 lg:px-14">
+      <div className="mx-auto max-w-7xl space-y-4 sm:space-y-6">
+        <header className="rounded-[2rem] border border-[var(--line)] bg-[var(--surface-strong)] p-5 shadow-2xl shadow-black/20 backdrop-blur sm:p-6 md:p-8">
           <div className="flex flex-col gap-6 xl:flex-row xl:items-end xl:justify-between">
             <div>
               <div className="inline-flex items-center gap-2 rounded-full border border-[var(--line)] bg-black/20 px-4 py-2 text-sm text-[var(--ink-soft)]">
@@ -153,7 +153,7 @@ export default function DashboardPage() {
                 type="button"
                 onClick={() => void handleRefresh()}
                 disabled={isRefreshing}
-                className="inline-flex items-center justify-center gap-2 rounded-full border border-[var(--line)] px-5 py-3 text-sm text-white transition hover:border-[var(--accent)] disabled:opacity-60"
+                className="inline-flex w-full items-center justify-center gap-2 rounded-full border border-[var(--line)] px-5 py-3 text-sm text-white transition hover:border-[var(--accent)] disabled:opacity-60 sm:w-auto"
               >
                 {isRefreshing ? <Loader2 className="h-4 w-4 animate-spin" /> : <RefreshCcw className="h-4 w-4" />}
                 Refrescar
@@ -161,7 +161,7 @@ export default function DashboardPage() {
               <button
                 type="button"
                 onClick={() => void handleLogout()}
-                className="inline-flex items-center justify-center gap-2 rounded-full bg-[var(--accent)] px-5 py-3 text-sm font-medium text-black transition hover:bg-[var(--accent-strong)]"
+                className="inline-flex w-full items-center justify-center gap-2 rounded-full bg-[var(--accent)] px-5 py-3 text-sm font-medium text-black transition hover:bg-[var(--accent-strong)] sm:w-auto"
               >
                 <LogOut className="h-4 w-4" />
                 Cerrar sesión
@@ -201,14 +201,14 @@ export default function DashboardPage() {
           </section>
         ) : (
           <>
-            <section className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+            <section className="grid grid-cols-2 gap-3 sm:gap-4 xl:grid-cols-4">
               {statCards.map((item) => (
                 <article
                   key={item.label}
-                  className="rounded-[1.5rem] border border-[var(--line)] bg-[var(--surface)] p-5 backdrop-blur"
+                  className="rounded-[1.5rem] border border-[var(--line)] bg-[var(--surface)] p-4 backdrop-blur sm:p-5"
                 >
                   <p className="text-sm text-[var(--ink-soft)]">{item.label}</p>
-                  <p className="mt-3 text-3xl font-semibold text-white">{item.value}</p>
+                  <p className="mt-3 text-2xl font-semibold text-white sm:text-3xl">{item.value}</p>
                 </article>
               ))}
             </section>
@@ -332,6 +332,17 @@ export default function DashboardPage() {
                 </div>
               </article>
             </section>
+
+            <footer className="flex justify-end text-xs text-[var(--ink-soft)]">
+              <a
+                href="https://caeher.com"
+                target="_blank"
+                rel="noreferrer"
+                className="transition hover:text-white"
+              >
+                Created By Caeher
+              </a>
+            </footer>
           </>
         )}
       </div>
