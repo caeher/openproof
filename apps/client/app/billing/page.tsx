@@ -271,7 +271,7 @@ export default function BillingPage() {
                         <Alert>
                           <ShieldCheck className="h-4 w-4" />
                           <AlertDescription>
-                            Cada registro consume {overview.documentRegistrationCreditCost} crédito(s). Cada crédito equivale a 10.000 sats. Última actualización: {formatTimestamp(overview.account.updatedAt)}.
+                            Cada registro consume {overview.documentRegistrationCreditCost} crédito(s). Cada crédito equivale a {formatSats(overview.creditPriceSats)}. Última actualización: {formatTimestamp(overview.account.updatedAt)}.
                           </AlertDescription>
                         </Alert>
 

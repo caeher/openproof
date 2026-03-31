@@ -17,10 +17,12 @@ pub struct AppConfig {
     pub bitcoin_rpc_url: String,
     pub bitcoin_rpc_user: String,
     pub bitcoin_rpc_password: String,
+    pub bitcoin_rpc_wallet: String,
     pub blink_api_url: String,
     pub blink_api_key: Option<String>,
     pub blink_webhook_secret: Option<String>,
     pub billing_reconcile_interval_seconds: u64,
+    pub credit_price_sats: i64,
     pub document_registration_credit_cost: i64,
     pub listen_addr: String,
     pub app_base_url: String,
@@ -52,6 +54,8 @@ impl AppConfig {
                 .unwrap_or_else(|_| "http://127.0.0.1:18332".to_string()),
             bitcoin_rpc_user: std::env::var("BITCOIN_RPC_USER").unwrap_or_default(),
             bitcoin_rpc_password: std::env::var("BITCOIN_RPC_PASSWORD").unwrap_or_default(),
+            bitcoin_rpc_wallet: std::env::var("BITCOIN_RPC_WALLET")
+                .unwrap_or_else(|_| "default".to_string()),
             blink_api_url: std::env::var("BLINK_API_URL")
                 .unwrap_or_else(|_| "https://api.blink.sv/graphql".to_string()),
             blink_api_key: std::env::var("BLINK_API_KEY").ok().filter(|value| !value.trim().is_empty()),
@@ -60,6 +64,10 @@ impl AppConfig {
                 .ok()
                 .and_then(|value| value.parse::<u64>().ok())
                 .unwrap_or(60),
+            credit_price_sats: std::env::var("CREDIT_PRICE_SATS")
+                .ok()
+                .and_then(|value| value.parse::<i64>().ok())
+                .unwrap_or(10_000),
             document_registration_credit_cost: std::env::var("DOCUMENT_REGISTRATION_CREDIT_COST")
                 .ok()
                 .and_then(|value| value.parse::<i64>().ok())

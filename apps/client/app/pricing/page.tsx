@@ -17,6 +17,14 @@ function formatSats(sats: number) {
   return `${new Intl.NumberFormat('es-ES').format(sats)} sats`
 }
 
+function packageUnitPriceSats(creditPackage: CreditPackage) {
+  if (creditPackage.credits <= 0) {
+    return 0
+  }
+
+  return Math.round(creditPackage.priceSats / creditPackage.credits)
+}
+
 export default function PricingPage() {
   const { authState, isAuthenticated } = useAuth()
   const [packages, setPackages] = useState<CreditPackage[]>([])
@@ -62,7 +70,7 @@ export default function PricingPage() {
               Compra capacidad cuando la necesites
             </h1>
             <p className="mt-4 text-lg text-muted-foreground max-w-3xl mx-auto">
-              OpenProof no usa suscripciones. Compras paquetes fijos, pagas con Lightning en satoshis y el saldo queda disponible para registrar documentos bajo demanda a razón de 10.000 sats por crédito.
+              OpenProof no usa suscripciones. Compras paquetes fijos, pagas con Lightning en satoshis y el saldo queda disponible para registrar documentos bajo demanda.
             </p>
           </div>
 
@@ -94,7 +102,7 @@ export default function PricingPage() {
                       {formatSats(creditPackage.priceSats)}
                     </p>
                     <p className="mt-2 text-muted-foreground">
-                      {creditPackage.credits} créditos cargados al liquidar el invoice. Equivale a 10.000 sats por crédito.
+                      {creditPackage.credits} créditos cargados al liquidar el invoice. Equivale a {formatSats(packageUnitPriceSats(creditPackage))} por crédito.
                     </p>
 
                     <div className="mt-6 rounded-xl border border-border p-4 text-sm text-muted-foreground space-y-2">

@@ -25,6 +25,7 @@ pub struct AuthSettings {
 
 #[derive(Clone)]
 pub struct BillingSettings {
+    pub credit_price_sats: i64,
     pub document_registration_credit_cost: i64,
 }
 

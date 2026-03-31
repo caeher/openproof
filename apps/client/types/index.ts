@@ -145,6 +145,7 @@ export interface BillingOverviewResponse {
   account: CreditAccountSummary
   packages: CreditPackage[]
   paymentIntents: PaymentIntent[]
+  creditPriceSats: number
   documentRegistrationCreditCost: number
 }
 
@@ -160,9 +161,30 @@ export interface AdminStats {
   verifiedUsers: number
   adminUsers: number
   totalCreditBalance: number
+  totalDocuments: number
+  pendingDocuments: number
+  processingDocuments: number
+  confirmedDocuments: number
+  failedDocuments: number
   pendingPaymentIntents: number
   stalePendingPaymentIntents: number
   failedWebhookEvents: number
+}
+
+export interface AdminWallet {
+  walletName: string
+  loaded: boolean
+  primaryAddress: string
+  balanceSats: number
+  confirmedBalanceSats: number
+  unconfirmedBalanceSats: number
+  txCount: number
+  network: string
+}
+
+export interface AdminPricing {
+  creditPriceSats: number
+  documentRegistrationCreditCost: number
 }
 
 export interface AdminUser {
@@ -172,6 +194,20 @@ export interface AdminUser {
   role: string
   emailVerifiedAt?: string
   balanceCredits: number
+  createdAt: string
+  updatedAt: string
+}
+
+export interface AdminDocument {
+  id: string
+  userId: string
+  userEmail: string
+  filename: string
+  status: string
+  transactionId?: string
+  blockHeight?: number
+  confirmations?: number
+  failureReason?: string
   createdAt: string
   updatedAt: string
 }
@@ -234,8 +270,11 @@ export interface AuditEvent {
 export interface AdminOverviewResponse {
   environment: string
   stats: AdminStats
+  wallet: AdminWallet
+  pricing: AdminPricing
   alerts: string[]
   users: AdminUser[]
+  documents: AdminDocument[]
   ledger: CreditLedgerEntry[]
   payments: AdminPaymentIntent[]
   webhookEvents: WebhookEvent[]

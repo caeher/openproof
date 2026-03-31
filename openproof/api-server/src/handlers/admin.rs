@@ -3,13 +3,14 @@ use std::sync::Arc;
 use axum::extract::{Path, Query, State};
 use axum::http::{HeaderMap, StatusCode};
 use axum::Json;
-use openproof_app::{admin, audit};
+use openproof_app::{admin, audit, sessions, users};
 use serde::{Deserialize, Serialize};
 use serde_json::json;
 use uuid::Uuid;
 
 use crate::auth;
 use crate::error::{err_json, ok_json};
+use crate::handlers::auth::{AuthUserResponse, SessionResponse};
 use crate::AppState;
 
 #[derive(Debug, Deserialize)]
@@ -33,13 +34,31 @@ pub struct AdjustCreditsRequest {
     pub reason: String,
 }
 
+#[derive(Debug, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct CreateInitialAdminRequest {
+    pub name: String,
+    pub email: String,
+    pub password: String,
+}
+
+#[derive(Debug, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct AdminSetupStatusResponse {
+    pub admin_exists: bool,
+    pub registration_enabled: bool,
+}
+
 #[derive(Debug, Serialize)]
 #[serde(rename_all = "camelCase")]
 pub struct AdminOverviewResponse {
     pub environment: String,
     pub stats: AdminStatsResponse,
+    pub wallet: AdminWalletResponse,
+    pub pricing: AdminPricingResponse,
     pub alerts: Vec<String>,
     pub users: Vec<AdminUserResponse>,
+    pub documents: Vec<AdminDocumentResponse>,
     pub ledger: Vec<CreditLedgerEntryResponse>,
     pub payments: Vec<AdminPaymentIntentResponse>,
     pub webhook_events: Vec<WebhookEventResponse>,
@@ -53,9 +72,34 @@ pub struct AdminStatsResponse {
     pub verified_users: i64,
     pub admin_users: i64,
     pub total_credit_balance: i64,
+    pub total_documents: i64,
+    pub pending_documents: i64,
+    pub processing_documents: i64,
+    pub confirmed_documents: i64,
+    pub failed_documents: i64,
     pub pending_payment_intents: i64,
     pub stale_pending_payment_intents: i64,
     pub failed_webhook_events: i64,
+}
+
+#[derive(Debug, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct AdminWalletResponse {
+    pub wallet_name: String,
+    pub loaded: bool,
+    pub primary_address: String,
+    pub balance_sats: i64,
+    pub confirmed_balance_sats: i64,
+    pub unconfirmed_balance_sats: i64,
+    pub tx_count: u64,
+    pub network: core_notarization::NetworkName,
+}
+
+#[derive(Debug, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct AdminPricingResponse {
+    pub credit_price_sats: i64,
+    pub document_registration_credit_cost: i64,
 }
 
 #[derive(Debug, Serialize)]
@@ -68,6 +112,26 @@ pub struct AdminUserResponse {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub email_verified_at: Option<chrono::DateTime<chrono::Utc>>,
     pub balance_credits: i64,
+    pub created_at: chrono::DateTime<chrono::Utc>,
+    pub updated_at: chrono::DateTime<chrono::Utc>,
+}
+
+#[derive(Debug, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct AdminDocumentResponse {
+    pub id: String,
+    pub user_id: String,
+    pub user_email: String,
+    pub filename: String,
+    pub status: String,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub transaction_id: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub block_height: Option<i64>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub confirmations: Option<i32>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub failure_reason: Option<String>,
     pub created_at: chrono::DateTime<chrono::Utc>,
     pub updated_at: chrono::DateTime<chrono::Utc>,
 }
@@ -153,6 +217,75 @@ pub struct AuditEventResponse {
     pub created_at: chrono::DateTime<chrono::Utc>,
 }
 
+pub async fn setup_status(State(state): State<Arc<AppState>>) -> axum::response::Response {
+    let admin_exists = match users::admin_user_exists(&state.pool).await {
+        Ok(value) => value,
+        Err(error) => return auth::internal_error(error),
+    };
+
+    ok_json(AdminSetupStatusResponse {
+        admin_exists,
+        registration_enabled: !admin_exists,
+    })
+}
+
+pub async fn create_initial_admin(
+    State(state): State<Arc<AppState>>,
+    Json(body): Json<CreateInitialAdminRequest>,
+) -> axum::response::Response {
+    let admin_exists = match users::admin_user_exists(&state.pool).await {
+        Ok(value) => value,
+        Err(error) => return auth::internal_error(error),
+    };
+    if admin_exists {
+        return err_json(StatusCode::CONFLICT, "an admin user already exists");
+    }
+
+    let Some(name) = auth::normalize_user_name(&body.name) else {
+        return err_json(StatusCode::BAD_REQUEST, "name is required");
+    };
+    let Some(email) = auth::normalize_email(&body.email) else {
+        return err_json(StatusCode::BAD_REQUEST, "valid email is required");
+    };
+    if let Err(message) = auth::validate_password(&body.password) {
+        return err_json(StatusCode::BAD_REQUEST, message);
+    }
+
+    let password_hash = match auth::hash_password(&body.password) {
+        Ok(value) => value,
+        Err(message) => return err_json(StatusCode::INTERNAL_SERVER_ERROR, message),
+    };
+
+    let user = match users::create_initial_admin_with_password(&state.pool, &name, &email, &password_hash).await {
+        Ok(value) => value,
+        Err(sqlx::Error::Database(error)) if error.code().as_deref() == Some("23505") => {
+            return err_json(StatusCode::CONFLICT, "email already exists");
+        }
+        Err(error) => return auth::internal_error(error),
+    };
+
+    let session_token = auth::generate_token();
+    let session_token_hash = auth::hash_token(&session_token);
+    if let Err(error) = sessions::create_session(
+        &state.pool,
+        user.id,
+        &session_token_hash,
+        auth::session_expires_at(state.as_ref()),
+    )
+    .await
+    {
+        return auth::internal_error(error);
+    }
+
+    auth::json_with_cookie(
+        StatusCode::CREATED,
+        SessionResponse {
+            user: map_auth_user(&user),
+        },
+        Some(auth::session_cookie(state.as_ref(), &session_token)),
+    )
+}
+
 pub async fn overview(
     State(state): State<Arc<AppState>>,
     headers: HeaderMap,
@@ -165,7 +298,15 @@ pub async fn overview(
         Ok(value) => value,
         Err(error) => return admin_error_response(error),
     };
+    let wallet = match state.bitcoin.get_wallet_info().await {
+        Ok(value) => value,
+        Err(error) => return wallet_error_response(error),
+    };
     let users = match admin::list_users(&state.pool, 10).await {
+        Ok(value) => value,
+        Err(error) => return admin_error_response(error),
+    };
+    let documents = match admin::list_documents(&state.pool, 12).await {
         Ok(value) => value,
         Err(error) => return admin_error_response(error),
     };
@@ -193,12 +334,23 @@ pub async fn overview(
             verified_users: stats.verified_users,
             admin_users: stats.admin_users,
             total_credit_balance: stats.total_credit_balance,
+            total_documents: stats.total_documents,
+            pending_documents: stats.pending_documents,
+            processing_documents: stats.processing_documents,
+            confirmed_documents: stats.confirmed_documents,
+            failed_documents: stats.failed_documents,
             pending_payment_intents: stats.pending_payment_intents,
             stale_pending_payment_intents: stats.stale_pending_payment_intents,
             failed_webhook_events: stats.failed_webhook_events,
         },
-        alerts: build_alerts(&stats),
+        wallet: map_wallet(&wallet),
+        pricing: AdminPricingResponse {
+            credit_price_sats: state.billing.credit_price_sats,
+            document_registration_credit_cost: state.billing.document_registration_credit_cost,
+        },
+        alerts: build_alerts(&stats, &wallet),
         users: users.iter().map(map_user).collect(),
+        documents: documents.iter().map(map_document).collect(),
         ledger: ledger.iter().map(map_ledger).collect(),
         payments: payments.iter().map(map_payment).collect(),
         webhook_events: webhook_events.iter().map(map_webhook_event).collect(),
@@ -221,6 +373,23 @@ pub async fn list_users(
     };
 
     ok_json(users.iter().map(map_user).collect::<Vec<_>>())
+}
+
+pub async fn list_documents(
+    State(state): State<Arc<AppState>>,
+    headers: HeaderMap,
+    Query(query): Query<AdminQuery>,
+) -> axum::response::Response {
+    if let Err(response) = auth::require_admin_session(&headers, &state).await {
+        return response;
+    }
+
+    let documents = match admin::list_documents(&state.pool, query_limit(query.limit)).await {
+        Ok(value) => value,
+        Err(error) => return admin_error_response(error),
+    };
+
+    ok_json(documents.iter().map(map_document).collect::<Vec<_>>())
 }
 
 pub async fn update_user_role(
@@ -399,7 +568,10 @@ fn query_limit(limit: Option<i64>) -> i64 {
     limit.unwrap_or(50).clamp(1, 200)
 }
 
-fn build_alerts(stats: &admin::AdminOverviewStats) -> Vec<String> {
+fn build_alerts(
+    stats: &admin::AdminOverviewStats,
+    wallet: &core_notarization::WalletInfo,
+) -> Vec<String> {
     let mut alerts = Vec::new();
 
     if stats.failed_webhook_events > 0 {
@@ -421,8 +593,30 @@ fn build_alerts(stats: &admin::AdminOverviewStats) -> Vec<String> {
             unverified_users
         ));
     }
+    if wallet.balance_sats <= 0 {
+        alerts.push("La wallet no tiene saldo spendable para registrar documentos on-chain.".to_string());
+    }
+    if stats.failed_documents > 0 {
+        alerts.push(format!(
+            "{} documento(s) quedaron en estado failed.",
+            stats.failed_documents
+        ));
+    }
 
     alerts
+}
+
+fn map_wallet(wallet: &core_notarization::WalletInfo) -> AdminWalletResponse {
+    AdminWalletResponse {
+        wallet_name: wallet.wallet_name.clone(),
+        loaded: wallet.loaded,
+        primary_address: wallet.primary_address.clone(),
+        balance_sats: wallet.balance_sats,
+        confirmed_balance_sats: wallet.confirmed_balance_sats,
+        unconfirmed_balance_sats: wallet.unconfirmed_balance_sats,
+        tx_count: wallet.tx_count,
+        network: wallet.network.clone(),
+    }
 }
 
 fn map_user(user: &admin::AdminUserRecord) -> AdminUserResponse {
@@ -435,6 +629,22 @@ fn map_user(user: &admin::AdminUserRecord) -> AdminUserResponse {
         balance_credits: user.balance_credits,
         created_at: user.created_at,
         updated_at: user.updated_at,
+    }
+}
+
+fn map_document(document: &admin::AdminDocumentRecord) -> AdminDocumentResponse {
+    AdminDocumentResponse {
+        id: document.id.to_string(),
+        user_id: document.user_id.to_string(),
+        user_email: document.user_email.clone(),
+        filename: document.filename.clone(),
+        status: document.status.clone(),
+        transaction_id: document.transaction_id.clone(),
+        block_height: document.block_height,
+        confirmations: document.confirmations,
+        failure_reason: document.failure_reason.clone(),
+        created_at: document.created_at,
+        updated_at: document.updated_at,
     }
 }
 
@@ -501,6 +711,18 @@ fn map_audit_event(event: &audit::AuditEventRecord) -> AuditEventResponse {
     }
 }
 
+fn map_auth_user(user: &users::UserRecord) -> AuthUserResponse {
+    AuthUserResponse {
+        id: user.id.to_string(),
+        name: user.name.clone(),
+        email: user.email.clone(),
+        role: user.role.clone(),
+        email_verified: user.is_email_verified(),
+        avatar_url: user.avatar_url.clone(),
+        created_at: user.created_at,
+    }
+}
+
 fn admin_error_response(error: admin::AdminError) -> axum::response::Response {
     match error {
         admin::AdminError::InvalidCreditAdjustment => {
@@ -511,4 +733,8 @@ fn admin_error_response(error: admin::AdminError) -> axum::response::Response {
         }
         admin::AdminError::Sqlx(_) => err_json(StatusCode::INTERNAL_SERVER_ERROR, error.to_string()),
     }
+}
+
+fn wallet_error_response(error: core_notarization::BitcoinNodeError) -> axum::response::Response {
+    err_json(StatusCode::SERVICE_UNAVAILABLE, error.to_string())
 }

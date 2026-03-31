@@ -10,7 +10,9 @@ use openproof_api_server::blink::BlinkClient;
 use openproof_api_server::mailer::EmailSender;
 use openproof_api_server::rate_limit::RateLimiter;
 use openproof_api_server::routes::api_router;
-use openproof_api_server::{AppState, AuthSettings, BillingSettings, RateLimitSettings, RuntimeSettings};
+use openproof_api_server::{
+    AppState, AuthSettings, BillingSettings, RateLimitSettings, RuntimeSettings, StorageSettings,
+};
 use openproof_app::sessions;
 use openproof_app::users;
 use serde_json::{json, Value};
@@ -39,6 +41,18 @@ impl EmailSender for StubMailer {
     ) -> Result<(), String> {
         Ok(())
     }
+
+    async fn send_document_anchored_email(
+        &self,
+        _email: &str,
+        _name: &str,
+        _filename: &str,
+        _transaction_id: &str,
+        _proof_url: &str,
+        _file_url: &str,
+    ) -> Result<(), String> {
+        Ok(())
+    }
 }
 
 struct StubBitcoinNode;
@@ -54,6 +68,21 @@ impl core_notarization::BitcoinNodePort for StubBitcoinNode {
         _txid: &str,
     ) -> Result<core_notarization::TransactionInfo, core_notarization::BitcoinNodeError> {
         Err(core_notarization::BitcoinNodeError::InvalidTxid("stub".to_string()))
+    }
+
+    async fn get_wallet_info(
+        &self,
+    ) -> Result<core_notarization::WalletInfo, core_notarization::BitcoinNodeError> {
+        Ok(core_notarization::WalletInfo {
+            wallet_name: "default".to_string(),
+            loaded: true,
+            primary_address: "bcrt1qexamplewalletaddress".to_string(),
+            balance_sats: 125_000,
+            confirmed_balance_sats: 125_000,
+            unconfirmed_balance_sats: 0,
+            tx_count: 3,
+            network: core_notarization::NetworkName::Regtest,
+        })
     }
 }
 
@@ -80,7 +109,12 @@ fn test_state(pool: PgPool, rate_limits: RateLimitSettings) -> Arc<AppState> {
             expose_dev_auth_tokens: true,
         },
         billing: BillingSettings {
+            credit_price_sats: 10_000,
             document_registration_credit_cost: 1,
+        },
+        storage: StorageSettings {
+            document_storage_dir: "tmp/test-document-storage".to_string(),
+            document_upload_max_bytes: 20 * 1024 * 1024,
         },
         runtime: RuntimeSettings {
             app_env: "test".to_string(),

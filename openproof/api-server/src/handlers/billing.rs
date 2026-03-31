@@ -27,6 +27,7 @@ pub struct BillingOverviewResponse {
     pub account: CreditAccountResponse,
     pub packages: Vec<CreditPackageResponse>,
     pub payment_intents: Vec<PaymentIntentResponse>,
+    pub credit_price_sats: i64,
     pub document_registration_credit_cost: i64,
 }
 
@@ -103,8 +104,12 @@ pub async fn overview(
             consumed_credits: account.consumed_credits,
             updated_at: account.updated_at,
         },
-        packages: packages.iter().map(map_package).collect(),
+        packages: packages
+            .iter()
+            .map(|package| map_package(package, state.billing.credit_price_sats))
+            .collect(),
         payment_intents: payment_intents.iter().map(map_payment_intent).collect(),
+        credit_price_sats: state.billing.credit_price_sats,
         document_registration_credit_cost: state.billing.document_registration_credit_cost,
     })
 }
@@ -117,7 +122,12 @@ pub async fn public_packages(
         Err(error) => return billing_error_response(error),
     };
 
-    ok_json(packages.iter().map(map_package).collect::<Vec<_>>())
+    ok_json(
+        packages
+            .iter()
+            .map(|package| map_package(package, state.billing.credit_price_sats))
+            .collect::<Vec<_>>(),
+    )
 }
 
 pub async fn create_payment_intent(
@@ -144,8 +154,9 @@ pub async fn create_payment_intent(
         Err(error) => return billing_error_response(error),
     };
 
+    let amount_sats = package.price_sats(state.billing.credit_price_sats);
     let memo = format!("OpenProof {} credits", package.name);
-    let invoice = match state.blink.create_btc_invoice(package.price_sats, &memo).await {
+    let invoice = match state.blink.create_btc_invoice(amount_sats, &memo).await {
         Ok(value) => value,
         Err(error) => return blink_error_response(error),
     };
@@ -154,6 +165,7 @@ pub async fn create_payment_intent(
         &state.pool,
         session.subject.user_id,
         &package,
+        state.billing.credit_price_sats,
         &invoice.payment_request,
         &invoice.payment_hash,
         Some(chrono::Utc::now() + chrono::Duration::minutes(5)),
@@ -311,13 +323,16 @@ async fn process_blink_webhook_payload(
     Ok(())
 }
 
-fn map_package(package: &billing::CreditPackageRecord) -> CreditPackageResponse {
+fn map_package(
+    package: &billing::CreditPackageRecord,
+    credit_price_sats: i64,
+) -> CreditPackageResponse {
     CreditPackageResponse {
         id: package.id.to_string(),
         code: package.code.clone(),
         name: package.name.clone(),
         description: package.description.clone(),
-        price_sats: package.price_sats,
+        price_sats: package.price_sats(credit_price_sats),
         credits: package.credits,
     }
 }

@@ -41,6 +41,10 @@ pub fn api_router(state: Arc<AppState>) -> Router {
         .route("/health", get(health))
         .merge(auth_routes)
         .route(
+            "/api/v1/admin/setup",
+            get(admin::setup_status).post(admin::create_initial_admin),
+        )
+        .route(
             "/api/v1/developers/api-keys",
             get(developers::list_api_keys).post(developers::create_api_key),
         )
@@ -70,6 +74,7 @@ pub fn api_router(state: Arc<AppState>) -> Router {
         )
         .route("/api/v1/admin/overview", get(admin::overview))
         .route("/api/v1/admin/users", get(admin::list_users))
+        .route("/api/v1/admin/documents", get(admin::list_documents))
         .route(
             "/api/v1/admin/users/{id}/role",
             post(admin::update_user_role),

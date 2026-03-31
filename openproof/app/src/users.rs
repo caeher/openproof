@@ -41,11 +41,15 @@ fn row_to_user(row: &sqlx::postgres::PgRow) -> UserRecord {
     }
 }
 
-pub async fn create_user_with_password(
+async fn create_user_with_password_and_role(
     pool: &PgPool,
     name: &str,
     email: &str,
     password_hash: &str,
+    role: &str,
+    email_verified_at: Option<DateTime<Utc>>,
+    initial_credits: i64,
+    initial_credit_description: Option<&str>,
 ) -> Result<UserRecord, sqlx::Error> {
     let mut tx = pool.begin().await?;
     let now = Utc::now();
@@ -54,12 +58,14 @@ pub async fn create_user_with_password(
     sqlx::query(
         r#"
         INSERT INTO users (id, name, email, role, email_verified_at, legacy_key, created_at, updated_at)
-        VALUES ($1, $2, $3, 'user', NULL, NULL, $4, $5)
+        VALUES ($1, $2, $3, $4, $5, NULL, $6, $7)
         "#,
     )
     .bind(user_id)
     .bind(name)
     .bind(email)
+    .bind(role)
+    .bind(email_verified_at)
     .bind(now)
     .bind(now)
     .execute(&mut *tx)
@@ -85,45 +91,94 @@ pub async fn create_user_with_password(
         "#,
     )
     .bind(user_id)
-    .bind(INITIAL_SIGNUP_CREDITS)
+    .bind(initial_credits)
     .bind(now)
     .bind(now)
     .execute(&mut *tx)
     .await?;
 
-    sqlx::query(
-        r#"
-        INSERT INTO credit_ledger (
-            id,
-            user_id,
-            payment_intent_id,
-            kind,
-            delta_credits,
-            balance_after_credits,
-            description,
-            reference_type,
-            reference_id,
-            created_at
+    if initial_credits > 0 {
+        sqlx::query(
+            r#"
+            INSERT INTO credit_ledger (
+                id,
+                user_id,
+                payment_intent_id,
+                kind,
+                delta_credits,
+                balance_after_credits,
+                description,
+                reference_type,
+                reference_id,
+                created_at
+            )
+            VALUES ($1, $2, NULL, 'manual_adjustment', $3, $4, $5, 'user', $2, $6)
+            "#,
         )
-        VALUES ($1, $2, NULL, 'manual_adjustment', $3, $4, $5, 'user', $2, $6)
-        "#,
-    )
-    .bind(Uuid::now_v7())
-    .bind(user_id)
-    .bind(INITIAL_SIGNUP_CREDITS)
-    .bind(INITIAL_SIGNUP_CREDITS)
-    .bind("Initial onboarding credits granted on signup")
-    .bind(now)
-    .execute(&mut *tx)
-    .await?;
-
-    let row = sqlx::query("SELECT id, name, email, role, email_verified_at, avatar_url, created_at, updated_at FROM users WHERE id = $1")
+        .bind(Uuid::now_v7())
         .bind(user_id)
-        .fetch_one(&mut *tx)
+        .bind(initial_credits)
+        .bind(initial_credits)
+        .bind(initial_credit_description.unwrap_or("Initial credits granted"))
+        .bind(now)
+        .execute(&mut *tx)
         .await?;
+    }
+
+    let row = sqlx::query(
+        "SELECT id, name, email, role, email_verified_at, avatar_url, created_at, updated_at FROM users WHERE id = $1",
+    )
+    .bind(user_id)
+    .fetch_one(&mut *tx)
+    .await?;
 
     tx.commit().await?;
     Ok(row_to_user(&row))
+}
+
+pub async fn create_user_with_password(
+    pool: &PgPool,
+    name: &str,
+    email: &str,
+    password_hash: &str,
+) -> Result<UserRecord, sqlx::Error> {
+    create_user_with_password_and_role(
+        pool,
+        name,
+        email,
+        password_hash,
+        "user",
+        None,
+        INITIAL_SIGNUP_CREDITS,
+        Some("Initial onboarding credits granted on signup"),
+    )
+    .await
+}
+
+pub async fn create_initial_admin_with_password(
+    pool: &PgPool,
+    name: &str,
+    email: &str,
+    password_hash: &str,
+) -> Result<UserRecord, sqlx::Error> {
+    create_user_with_password_and_role(
+        pool,
+        name,
+        email,
+        password_hash,
+        "admin",
+        Some(Utc::now()),
+        0,
+        None,
+    )
+    .await
+}
+
+pub async fn admin_user_exists(pool: &PgPool) -> Result<bool, sqlx::Error> {
+    let row = sqlx::query("SELECT EXISTS(SELECT 1 FROM users WHERE role = 'admin') AS admin_exists")
+        .fetch_one(pool)
+        .await?;
+    Ok(row.get("admin_exists"))
 }
 
 pub async fn find_by_id(pool: &PgPool, user_id: Uuid) -> Result<Option<UserRecord>, sqlx::Error> {

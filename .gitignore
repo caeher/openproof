@@ -6,3 +6,7 @@
 apps/client/node_modules/
 apps/client/.next/
 apps/client/.env*.local
+apps/admin/node_modules/
+apps/admin/.next/
+apps/admin/.env*.local
+/tmp/*

@@ -3,7 +3,8 @@
 #
 # Usage (from this directory):
 #   docker compose up --build
-#   Frontend: http://localhost:3000
+#   Client:   http://localhost:3000
+#   Admin:    http://localhost:3002
 #   API:      http://localhost:3001
 #   Health:   http://localhost:3001/health
 
@@ -35,8 +36,10 @@ services:
       DATABASE_URL: postgres://openproof:openproof@postgres:5432/openproof
       LISTEN_ADDR: 0.0.0.0:3001
       BITCOIN_RPC_URL: ${BITCOIN_RPC_URL:-https://bitcoin-core.cubo.caeher.com/}
-      BITCOIN_RPC_USER: ${BITCOIN_RPC_USER:-bitcoin_caeher}
-      BITCOIN_RPC_PASSWORD: ${BITCOIN_RPC_PASSWORD:-bitcoin_caeher}
+      BITCOIN_RPC_USER: ${BITCOIN_RPC_USER:-}
+      BITCOIN_RPC_PASSWORD: ${BITCOIN_RPC_PASSWORD:-}
+      BITCOIN_RPC_WALLET: ${BITCOIN_RPC_WALLET:-default}
+      CREDIT_PRICE_SATS: ${CREDIT_PRICE_SATS:-10000}
       SMTP_HOST: ${SMTP_HOST:-}
       SMTP_PORT: ${SMTP_PORT:-587}
       SMTP_USERNAME: ${SMTP_USERNAME:-}
@@ -60,6 +63,20 @@ services:
       - "3000:3000"
     environment:
       BACKEND_URL: http://api:3001
+    depends_on:
+      - api
+
+  admin:
+    build:
+      context: ./apps/admin
+      dockerfile: Dockerfile
+      args:
+        BACKEND_URL: http://api:3001
+    ports:
+      - "3002:3000"
+    environment:
+      BACKEND_URL: http://api:3001
+      SESSION_COOKIE_NAME: ${SESSION_COOKIE_NAME:-openproof_session}
     depends_on:
       - api
 

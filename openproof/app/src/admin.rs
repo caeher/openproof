@@ -24,6 +24,11 @@ pub struct AdminOverviewStats {
     pub pending_payment_intents: i64,
     pub stale_pending_payment_intents: i64,
     pub failed_webhook_events: i64,
+    pub total_documents: i64,
+    pub pending_documents: i64,
+    pub processing_documents: i64,
+    pub confirmed_documents: i64,
+    pub failed_documents: i64,
 }
 
 #[derive(Debug, Clone)]
@@ -80,6 +85,21 @@ pub struct BlinkWebhookEventRecord {
     pub processed_at: Option<DateTime<Utc>>,
     pub processing_error: Option<String>,
     pub created_at: DateTime<Utc>,
+}
+
+#[derive(Debug, Clone)]
+pub struct AdminDocumentRecord {
+    pub id: Uuid,
+    pub user_id: Uuid,
+    pub user_email: String,
+    pub filename: String,
+    pub status: String,
+    pub transaction_id: Option<String>,
+    pub block_height: Option<i64>,
+    pub confirmations: Option<i32>,
+    pub failure_reason: Option<String>,
+    pub created_at: DateTime<Utc>,
+    pub updated_at: DateTime<Utc>,
 }
 
 fn row_to_admin_user(row: &sqlx::postgres::PgRow) -> AdminUserRecord {
@@ -142,6 +162,22 @@ fn row_to_webhook_event(row: &sqlx::postgres::PgRow) -> BlinkWebhookEventRecord 
     }
 }
 
+fn row_to_document(row: &sqlx::postgres::PgRow) -> AdminDocumentRecord {
+    AdminDocumentRecord {
+        id: row.get("id"),
+        user_id: row.get("user_id"),
+        user_email: row.get("user_email"),
+        filename: row.get("filename"),
+        status: row.get("status"),
+        transaction_id: row.try_get("transaction_id").ok().flatten(),
+        block_height: row.try_get("block_height").ok().flatten(),
+        confirmations: row.try_get("confirmations").ok().flatten(),
+        failure_reason: row.try_get("failure_reason").ok().flatten(),
+        created_at: row.get("created_at"),
+        updated_at: row.get("updated_at"),
+    }
+}
+
 pub async fn get_overview_stats(pool: &PgPool) -> Result<AdminOverviewStats, AdminError> {
     let row = sqlx::query(
         r#"
@@ -160,7 +196,12 @@ pub async fn get_overview_stats(pool: &PgPool) -> Result<AdminOverviewStats, Adm
                 SELECT COUNT(*)
                 FROM blink_webhook_events
                 WHERE processing_error IS NOT NULL
-            ) AS failed_webhook_events
+            ) AS failed_webhook_events,
+            (SELECT COUNT(*) FROM documents) AS total_documents,
+            (SELECT COUNT(*) FROM documents WHERE status = 'pending') AS pending_documents,
+            (SELECT COUNT(*) FROM documents WHERE status = 'processing') AS processing_documents,
+            (SELECT COUNT(*) FROM documents WHERE status = 'confirmed') AS confirmed_documents,
+            (SELECT COUNT(*) FROM documents WHERE status = 'failed') AS failed_documents
         "#,
     )
     .fetch_one(pool)
@@ -174,6 +215,11 @@ pub async fn get_overview_stats(pool: &PgPool) -> Result<AdminOverviewStats, Adm
         pending_payment_intents: row.get("pending_payment_intents"),
         stale_pending_payment_intents: row.get("stale_pending_payment_intents"),
         failed_webhook_events: row.get("failed_webhook_events"),
+        total_documents: row.get("total_documents"),
+        pending_documents: row.get("pending_documents"),
+        processing_documents: row.get("processing_documents"),
+        confirmed_documents: row.get("confirmed_documents"),
+        failed_documents: row.get("failed_documents"),
     })
 }
 
@@ -348,6 +394,34 @@ pub async fn list_blink_webhook_events(
     };
 
     Ok(rows.iter().map(row_to_webhook_event).collect())
+}
+
+pub async fn list_documents(pool: &PgPool, limit: i64) -> Result<Vec<AdminDocumentRecord>, AdminError> {
+    let rows = sqlx::query(
+        r#"
+        SELECT
+            d.id,
+            d.user_id,
+            u.email AS user_email,
+            d.filename,
+            d.status,
+            d.transaction_id,
+            d.block_height,
+            d.confirmations,
+            d.failure_reason,
+            d.created_at,
+            d.updated_at
+        FROM documents d
+        INNER JOIN users u ON u.id = d.user_id
+        ORDER BY d.created_at DESC
+        LIMIT $1
+        "#,
+    )
+    .bind(limit)
+    .fetch_all(pool)
+    .await?;
+
+    Ok(rows.iter().map(row_to_document).collect())
 }
 
 pub async fn adjust_user_credits(

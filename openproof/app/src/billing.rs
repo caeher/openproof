@@ -38,12 +38,17 @@ pub struct CreditPackageRecord {
     pub code: String,
     pub name: String,
     pub description: Option<String>,
-    pub price_sats: i64,
     pub credits: i64,
     pub active: bool,
     pub sort_order: i32,
     pub created_at: DateTime<Utc>,
     pub updated_at: DateTime<Utc>,
+}
+
+impl CreditPackageRecord {
+    pub fn price_sats(&self, credit_price_sats: i64) -> i64 {
+        self.credits.saturating_mul(credit_price_sats)
+    }
 }
 
 #[derive(Debug, Clone)]
@@ -89,7 +94,6 @@ fn row_to_package(row: &sqlx::postgres::PgRow) -> CreditPackageRecord {
         code: row.get("code"),
         name: row.get("name"),
         description: row.try_get("description").ok().flatten(),
-        price_sats: row.get("price_sats"),
         credits: row.get("credits"),
         active: row.get("active"),
         sort_order: row.get("sort_order"),
@@ -162,7 +166,7 @@ pub async fn get_credit_account_summary(
 pub async fn list_credit_packages(pool: &PgPool) -> Result<Vec<CreditPackageRecord>, BillingError> {
     let rows = sqlx::query(
         r#"
-        SELECT id, code, name, description, price_sats, credits, active, sort_order, created_at, updated_at
+        SELECT id, code, name, description, credits, active, sort_order, created_at, updated_at
         FROM credit_packages
         WHERE active = TRUE
         ORDER BY sort_order ASC, created_at ASC
@@ -180,7 +184,7 @@ pub async fn find_credit_package_by_id(
 ) -> Result<Option<CreditPackageRecord>, BillingError> {
     let row = sqlx::query(
         r#"
-        SELECT id, code, name, description, price_sats, credits, active, sort_order, created_at, updated_at
+        SELECT id, code, name, description, credits, active, sort_order, created_at, updated_at
         FROM credit_packages
         WHERE id = $1 AND active = TRUE
         "#,
@@ -268,6 +272,7 @@ pub async fn create_payment_intent(
     pool: &PgPool,
     user_id: Uuid,
     package: &CreditPackageRecord,
+    credit_price_sats: i64,
     payment_request: &str,
     payment_hash: &str,
     expires_at: Option<DateTime<Utc>>,
@@ -318,7 +323,7 @@ pub async fn create_payment_intent(
     .bind(package.id)
     .bind(&package.code)
     .bind(&package.name)
-    .bind(package.price_sats)
+    .bind(package.price_sats(credit_price_sats))
     .bind(package.credits)
     .bind(payment_request)
     .bind(payment_hash)

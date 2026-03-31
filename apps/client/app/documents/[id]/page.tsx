@@ -129,7 +129,7 @@ export default function DocumentDetailPage({
                 </Card>
               </div>
             ) : error || !document ? (
-              <div className="max-w-xl mx-auto text-center py-12">
+              <div className="text-center py-12">
                 <FileText className="w-16 h-16 text-muted-foreground mx-auto mb-4" />
                 <h1 className="text-xl font-semibold text-foreground mb-2">
                   {error || 'Documento no encontrado'}
@@ -142,7 +142,7 @@ export default function DocumentDetailPage({
                 </Button>
               </div>
             ) : (
-              <div className="max-w-3xl mx-auto">
+              <div>
               {/* Header */}
               <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4 mb-8">
                 <div>

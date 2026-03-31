@@ -29,11 +29,17 @@ async fn main() {
         }
     };
 
-    let bitcoin: Arc<dyn core_notarization::BitcoinNodePort> = Arc::new(BitcoinRpcAdapter::new(
+    let bitcoin_adapter = BitcoinRpcAdapter::new(
         &cfg.bitcoin_rpc_url,
         &cfg.bitcoin_rpc_user,
         &cfg.bitcoin_rpc_password,
-    ));
+        &cfg.bitcoin_rpc_wallet,
+    );
+    if let Err(error) = bitcoin_adapter.ensure_wallet_ready().await {
+        eprintln!("bitcoin wallet bootstrap: {error}");
+        std::process::exit(1);
+    }
+    let bitcoin: Arc<dyn core_notarization::BitcoinNodePort> = Arc::new(bitcoin_adapter);
     let perms: Arc<dyn PermissionCheck> = Arc::new(RoleBasedPerms);
     let mailer: Arc<dyn mailer::EmailSender> = match &cfg.smtp.host {
         Some(_) => match mailer::SmtpEmailSender::from_config(cfg.app_base_url.clone(), &cfg.smtp) {
@@ -105,6 +111,7 @@ async fn main() {
             expose_dev_auth_tokens: cfg.expose_dev_auth_tokens,
         },
         billing: BillingSettings {
+            credit_price_sats: cfg.credit_price_sats,
             document_registration_credit_cost: cfg.document_registration_credit_cost,
         },
         storage: StorageSettings {
