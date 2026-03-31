@@ -235,6 +235,7 @@ export default function DashboardPage() {
                   <WalletCard label="Cargada" value={overview.wallet.loaded ? 'Sí' : 'No'} />
                   <WalletCard label="TXs wallet" value={overview.wallet.txCount.toString()} />
                   <WalletCard label="Saldo confirmado" value={formatSats(overview.wallet.confirmedBalanceSats)} />
+                  <WalletCard label="Saldo no confirmado" value={formatSats(overview.wallet.unconfirmedBalanceSats)} />
                   <WalletCard label="Saldo total" value={formatSats(overview.wallet.balanceSats)} />
                 </div>
 

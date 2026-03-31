@@ -43,7 +43,7 @@ Important variables:
 
 - `BITCOIN_RPC_URL`, `BITCOIN_RPC_USER`, `BITCOIN_RPC_PASSWORD`, `BITCOIN_RPC_WALLET`: external Bitcoin Core RPC connection used by the API on startup.
 - `BLINK_API_URL`, `BLINK_API_KEY`, `BLINK_WEBHOOK_SECRET`: optional Blink billing integration. The webhook route exposed by the API is `/api/v1/billing/blink/webhook` on the same public origin that fronts `/api/v1/*`.
-- `APP_BASE_URL`: public browser URL used by links and email flows.
+- `APP_BASE_URL`: public browser URL used by links and email flows. In Docker Compose, the API receives this value explicitly; if you do not set it, Compose derives it from `CLIENT_PORT` for local development.
 - `POSTGRES_PORT`, `API_PORT`, `CLIENT_PORT`, `ADMIN_PORT`: optional host port overrides for Docker Compose.
 - `SMTP_*`: SMTP delivery settings. In development, leaving `SMTP_HOST` empty falls back to the tracing mailer.
 

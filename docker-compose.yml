@@ -38,6 +38,7 @@ services:
     environment:
       DATABASE_URL: postgres://openproof:openproof@postgres:5432/openproof
       LISTEN_ADDR: 0.0.0.0:3001
+      APP_BASE_URL: ${APP_BASE_URL:-http://localhost:${CLIENT_PORT:-3000}}
       BITCOIN_RPC_URL: ${BITCOIN_RPC_URL:-https://bitcoin-core.cubo.caeher.com/}
       BITCOIN_RPC_USER: ${BITCOIN_RPC_USER:-}
       BITCOIN_RPC_PASSWORD: ${BITCOIN_RPC_PASSWORD:-}

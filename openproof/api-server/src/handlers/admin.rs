@@ -680,8 +680,18 @@ fn build_alerts(
             unverified_users
         ));
     }
-    if wallet.balance_sats <= 0 {
-        alerts.push("La wallet no tiene saldo spendable para registrar documentos on-chain.".to_string());
+    if wallet.confirmed_balance_sats <= 0 {
+        if wallet.unconfirmed_balance_sats > 0 {
+            alerts.push(
+                "La wallet solo tiene saldo no confirmado; hasta que confirme no habra UTXOs spendable para registrar documentos on-chain."
+                    .to_string(),
+            );
+        } else {
+            alerts.push(
+                "La wallet no tiene saldo confirmado/spendable para registrar documentos on-chain."
+                    .to_string(),
+            );
+        }
     }
     if stats.failed_documents > 0 {
         alerts.push(format!(
@@ -836,4 +846,55 @@ fn admin_error_response(error: admin::AdminError) -> axum::response::Response {
 
 fn wallet_error_response(error: core_notarization::BitcoinNodeError) -> axum::response::Response {
     err_json(StatusCode::SERVICE_UNAVAILABLE, error.to_string())
+}
+
+#[cfg(test)]
+mod tests {
+    use super::build_alerts;
+    use core_notarization::{NetworkName, WalletInfo};
+    use openproof_app::admin::AdminOverviewStats;
+
+    fn sample_stats() -> AdminOverviewStats {
+        AdminOverviewStats {
+            total_users: 0,
+            verified_users: 0,
+            admin_users: 0,
+            total_credit_balance: 0,
+            pending_payment_intents: 0,
+            stale_pending_payment_intents: 0,
+            failed_webhook_events: 0,
+            total_documents: 0,
+            pending_documents: 0,
+            processing_documents: 0,
+            confirmed_documents: 0,
+            failed_documents: 0,
+        }
+    }
+
+    fn sample_wallet(confirmed_balance_sats: i64, unconfirmed_balance_sats: i64) -> WalletInfo {
+        WalletInfo {
+            wallet_name: "default".to_string(),
+            loaded: true,
+            primary_address: "tb1qexample".to_string(),
+            balance_sats: confirmed_balance_sats + unconfirmed_balance_sats,
+            confirmed_balance_sats,
+            unconfirmed_balance_sats,
+            tx_count: 0,
+            network: NetworkName::Testnet4,
+        }
+    }
+
+    #[test]
+    fn alerts_when_wallet_only_has_unconfirmed_balance() {
+        let alerts = build_alerts(&sample_stats(), &sample_wallet(0, 12_345), true, true);
+
+        assert!(alerts.iter().any(|alert| alert.contains("saldo no confirmado")));
+    }
+
+    #[test]
+    fn alerts_when_wallet_has_no_spendable_balance() {
+        let alerts = build_alerts(&sample_stats(), &sample_wallet(0, 0), true, true);
+
+        assert!(alerts.iter().any(|alert| alert.contains("saldo confirmado/spendable")));
+    }
 }
