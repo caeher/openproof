@@ -148,3 +148,28 @@ pub async fn update_failed(pool: &PgPool, id: DocumentId, reason: &str) -> Resul
     .await?;
     Ok(())
 }
+
+pub async fn requeue_after_failure(
+    pool: &PgPool,
+    id: DocumentId,
+    reason: &str,
+) -> Result<(), sqlx::Error> {
+    let now = Utc::now();
+    sqlx::query(
+        r#"UPDATE documents
+           SET status = 'pending',
+               transaction_id = NULL,
+               block_height = NULL,
+               confirmations = NULL,
+               chain_timestamp = NULL,
+               failure_reason = $2,
+               updated_at = $3
+           WHERE id = $1"#,
+    )
+    .bind(id.0)
+    .bind(reason)
+    .bind(now)
+    .execute(pool)
+    .await?;
+    Ok(())
+}

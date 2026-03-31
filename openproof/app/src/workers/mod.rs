@@ -45,9 +45,11 @@ async fn process_batch(
                         info!(%txid, %document_id, "broadcast op_return");
                     }
                     Err(e) => {
-                        error!("bitcoin send failed: {e}");
-                        documents::update_failed(pool, DocumentId(document_id), &format!("{e}"))
+                        let reason = e.to_string();
+                        error!(%document_id, %reason, "bitcoin send failed; leaving outbox pending for retry");
+                        documents::requeue_after_failure(pool, DocumentId(document_id), &reason)
                             .await?;
+                        continue;
                     }
                 }
             }

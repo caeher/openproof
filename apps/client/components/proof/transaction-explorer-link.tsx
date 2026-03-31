@@ -18,19 +18,14 @@ interface TransactionExplorerLinkProps {
 
 const explorers = [
   {
-    name: 'Mempool.space',
-    url: (txid: string) => `https://mempool.space/tx/${txid}`,
+    name: 'BTC Explorer Cubo',
+    url: (txid: string) => `https://bitcoin-explorer.cubo.caeher.com/tx/${txid}`,
     icon: '🔍',
   },
   {
-    name: 'Blockstream',
-    url: (txid: string) => `https://blockstream.info/tx/${txid}`,
+    name: 'Mempool.space Testnet4',
+    url: (txid: string) => `https://mempool.space/testnet4/tx/${txid}`,
     icon: '⛓️',
-  },
-  {
-    name: 'Blockchain.com',
-    url: (txid: string) => `https://www.blockchain.com/btc/tx/${txid}`,
-    icon: '🌐',
   },
 ]
 
