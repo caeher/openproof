@@ -185,7 +185,7 @@ pub async fn get_overview_stats(pool: &PgPool) -> Result<AdminOverviewStats, Adm
             (SELECT COUNT(*) FROM users) AS total_users,
             (SELECT COUNT(*) FROM users WHERE email_verified_at IS NOT NULL) AS verified_users,
             (SELECT COUNT(*) FROM users WHERE role = 'admin') AS admin_users,
-            (SELECT COALESCE(SUM(balance_credits), 0) FROM credit_accounts) AS total_credit_balance,
+            (SELECT COALESCE(SUM(balance_credits), 0)::BIGINT FROM credit_accounts) AS total_credit_balance,
             (SELECT COUNT(*) FROM payment_intents WHERE status = 'pending') AS pending_payment_intents,
             (
                 SELECT COUNT(*)
@@ -208,18 +208,18 @@ pub async fn get_overview_stats(pool: &PgPool) -> Result<AdminOverviewStats, Adm
     .await?;
 
     Ok(AdminOverviewStats {
-        total_users: row.get("total_users"),
-        verified_users: row.get("verified_users"),
-        admin_users: row.get("admin_users"),
-        total_credit_balance: row.get("total_credit_balance"),
-        pending_payment_intents: row.get("pending_payment_intents"),
-        stale_pending_payment_intents: row.get("stale_pending_payment_intents"),
-        failed_webhook_events: row.get("failed_webhook_events"),
-        total_documents: row.get("total_documents"),
-        pending_documents: row.get("pending_documents"),
-        processing_documents: row.get("processing_documents"),
-        confirmed_documents: row.get("confirmed_documents"),
-        failed_documents: row.get("failed_documents"),
+        total_users: row.try_get("total_users")?,
+        verified_users: row.try_get("verified_users")?,
+        admin_users: row.try_get("admin_users")?,
+        total_credit_balance: row.try_get("total_credit_balance")?,
+        pending_payment_intents: row.try_get("pending_payment_intents")?,
+        stale_pending_payment_intents: row.try_get("stale_pending_payment_intents")?,
+        failed_webhook_events: row.try_get("failed_webhook_events")?,
+        total_documents: row.try_get("total_documents")?,
+        pending_documents: row.try_get("pending_documents")?,
+        processing_documents: row.try_get("processing_documents")?,
+        confirmed_documents: row.try_get("confirmed_documents")?,
+        failed_documents: row.try_get("failed_documents")?,
     })
 }
 

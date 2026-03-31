@@ -205,6 +205,43 @@ async fn admin_routes_require_admin_role(pool: PgPool) {
 }
 
 #[sqlx::test(migrations = "../app/migrations")]
+async fn admin_overview_returns_stats_for_admin_session(pool: PgPool) {
+    let state = test_state(
+        pool.clone(),
+        RateLimitSettings {
+            auth_requests: 20,
+            auth_window_seconds: 300,
+            verify_requests: 30,
+            verify_window_seconds: 60,
+            webhook_requests: 120,
+            webhook_window_seconds: 60,
+        },
+    );
+    let app = api_router(state.clone());
+    let admin_id = create_user(&pool, "admin@example.com", "password123", "admin", true).await;
+    let cookie = create_session_cookie(&pool, state.as_ref(), admin_id).await;
+
+    let response = app
+        .oneshot(
+            Request::builder()
+                .uri("/api/v1/admin/overview")
+                .header("cookie", cookie)
+                .body(Body::empty())
+                .expect("request"),
+        )
+        .await
+        .expect("response");
+
+    assert_eq!(response.status(), StatusCode::OK);
+    let body = response_json(response).await;
+
+    assert_eq!(body["success"], Value::Bool(true));
+    assert_eq!(body["data"]["stats"]["totalUsers"], Value::Number(1.into()));
+    assert_eq!(body["data"]["stats"]["adminUsers"], Value::Number(1.into()));
+    assert_eq!(body["data"]["stats"]["totalCreditBalance"], Value::Number(5.into()));
+}
+
+#[sqlx::test(migrations = "../app/migrations")]
 async fn admin_setup_only_allows_first_admin_registration(pool: PgPool) {
     let state = test_state(
         pool.clone(),
