@@ -2,7 +2,7 @@
 
 import { useState, useEffect, use } from 'react'
 import Link from 'next/link'
-import { FileText, Calendar, Blocks, Clock, CheckCircle2, Copy, Check, Info } from 'lucide-react'
+import { FileText, Calendar, Blocks, Clock, CheckCircle2, Copy, Check, Info, Download } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Alert, AlertDescription } from '@/components/ui/alert'
@@ -94,7 +94,7 @@ export default function PublicVerificationPage({
   }
 
   const displayFilename = registryDoc
-    ? `Documento ${registryDoc.documentId.slice(0, 8)}`
+    ? registryDoc.filename
     : 'Registro en blockchain'
   const displayHash =
     registryDoc?.fileHash ||
@@ -242,7 +242,29 @@ export default function PublicVerificationPage({
                         </p>
                       </div>
                     </div>
+
+                    {registryDoc?.contentType ? (
+                      <div className="flex items-start gap-3">
+                        <div className="p-2 rounded-md bg-secondary">
+                          <Download className="w-5 h-5 text-muted-foreground" />
+                        </div>
+                        <div>
+                          <p className="text-xs text-muted-foreground">Archivo almacenado</p>
+                          <p className="text-sm font-medium text-foreground">
+                            {registryDoc.contentType}
+                          </p>
+                        </div>
+                      </div>
+                    ) : null}
                   </div>
+
+                  {registryDoc?.publicFileUrl ? (
+                    <Button asChild variant="outline">
+                      <a href={registryDoc.publicFileUrl} target="_blank" rel="noreferrer">
+                        Ver archivo almacenado
+                      </a>
+                    </Button>
+                  ) : null}
                 </CardContent>
               </Card>
 
@@ -286,6 +308,17 @@ export default function PublicVerificationPage({
                       </code>
                     </div>
                   </div>
+
+                  {transaction.blockHash ? (
+                    <div className="space-y-1">
+                      <p className="text-xs text-muted-foreground">Block hash</p>
+                      <div className="p-3 rounded-md bg-secondary/50 border border-border">
+                        <code className="font-mono text-xs text-foreground break-all">
+                          {transaction.blockHash}
+                        </code>
+                      </div>
+                    </div>
+                  ) : null}
                   
                   <TransactionExplorerLink 
                     txid={txid} 

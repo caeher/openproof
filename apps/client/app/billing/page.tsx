@@ -27,11 +27,8 @@ import {
 } from '@/lib/api'
 import type { BillingOverviewResponse, PaymentIntent } from '@/types'
 
-function formatUsd(cents: number) {
-  return new Intl.NumberFormat('es-ES', {
-    style: 'currency',
-    currency: 'USD',
-  }).format(cents / 100)
+function formatSats(sats: number) {
+  return `${new Intl.NumberFormat('es-ES').format(sats)} sats`
 }
 
 function formatTimestamp(value?: string) {
@@ -168,7 +165,7 @@ export default function BillingPage() {
                   Compra paquetes y financia tus registros
                 </h1>
                 <p className="mt-2 text-muted-foreground">
-                  OpenProof cobra por creditos. Cada registro consume el saldo configurado en backend y las compras se liquidan con invoices Lightning en USD.
+                  OpenProof cobra por créditos. Cada registro consume el saldo configurado en backend y las compras se liquidan con invoices Lightning en satoshis.
                 </p>
               </div>
 
@@ -198,7 +195,7 @@ export default function BillingPage() {
                     </div>
 
                     <div className="grid gap-3 md:grid-cols-3 text-sm text-muted-foreground">
-                      <p>Monto: <span className="text-foreground">{formatUsd(activeInvoice.amountUsdCents)}</span></p>
+                      <p>Monto: <span className="text-foreground">{formatSats(activeInvoice.amountSats)}</span></p>
                       <p>Creditos: <span className="text-foreground">{activeInvoice.credits}</span></p>
                       <p>Expira: <span className="text-foreground">{formatTimestamp(activeInvoice.expiresAt)}</span></p>
                     </div>
@@ -274,7 +271,7 @@ export default function BillingPage() {
                         <Alert>
                           <ShieldCheck className="h-4 w-4" />
                           <AlertDescription>
-                            Cada registro consume {overview.documentRegistrationCreditCost} credito(s). Ultima actualizacion: {formatTimestamp(overview.account.updatedAt)}.
+                            Cada registro consume {overview.documentRegistrationCreditCost} crédito(s). Cada crédito equivale a 10.000 sats. Última actualización: {formatTimestamp(overview.account.updatedAt)}.
                           </AlertDescription>
                         </Alert>
 
@@ -293,7 +290,7 @@ export default function BillingPage() {
                   <CardHeader>
                     <CardTitle>Paquetes disponibles</CardTitle>
                     <CardDescription>
-                      Los invoices se crean en USD y el backend acredita los creditos una sola vez cuando Blink confirma el pago.
+                      Los invoices se crean en BTC/sats y el backend acredita los créditos una sola vez cuando Blink confirma el pago.
                     </CardDescription>
                   </CardHeader>
                   <CardContent>
@@ -310,7 +307,7 @@ export default function BillingPage() {
                                   {creditPackage.description}
                                 </p>
                                 <p className="mt-3 text-sm text-muted-foreground">
-                                  {creditPackage.credits} creditos por {formatUsd(creditPackage.priceUsdCents)}
+                                  {creditPackage.credits} créditos por {formatSats(creditPackage.priceSats)}
                                 </p>
                               </div>
                               <Button
@@ -364,8 +361,8 @@ export default function BillingPage() {
                                 </Badge>
                               </div>
                               <div className="grid gap-1 text-sm text-muted-foreground">
-                                <p>Monto: {formatUsd(paymentIntent.amountUsdCents)}</p>
-                                <p>Creditos: {paymentIntent.credits}</p>
+                                <p>Monto: {formatSats(paymentIntent.amountSats)}</p>
+                                <p>Créditos: {paymentIntent.credits}</p>
                                 <p>Creado: {formatTimestamp(paymentIntent.createdAt)}</p>
                                 <p>Pagado: {formatTimestamp(paymentIntent.paidAt)}</p>
                               </div>

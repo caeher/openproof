@@ -3,10 +3,11 @@ use lib_authz::{PermissionCheck, RoleBasedPerms};
 use lib_bitcoin_rpc::BitcoinRpcAdapter;
 use openproof_api_server::blink::{self, BlinkClient};
 use openproof_api_server::config;
+use openproof_api_server::document_chain;
 use openproof_api_server::mailer;
 use openproof_api_server::rate_limit;
 use openproof_api_server::routes;
-use openproof_api_server::{AppState, AuthSettings, BillingSettings, RateLimitSettings, RuntimeSettings};
+use openproof_api_server::{AppState, AuthSettings, BillingSettings, RateLimitSettings, RuntimeSettings, StorageSettings};
 use openproof_app::workers;
 use std::sync::Arc;
 use tracing_subscriber::EnvFilter;
@@ -70,12 +71,23 @@ async fn main() {
         }
     };
 
+    if let Err(error) = std::fs::create_dir_all(&cfg.document_storage_dir) {
+        eprintln!("document storage: {error}");
+        std::process::exit(1);
+    }
+
     let pool = app.pool.clone();
     tokio::spawn(workers::run_outbox_worker(pool, bitcoin.clone()));
     tokio::spawn(blink::run_billing_reconcile_worker(
         app.pool.clone(),
         blink.clone(),
         cfg.billing_reconcile_interval_seconds,
+    ));
+    tokio::spawn(document_chain::run_document_chain_sync_worker(
+        app.pool.clone(),
+        bitcoin.clone(),
+        mailer.clone(),
+        cfg.app_base_url.clone(),
     ));
 
     let state = Arc::new(AppState {
@@ -94,6 +106,10 @@ async fn main() {
         },
         billing: BillingSettings {
             document_registration_credit_cost: cfg.document_registration_credit_cost,
+        },
+        storage: StorageSettings {
+            document_storage_dir: cfg.document_storage_dir,
+            document_upload_max_bytes: cfg.document_upload_max_bytes,
         },
         runtime: RuntimeSettings {
             app_env: cfg.app_env,

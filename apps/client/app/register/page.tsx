@@ -70,11 +70,7 @@ export default function RegisterPage() {
     setError(null)
     
     try {
-      const response = await registerDocument({
-        fileHash: hash,
-        filename: file.name,
-        metadata,
-      })
+      const response = await registerDocument(file, metadata)
       
       if (response.success && response.data) {
         setResult({
@@ -136,8 +132,8 @@ export default function RegisterPage() {
             <Alert className="mb-6 bg-secondary/50 border-border">
               <Info className="h-4 w-4" />
               <AlertDescription className="text-sm">
-                Tu archivo <strong>nunca sale de tu dispositivo</strong>. 
-                Solo se calcula y registra el hash criptográfico SHA-256.
+                El archivo se almacena en el backend con un límite de 20 MB.
+                El sistema calcula el hash SHA-256 y solo ese digest es el que se ancla en Bitcoin mediante OP_RETURN.
               </AlertDescription>
             </Alert>
 
@@ -179,6 +175,7 @@ export default function RegisterPage() {
                     onFileSelect={handleFileSelect}
                     onClear={handleClear}
                     isProcessing={isHashing}
+                    maxSize={20 * 1024 * 1024}
                   />
                 </CardContent>
               </Card>
@@ -190,7 +187,7 @@ export default function RegisterPage() {
                   <CardHeader>
                     <CardTitle>Hash generado</CardTitle>
                     <CardDescription>
-                      Este es el identificador único de tu documento
+                      Este es el digest SHA-256 del archivo almacenado y será el dato anclado en Bitcoin
                     </CardDescription>
                   </CardHeader>
                   <CardContent className="space-y-4">
@@ -254,7 +251,7 @@ export default function RegisterPage() {
                 <CardHeader>
                   <CardTitle>Confirmar registro</CardTitle>
                   <CardDescription>
-                    Revisa los datos antes de registrar en la blockchain
+                      Revisa los datos antes de almacenar el archivo y registrar su hash en la blockchain
                   </CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-6">
@@ -320,7 +317,7 @@ export default function RegisterPage() {
                       Registro exitoso
                     </h2>
                     <p className="mt-2 text-muted-foreground">
-                      Tu documento ha sido registrado en la blockchain de Bitcoin
+                      Tu archivo quedó almacenado y su hash SHA-256 fue enviado al flujo de anclaje en la blockchain de Bitcoin
                     </p>
                   </div>
 

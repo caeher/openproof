@@ -111,6 +111,8 @@ export default function AccountPage() {
         return
       }
 
+      const updatedUser = response.data.user
+
       setProfile((current) => {
         if (!current) {
           return current
@@ -118,7 +120,7 @@ export default function AccountPage() {
 
         return {
           ...current,
-          user: response.data.user,
+          user: updatedUser,
         }
       })
       await refreshSession()

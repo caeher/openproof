@@ -8,6 +8,7 @@ use core_notarization::{
 };
 use corepc_client::client_sync::v28::Client;
 use corepc_client::client_sync::{Auth, Error as RpcError};
+use serde_json::json;
 
 /// JSON-RPC client wrapper for Bitcoin Core (blocking `corepc-client` inside `spawn_blocking`).
 #[derive(Clone, Debug)]
@@ -111,6 +112,15 @@ impl BitcoinNodePort for BitcoinRpcAdapter {
             }
             let confirmations = verbose.confirmations.unwrap_or(0);
             let block_hash = verbose.block_hash.clone().unwrap_or_default();
+            let block_height = if block_hash.is_empty() {
+                0
+            } else {
+                client
+                    .call::<serde_json::Value>("getblockheader", &[json!(block_hash), json!(true)])
+                    .ok()
+                    .and_then(|header| header.get("height").and_then(|value| value.as_u64()))
+                    .unwrap_or(0)
+            };
             let ts_sec = verbose.block_time.or(verbose.transaction_time);
             let timestamp = ts_sec
                 .and_then(|t| chrono::DateTime::from_timestamp(t as i64, 0))
@@ -140,7 +150,7 @@ impl BitcoinNodePort for BitcoinRpcAdapter {
             Ok(TransactionInfo {
                 txid: txid_owned,
                 network,
-                block_height: 0,
+                block_height,
                 block_hash,
                 timestamp,
                 confirmations,

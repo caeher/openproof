@@ -113,12 +113,61 @@ async function fetchJson<T>(
   }
 }
 
+async function fetchForm<T>(
+  path: string,
+  init: RequestInit
+): Promise<ApiResponse<T>> {
+  const res = await fetch(`${API_BASE}${path}`, {
+    credentials: 'include',
+    ...init,
+  })
+  const contentType = res.headers.get('content-type') || ''
+  const rawBody = contentType.includes('application/json')
+    ? await res.json()
+    : await res.text()
+
+  if (res.status === 401) {
+    broadcastUnauthorized()
+  }
+
+  if (typeof rawBody === 'object' && rawBody !== null && 'success' in rawBody) {
+    return {
+      ...(rawBody as ApiResponse<T>),
+      statusCode: res.status,
+    }
+  }
+
+  if (res.ok) {
+    return {
+      success: true,
+      data: rawBody as T,
+      statusCode: res.status,
+    }
+  }
+
+  return {
+    success: false,
+    error:
+      typeof rawBody === 'string' && rawBody.trim().length > 0
+        ? rawBody
+        : undefined,
+    statusCode: res.status,
+  }
+}
+
 export async function registerDocument(
-  request: RegisterDocumentRequest
+  file: File,
+  metadata?: RegisterDocumentRequest['metadata']
 ): Promise<ApiResponse<RegisterDocumentResponse>> {
-  return fetchJson<RegisterDocumentResponse>('/documents', {
+  const formData = new FormData()
+  formData.append('file', file)
+  if (metadata && Object.keys(metadata).length > 0) {
+    formData.append('metadata', JSON.stringify(metadata))
+  }
+
+  return fetchForm<RegisterDocumentResponse>('/documents/upload', {
     method: 'POST',
-    body: JSON.stringify(request),
+    body: formData,
   })
 }
 

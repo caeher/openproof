@@ -22,6 +22,22 @@ import {
 import { getApiErrorMessage, getDocument } from '@/lib/api'
 import type { Document } from '@/types'
 
+function formatFileSize(bytes?: number) {
+  if (!bytes) {
+    return null
+  }
+
+  if (bytes < 1024) {
+    return `${bytes} B`
+  }
+
+  if (bytes < 1024 * 1024) {
+    return `${(bytes / 1024).toFixed(2)} KB`
+  }
+
+  return `${(bytes / (1024 * 1024)).toFixed(2)} MB`
+}
+
 export default function DocumentDetailPage({ 
   params 
 }: { 
@@ -210,6 +226,34 @@ export default function DocumentDetailPage({
                           </div>
                         </div>
                       )}
+
+                      {document.contentType ? (
+                        <div className="flex items-start gap-3">
+                          <div className="p-2 rounded-md bg-secondary">
+                            <Download className="w-5 h-5 text-muted-foreground" />
+                          </div>
+                          <div>
+                            <p className="text-xs text-muted-foreground">Tipo de archivo</p>
+                            <p className="text-sm font-medium text-foreground">
+                              {document.contentType}
+                            </p>
+                          </div>
+                        </div>
+                      ) : null}
+
+                      {document.fileSizeBytes ? (
+                        <div className="flex items-start gap-3">
+                          <div className="p-2 rounded-md bg-secondary">
+                            <Hash className="w-5 h-5 text-muted-foreground" />
+                          </div>
+                          <div>
+                            <p className="text-xs text-muted-foreground">Tamaño almacenado</p>
+                            <p className="text-sm font-medium text-foreground">
+                              {formatFileSize(document.fileSizeBytes)}
+                            </p>
+                          </div>
+                        </div>
+                      ) : null}
                     </div>
 
                     {document.metadata?.description && (
@@ -319,6 +363,13 @@ export default function DocumentDetailPage({
 
                 {/* Actions */}
                 <div className="flex flex-col sm:flex-row gap-3">
+                  {document.fileUrl ? (
+                    <Button asChild variant="outline" className="flex-1">
+                      <a href={document.fileUrl} target="_blank" rel="noreferrer">
+                        Descargar archivo
+                      </a>
+                    </Button>
+                  ) : null}
                   <Button variant="outline" asChild className="flex-1">
                     <Link href="/history">
                       Volver al historial

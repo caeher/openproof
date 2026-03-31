@@ -12,6 +12,16 @@ pub trait EmailSender: Send + Sync + 'static {
     async fn send_verification_email(&self, email: &str, name: &str, token: &str) -> Result<(), String>;
 
     async fn send_password_reset_email(&self, email: &str, name: &str, token: &str) -> Result<(), String>;
+
+    async fn send_document_anchored_email(
+        &self,
+        email: &str,
+        name: &str,
+        filename: &str,
+        transaction_id: &str,
+        proof_url: &str,
+        file_url: &str,
+    ) -> Result<(), String>;
 }
 
 #[derive(Clone, Debug)]
@@ -44,6 +54,26 @@ impl EmailSender for TracingEmailSender {
 
     async fn send_password_reset_email(&self, email: &str, _name: &str, token: &str) -> Result<(), String> {
         tracing::info!(email = %email, reset_url = %self.reset_url(token), "password reset email generated");
+        Ok(())
+    }
+
+    async fn send_document_anchored_email(
+        &self,
+        email: &str,
+        _name: &str,
+        filename: &str,
+        transaction_id: &str,
+        proof_url: &str,
+        file_url: &str,
+    ) -> Result<(), String> {
+        tracing::info!(
+            email = %email,
+            filename = %filename,
+            txid = %transaction_id,
+            proof_url = %proof_url,
+            file_url = %file_url,
+            "anchored document email generated"
+        );
         Ok(())
     }
 }
@@ -162,6 +192,25 @@ impl EmailSender for SmtpEmailSender {
             format!(
                 "Hola {name},\n\nRecibimos una solicitud para restablecer tu contraseña.\n\nRestablecer contraseña: {}\n\nSi no realizaste esta solicitud, puedes ignorar este mensaje.",
                 self.reset_url(token),
+            ),
+        )
+        .await
+    }
+
+    async fn send_document_anchored_email(
+        &self,
+        email: &str,
+        name: &str,
+        filename: &str,
+        transaction_id: &str,
+        proof_url: &str,
+        file_url: &str,
+    ) -> Result<(), String> {
+        self.send_message(
+            email,
+            "Tu documento ya fue anclado en Bitcoin",
+            format!(
+                "Hola {name},\n\nTu archivo \"{filename}\" ya fue registrado en la blockchain de Bitcoin.\n\nTransacción: {transaction_id}\nVisualizador público: {proof_url}\nArchivo almacenado: {file_url}\n\nPuedes conservar este correo como referencia del anclaje realizado.",
             ),
         )
         .await

@@ -4,8 +4,12 @@ export interface Document {
   id: string
   fileHash: string
   filename: string
+  contentType?: string
+  fileSizeBytes?: number
   metadata?: DocumentMetadata
   transactionId?: string
+  fileUrl?: string
+  publicFileUrl?: string
   blockHeight?: number
   timestamp?: string
   confirmations?: number
@@ -18,8 +22,12 @@ export interface Document {
 export interface PublicDocumentProof {
   documentId: string
   fileHash: string
+  filename: string
+  contentType?: string
+  fileSizeBytes?: number
   transactionId?: string
   publicProofPath?: string
+  publicFileUrl?: string
   blockHeight?: number
   timestamp?: string
   confirmations?: number
@@ -112,7 +120,7 @@ export interface CreditPackage {
   code: string
   name: string
   description?: string
-  priceUsdCents: number
+  priceSats: number
   credits: number
 }
 
@@ -121,7 +129,7 @@ export interface PaymentIntent {
   packageId: string
   packageCode: string
   packageName: string
-  amountUsdCents: number
+  amountSats: number
   credits: number
   status: string
   blinkInvoiceStatus: string
@@ -188,7 +196,7 @@ export interface AdminPaymentIntent {
   userEmail: string
   packageCode: string
   packageName: string
-  amountUsdCents: number
+  amountSats: number
   credits: number
   status: string
   blinkInvoiceStatus: string
@@ -250,8 +258,10 @@ export interface RegisterDocumentRequest {
 
 export interface RegisterDocumentResponse {
   documentId: string
+  fileHash: string
   /** Present after the outbox worker broadcasts the OP_RETURN tx. */
   transactionId?: string
+  fileUrl?: string
   status: DocumentStatus
   createdAt: string
 }

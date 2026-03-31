@@ -5,11 +5,13 @@ use lib_authz::PermissionCheck;
 pub mod auth;
 pub mod blink;
 pub mod config;
+pub mod document_chain;
 pub mod error;
 pub mod handlers;
 pub mod mailer;
 pub mod rate_limit;
 pub mod routes;
+pub mod storage;
 
 #[derive(Clone)]
 pub struct AuthSettings {
@@ -24,6 +26,12 @@ pub struct AuthSettings {
 #[derive(Clone)]
 pub struct BillingSettings {
     pub document_registration_credit_cost: i64,
+}
+
+#[derive(Clone)]
+pub struct StorageSettings {
+    pub document_storage_dir: String,
+    pub document_upload_max_bytes: usize,
 }
 
 #[derive(Clone)]
@@ -50,6 +58,7 @@ pub struct AppState {
     pub mailer: Arc<dyn mailer::EmailSender>,
     pub auth: AuthSettings,
     pub billing: BillingSettings,
+    pub storage: StorageSettings,
     pub runtime: RuntimeSettings,
     pub rate_limits: RateLimitSettings,
     pub rate_limiter: Arc<rate_limit::RateLimiter>,

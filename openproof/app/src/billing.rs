@@ -38,7 +38,7 @@ pub struct CreditPackageRecord {
     pub code: String,
     pub name: String,
     pub description: Option<String>,
-    pub price_usd_cents: i64,
+    pub price_sats: i64,
     pub credits: i64,
     pub active: bool,
     pub sort_order: i32,
@@ -53,7 +53,7 @@ pub struct PaymentIntentRecord {
     pub package_id: Uuid,
     pub package_code: String,
     pub package_name: String,
-    pub amount_usd_cents: i64,
+    pub amount_sats: i64,
     pub credits: i64,
     pub status: String,
     pub blink_invoice_status: String,
@@ -89,7 +89,7 @@ fn row_to_package(row: &sqlx::postgres::PgRow) -> CreditPackageRecord {
         code: row.get("code"),
         name: row.get("name"),
         description: row.try_get("description").ok().flatten(),
-        price_usd_cents: row.get("price_usd_cents"),
+        price_sats: row.get("price_sats"),
         credits: row.get("credits"),
         active: row.get("active"),
         sort_order: row.get("sort_order"),
@@ -105,7 +105,7 @@ fn row_to_payment_intent(row: &sqlx::postgres::PgRow) -> PaymentIntentRecord {
         package_id: row.get("package_id"),
         package_code: row.get("package_code"),
         package_name: row.get("package_name"),
-        amount_usd_cents: row.get("amount_usd_cents"),
+        amount_sats: row.get("amount_sats"),
         credits: row.get("credits"),
         status: row.get("status"),
         blink_invoice_status: row.get("blink_invoice_status"),
@@ -162,7 +162,7 @@ pub async fn get_credit_account_summary(
 pub async fn list_credit_packages(pool: &PgPool) -> Result<Vec<CreditPackageRecord>, BillingError> {
     let rows = sqlx::query(
         r#"
-        SELECT id, code, name, description, price_usd_cents, credits, active, sort_order, created_at, updated_at
+        SELECT id, code, name, description, price_sats, credits, active, sort_order, created_at, updated_at
         FROM credit_packages
         WHERE active = TRUE
         ORDER BY sort_order ASC, created_at ASC
@@ -180,7 +180,7 @@ pub async fn find_credit_package_by_id(
 ) -> Result<Option<CreditPackageRecord>, BillingError> {
     let row = sqlx::query(
         r#"
-        SELECT id, code, name, description, price_usd_cents, credits, active, sort_order, created_at, updated_at
+        SELECT id, code, name, description, price_sats, credits, active, sort_order, created_at, updated_at
         FROM credit_packages
         WHERE id = $1 AND active = TRUE
         "#,
@@ -205,7 +205,7 @@ pub async fn list_payment_intents_for_user(
             package_id,
             package_code,
             package_name,
-            amount_usd_cents,
+            amount_sats,
             credits,
             status,
             blink_invoice_status,
@@ -242,7 +242,7 @@ pub async fn find_payment_intent_for_user(
             package_id,
             package_code,
             package_name,
-            amount_usd_cents,
+            amount_sats,
             credits,
             status,
             blink_invoice_status,
@@ -283,7 +283,7 @@ pub async fn create_payment_intent(
             package_id,
             package_code,
             package_name,
-            amount_usd_cents,
+            amount_sats,
             credits,
             status,
             blink_invoice_status,
@@ -301,7 +301,7 @@ pub async fn create_payment_intent(
             package_id,
             package_code,
             package_name,
-            amount_usd_cents,
+            amount_sats,
             credits,
             status,
             blink_invoice_status,
@@ -318,7 +318,7 @@ pub async fn create_payment_intent(
     .bind(package.id)
     .bind(&package.code)
     .bind(&package.name)
-    .bind(package.price_usd_cents)
+    .bind(package.price_sats)
     .bind(package.credits)
     .bind(payment_request)
     .bind(payment_hash)
@@ -343,7 +343,7 @@ pub async fn list_pending_payment_hashes(
             package_id,
             package_code,
             package_name,
-            amount_usd_cents,
+            amount_sats,
             credits,
             status,
             blink_invoice_status,
@@ -379,7 +379,7 @@ pub async fn mark_payment_intent_paid(
             package_id,
             package_code,
             package_name,
-            amount_usd_cents,
+            amount_sats,
             credits,
             status,
             blink_invoice_status,
@@ -478,7 +478,7 @@ pub async fn mark_payment_intent_paid(
             package_id,
             package_code,
             package_name,
-            amount_usd_cents,
+            amount_sats,
             credits,
             status,
             blink_invoice_status,
@@ -517,7 +517,7 @@ pub async fn mark_payment_intent_expired(
             package_id,
             package_code,
             package_name,
-            amount_usd_cents,
+            amount_sats,
             credits,
             status,
             blink_invoice_status,

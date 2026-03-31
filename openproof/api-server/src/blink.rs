@@ -146,60 +146,157 @@ impl BlinkClient {
         })
     }
 
-    pub async fn check_invoice_status(
+    pub async fn create_btc_invoice(
         &self,
-        payment_hash: &str,
-    ) -> Result<BlinkInvoiceStatus, BlinkError> {
-        let wallet_id = self.usd_wallet_id().await?;
+        amount_sats: i64,
+        memo: &str,
+    ) -> Result<BlinkInvoice, BlinkError> {
+        let wallet_id = self.wallet_id("BTC").await?;
         let data = self
             .graphql(
                 r#"
-                query InvoiceByHash($walletId: WalletId!, $paymentHash: PaymentHash!) {
-                  me {
-                    defaultAccount {
-                      walletById(walletId: $walletId) {
-                        ... on UsdWallet {
-                          invoiceByPaymentHash(paymentHash: $paymentHash) {
-                            ... on LnInvoice {
-                              paymentHash
-                              paymentRequest
-                              paymentStatus
-                              satoshis
-                            }
-                          }
-                        }
-                      }
+                mutation LnInvoiceCreate($input: LnInvoiceCreateInput!) {
+                  lnInvoiceCreate(input: $input) {
+                    invoice {
+                      paymentRequest
+                      paymentHash
+                      satoshis
+                      paymentStatus
+                    }
+                    errors {
+                      message
                     }
                   }
                 }
                 "#,
                 json!({
-                    "walletId": wallet_id,
-                    "paymentHash": payment_hash,
+                    "input": {
+                        "walletId": wallet_id,
+                        "amount": amount_sats,
+                        "memo": memo,
+                    }
                 }),
             )
             .await?;
 
-        let invoice = data
-            .pointer("/me/defaultAccount/walletById/invoiceByPaymentHash")
-            .ok_or(BlinkError::InvoiceNotFound)?;
+        let response = data
+            .get("lnInvoiceCreate")
+            .ok_or_else(|| BlinkError::Api("missing lnInvoiceCreate response".to_string()))?;
 
-        if invoice.is_null() {
-            return Err(BlinkError::InvoiceNotFound);
+        if let Some(error) = blink_errors(response) {
+            return Err(BlinkError::Api(error));
         }
 
-        Ok(BlinkInvoiceStatus {
-            payment_request: invoice
-                .get("paymentRequest")
-                .and_then(|value| value.as_str())
-                .map(ToString::to_string),
+        let invoice = response
+            .get("invoice")
+            .ok_or_else(|| BlinkError::Api("missing invoice payload".to_string()))?;
+
+        Ok(BlinkInvoice {
+            payment_request: invoice_string(invoice, "paymentRequest")?,
             payment_hash: invoice_string(invoice, "paymentHash")?,
-            payment_status: invoice_string(invoice, "paymentStatus")?,
-            satoshis: invoice.get("satoshis").and_then(|value| value.as_i64()),
+            satoshis: invoice
+                .get("satoshis")
+                .and_then(|value| value.as_i64())
+                .unwrap_or(amount_sats),
         })
     }
 
+    pub async fn check_invoice_status(
+        &self,
+        payment_hash: &str,
+    ) -> Result<BlinkInvoiceStatus, BlinkError> {
+                for wallet_id in self.wallet_ids().await? {
+                        let data = self
+                                .graphql(
+                                        r#"
+                                        query InvoiceByHash($walletId: WalletId!, $paymentHash: PaymentHash!) {
+                                            me {
+                                                defaultAccount {
+                                                    walletById(walletId: $walletId) {
+                                                        ... on BTCWallet {
+                                                            invoiceByPaymentHash(paymentHash: $paymentHash) {
+                                                                ... on LnInvoice {
+                                                                    paymentHash
+                                                                    paymentRequest
+                                                                    paymentStatus
+                                                                    satoshis
+                                                                }
+                                                            }
+                                                        }
+                                                        ... on UsdWallet {
+                                                            invoiceByPaymentHash(paymentHash: $paymentHash) {
+                                                                ... on LnInvoice {
+                                                                    paymentHash
+                                                                    paymentRequest
+                                                                    paymentStatus
+                                                                    satoshis
+                                                                }
+                                                            }
+                                                        }
+                                                    }
+                                                }
+                                            }
+                                        }
+                                        "#,
+                                        json!({
+                                                "walletId": wallet_id,
+                                                "paymentHash": payment_hash,
+                                        }),
+                                )
+                                .await?;
+
+                        let Some(invoice) = data.pointer("/me/defaultAccount/walletById/invoiceByPaymentHash") else {
+                                continue;
+                        };
+
+                        if invoice.is_null() {
+                                continue;
+                        }
+
+                        return Ok(BlinkInvoiceStatus {
+                                payment_request: invoice
+                                        .get("paymentRequest")
+                                        .and_then(|value| value.as_str())
+                                        .map(ToString::to_string),
+                                payment_hash: invoice_string(invoice, "paymentHash")?,
+                                payment_status: invoice_string(invoice, "paymentStatus")?,
+                                satoshis: invoice.get("satoshis").and_then(|value| value.as_i64()),
+                        });
+        }
+
+                Err(BlinkError::InvoiceNotFound)
+    }
+
     async fn usd_wallet_id(&self) -> Result<String, BlinkError> {
+                self.wallet_id("USD").await
+        }
+
+        async fn wallet_id(&self, currency: &str) -> Result<String, BlinkError> {
+                let wallets = self.wallets().await?;
+
+                wallets
+                        .iter()
+                        .find(|wallet| {
+                                wallet
+                                        .get("walletCurrency")
+                                        .and_then(|value| value.as_str())
+                                        == Some(currency)
+                        })
+                        .and_then(|wallet| wallet.get("id").and_then(|value| value.as_str()))
+                        .map(ToString::to_string)
+                        .ok_or_else(|| BlinkError::Api(format!("{currency} wallet not found")))
+        }
+
+        async fn wallet_ids(&self) -> Result<Vec<String>, BlinkError> {
+                let wallets = self.wallets().await?;
+                Ok(wallets
+                        .iter()
+                        .filter_map(|wallet| wallet.get("id").and_then(|value| value.as_str()))
+                        .map(ToString::to_string)
+                        .collect())
+        }
+
+        async fn wallets(&self) -> Result<Vec<Value>, BlinkError> {
         let data = self
             .graphql(
                 r#"
@@ -218,22 +315,11 @@ impl BlinkClient {
             )
             .await?;
 
-        let wallets = data
+        data
             .pointer("/me/defaultAccount/wallets")
             .and_then(|value| value.as_array())
-            .ok_or_else(|| BlinkError::Api("missing wallets response".to_string()))?;
-
-        wallets
-            .iter()
-            .find(|wallet| {
-                wallet
-                    .get("walletCurrency")
-                    .and_then(|value| value.as_str())
-                    == Some("USD")
-            })
-            .and_then(|wallet| wallet.get("id").and_then(|value| value.as_str()))
-            .map(ToString::to_string)
-            .ok_or_else(|| BlinkError::Api("USD wallet not found".to_string()))
+            .cloned()
+            .ok_or_else(|| BlinkError::Api("missing wallets response".to_string()))
     }
 
     async fn graphql(&self, query: &str, variables: Value) -> Result<Value, BlinkError> {

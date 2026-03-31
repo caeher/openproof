@@ -86,12 +86,18 @@ pub fn api_router(state: Arc<AppState>) -> Router {
             "/api/v1/documents",
             get(documents::list).post(documents::register),
         )
+        .route("/api/v1/documents/upload", post(documents::register_upload))
         .merge(verify_routes)
         .merge(webhook_routes)
         .route(
             "/api/v1/documents/by-transaction/{txid}",
             get(documents::get_by_transaction_id),
         )
+        .route(
+            "/api/v1/documents/by-transaction/{txid}/file",
+            get(documents::download_public_file),
+        )
+        .route("/api/v1/documents/{id}/file", get(documents::download_private_file))
         .route("/api/v1/documents/{id}", get(documents::get_by_id))
         .route(
             "/api/v1/transactions/{txid}",

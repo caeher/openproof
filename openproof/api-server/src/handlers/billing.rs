@@ -47,7 +47,7 @@ pub struct CreditPackageResponse {
     pub name: String,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub description: Option<String>,
-    pub price_usd_cents: i64,
+    pub price_sats: i64,
     pub credits: i64,
 }
 
@@ -58,7 +58,7 @@ pub struct PaymentIntentResponse {
     pub package_id: String,
     pub package_code: String,
     pub package_name: String,
-    pub amount_usd_cents: i64,
+    pub amount_sats: i64,
     pub credits: i64,
     pub status: String,
     pub blink_invoice_status: String,
@@ -145,7 +145,7 @@ pub async fn create_payment_intent(
     };
 
     let memo = format!("OpenProof {} credits", package.name);
-    let invoice = match state.blink.create_usd_invoice(package.price_usd_cents, &memo).await {
+    let invoice = match state.blink.create_btc_invoice(package.price_sats, &memo).await {
         Ok(value) => value,
         Err(error) => return blink_error_response(error),
     };
@@ -317,7 +317,7 @@ fn map_package(package: &billing::CreditPackageRecord) -> CreditPackageResponse 
         code: package.code.clone(),
         name: package.name.clone(),
         description: package.description.clone(),
-        price_usd_cents: package.price_usd_cents,
+        price_sats: package.price_sats,
         credits: package.credits,
     }
 }
@@ -328,7 +328,7 @@ fn map_payment_intent(payment_intent: &billing::PaymentIntentRecord) -> PaymentI
         package_id: payment_intent.package_id.to_string(),
         package_code: payment_intent.package_code.clone(),
         package_name: payment_intent.package_name.clone(),
-        amount_usd_cents: payment_intent.amount_usd_cents,
+        amount_sats: payment_intent.amount_sats,
         credits: payment_intent.credits,
         status: payment_intent.status.clone(),
         blink_invoice_status: payment_intent.blink_invoice_status.clone(),

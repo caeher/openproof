@@ -30,6 +30,8 @@ pub struct AppConfig {
     pub password_reset_token_ttl_hours: i64,
     pub secure_cookies: bool,
     pub expose_dev_auth_tokens: bool,
+    pub document_storage_dir: String,
+    pub document_upload_max_bytes: usize,
     pub auth_rate_limit_requests: u32,
     pub auth_rate_limit_window_seconds: u64,
     pub verify_rate_limit_requests: u32,
@@ -85,7 +87,13 @@ impl AppConfig {
             expose_dev_auth_tokens: std::env::var("EXPOSE_DEV_AUTH_TOKENS")
                 .ok()
                 .map(|value| matches!(value.as_str(), "1" | "true" | "TRUE" | "yes" | "YES"))
-                .unwrap_or(app_env.eq_ignore_ascii_case("development")),
+                .unwrap_or(false),
+            document_storage_dir: std::env::var("DOCUMENT_STORAGE_DIR")
+                .unwrap_or_else(|_| "tmp/document-storage".to_string()),
+            document_upload_max_bytes: std::env::var("DOCUMENT_UPLOAD_MAX_BYTES")
+                .ok()
+                .and_then(|value| value.parse::<usize>().ok())
+                .unwrap_or(20 * 1024 * 1024),
             auth_rate_limit_requests: std::env::var("AUTH_RATE_LIMIT_REQUESTS")
                 .ok()
                 .and_then(|value| value.parse::<u32>().ok())

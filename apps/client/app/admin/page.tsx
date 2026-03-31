@@ -40,11 +40,8 @@ function formatTimestamp(value?: string) {
   })
 }
 
-function formatUsd(cents: number) {
-  return new Intl.NumberFormat('es-ES', {
-    style: 'currency',
-    currency: 'USD',
-  }).format(cents / 100)
+function formatSats(sats: number) {
+  return `${new Intl.NumberFormat('es-ES').format(sats)} sats`
 }
 
 export default function AdminPage() {
@@ -423,7 +420,7 @@ export default function AdminPage() {
                               <Badge variant="secondary">{payment.blinkInvoiceStatus}</Badge>
                             </div>
                             <p className="mt-2 text-muted-foreground">
-                              {payment.packageName} · {formatUsd(payment.amountUsdCents)} · {payment.credits} creditos
+                              {payment.packageName} · {formatSats(payment.amountSats)} · {payment.credits} créditos
                             </p>
                             <p className="mt-1 text-xs text-muted-foreground">
                               {formatTimestamp(payment.createdAt)}

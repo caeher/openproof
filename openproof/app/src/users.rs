@@ -2,6 +2,8 @@ use chrono::{DateTime, Utc};
 use sqlx::{PgPool, Row};
 use uuid::Uuid;
 
+const INITIAL_SIGNUP_CREDITS: i64 = 5;
+
 #[derive(Debug, Clone)]
 pub struct UserRecord {
     pub id: Uuid,
@@ -72,6 +74,45 @@ pub async fn create_user_with_password(
     .bind(user_id)
     .bind(password_hash)
     .bind(now)
+    .bind(now)
+    .execute(&mut *tx)
+    .await?;
+
+    sqlx::query(
+        r#"
+        INSERT INTO credit_accounts (user_id, balance_credits, created_at, updated_at)
+        VALUES ($1, $2, $3, $4)
+        "#,
+    )
+    .bind(user_id)
+    .bind(INITIAL_SIGNUP_CREDITS)
+    .bind(now)
+    .bind(now)
+    .execute(&mut *tx)
+    .await?;
+
+    sqlx::query(
+        r#"
+        INSERT INTO credit_ledger (
+            id,
+            user_id,
+            payment_intent_id,
+            kind,
+            delta_credits,
+            balance_after_credits,
+            description,
+            reference_type,
+            reference_id,
+            created_at
+        )
+        VALUES ($1, $2, NULL, 'manual_adjustment', $3, $4, $5, 'user', $2, $6)
+        "#,
+    )
+    .bind(Uuid::now_v7())
+    .bind(user_id)
+    .bind(INITIAL_SIGNUP_CREDITS)
+    .bind(INITIAL_SIGNUP_CREDITS)
+    .bind("Initial onboarding credits granted on signup")
     .bind(now)
     .execute(&mut *tx)
     .await?;
