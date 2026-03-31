@@ -38,6 +38,10 @@ function compact(value: string, head = 12, tail = 10) {
   return `${value.slice(0, head)}...${value.slice(-tail)}`
 }
 
+function configStateLabel(enabled: boolean) {
+  return enabled ? 'Configurado' : 'Pendiente'
+}
+
 export default function DashboardPage() {
   const router = useRouter()
   const [user, setUser] = useState<SessionUser | null>(null)
@@ -259,6 +263,44 @@ export default function DashboardPage() {
 
                 <div className="rounded-[2rem] border border-[var(--line)] bg-[var(--surface)] p-6 backdrop-blur">
                   <div className="flex items-center gap-3">
+                    <ShieldCheck className="h-5 w-5 text-[var(--accent)]" />
+                    <div>
+                      <h2 className="text-xl font-semibold text-white">Diagnóstico Blink</h2>
+                      <p className="text-sm text-[var(--ink-soft)]">
+                        Estado del billing Lightning, webhook público y endpoint GraphQL activo.
+                      </p>
+                    </div>
+                  </div>
+
+                  <div className="mt-5 grid gap-4 md:grid-cols-2">
+                    <WalletCard
+                      label="API Blink"
+                      value={configStateLabel(overview.blink.apiConfigured)}
+                    />
+                    <WalletCard
+                      label="Webhook verificado"
+                      value={configStateLabel(overview.blink.webhookConfigured)}
+                    />
+                  </div>
+
+                  <div className="mt-5 space-y-4 rounded-[1.5rem] border border-[var(--line)] bg-black/20 p-4">
+                    <div>
+                      <p className="text-xs uppercase tracking-[0.22em] text-[var(--ink-soft)]">GraphQL Blink</p>
+                      <p className="mt-2 break-all font-[family-name:var(--font-mono)] text-sm text-white">
+                        {overview.blink.apiUrl}
+                      </p>
+                    </div>
+                    <div>
+                      <p className="text-xs uppercase tracking-[0.22em] text-[var(--ink-soft)]">Webhook público</p>
+                      <p className="mt-2 break-all font-[family-name:var(--font-mono)] text-sm text-white">
+                        {overview.blink.webhookUrl}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="rounded-[2rem] border border-[var(--line)] bg-[var(--surface)] p-6 backdrop-blur">
+                  <div className="flex items-center gap-3">
                     <AlertTriangle className="h-5 w-5 text-[var(--warn)]" />
                     <h2 className="text-xl font-semibold text-white">Alertas activas</h2>
                   </div>
@@ -299,6 +341,10 @@ export default function DashboardPage() {
                             <p className="font-medium text-white">{payment.userEmail}</p>
                             <p className="mt-1 text-sm text-[var(--ink-soft)]">
                               {payment.packageName} · {payment.credits} créditos · {formatSats(payment.amountSats)}
+                            </p>
+                            <p className="mt-1 text-xs text-[var(--ink-soft)]">
+                              Estado Blink: {payment.blinkInvoiceStatus}
+                              {payment.paymentHash ? ` · hash ${compact(payment.paymentHash, 10, 8)}` : ''}
                             </p>
                           </div>
                           <span className="rounded-full border border-[var(--line)] px-3 py-1 text-xs uppercase tracking-[0.16em] text-[var(--ink-soft)]">

@@ -63,6 +63,7 @@ pub struct AdminOverviewResponse {
     pub stats: AdminStatsResponse,
     pub wallet: AdminWalletResponse,
     pub pricing: AdminPricingResponse,
+    pub blink: AdminBlinkResponse,
     pub alerts: Vec<String>,
     pub users: Vec<AdminUserResponse>,
     pub documents: Vec<AdminDocumentResponse>,
@@ -107,6 +108,15 @@ pub struct AdminWalletResponse {
 pub struct AdminPricingResponse {
     pub credit_price_sats: i64,
     pub document_registration_credit_cost: i64,
+}
+
+#[derive(Debug, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct AdminBlinkResponse {
+    pub api_configured: bool,
+    pub webhook_configured: bool,
+    pub api_url: String,
+    pub webhook_url: String,
 }
 
 #[derive(Debug, Serialize)]
@@ -382,6 +392,7 @@ pub async fn overview(
         Ok(value) => value,
         Err(error) => return auth::internal_error(error),
     };
+    let blink = map_blink(&state);
 
     ok_json(AdminOverviewResponse {
         environment: state.runtime.app_env.clone(),
@@ -404,7 +415,13 @@ pub async fn overview(
             credit_price_sats: state.billing.credit_price_sats,
             document_registration_credit_cost: state.billing.document_registration_credit_cost,
         },
-        alerts: build_alerts(&stats, &wallet),
+        blink,
+        alerts: build_alerts(
+            &stats,
+            &wallet,
+            state.blink.is_configured(),
+            state.blink.is_webhook_configured(),
+        ),
         users: users.iter().map(map_user).collect(),
         documents: documents.iter().map(map_document).collect(),
         ledger: ledger.iter().map(map_ledger).collect(),
@@ -627,8 +644,22 @@ fn query_limit(limit: Option<i64>) -> i64 {
 fn build_alerts(
     stats: &admin::AdminOverviewStats,
     wallet: &core_notarization::WalletInfo,
+    blink_configured: bool,
+    webhook_configured: bool,
 ) -> Vec<String> {
     let mut alerts = Vec::new();
+
+    if !blink_configured {
+        alerts.push(
+            "Blink no está configurado: no se pueden crear invoices ni reconciliar pagos Lightning."
+                .to_string(),
+        );
+    } else if !webhook_configured {
+        alerts.push(
+            "Blink opera sin webhook verificado: el sistema depende del worker de reconciliación por polling."
+                .to_string(),
+        );
+    }
 
     if stats.failed_webhook_events > 0 {
         alerts.push(format!(
@@ -672,6 +703,18 @@ fn map_wallet(wallet: &core_notarization::WalletInfo) -> AdminWalletResponse {
         unconfirmed_balance_sats: wallet.unconfirmed_balance_sats,
         tx_count: wallet.tx_count,
         network: wallet.network.clone(),
+    }
+}
+
+fn map_blink(state: &Arc<AppState>) -> AdminBlinkResponse {
+    AdminBlinkResponse {
+        api_configured: state.blink.is_configured(),
+        webhook_configured: state.blink.is_webhook_configured(),
+        api_url: state.blink.api_url().to_string(),
+        webhook_url: format!(
+            "{}/api/v1/billing/blink/webhook",
+            state.runtime.app_base_url.trim_end_matches('/')
+        ),
     }
 }
 

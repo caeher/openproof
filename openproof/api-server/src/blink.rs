@@ -79,6 +79,14 @@ impl BlinkClient {
         self.api_key.is_some()
     }
 
+    pub fn is_webhook_configured(&self) -> bool {
+        self.webhook_secret.is_some()
+    }
+
+    pub fn api_url(&self) -> &str {
+        &self.api_url
+    }
+
     pub fn verify_webhook(&self, headers: &HeaderMap, body: &Bytes) -> Result<(), BlinkError> {
         let secret = self
             .webhook_secret

@@ -55,6 +55,13 @@ export interface AdminPricing {
   documentRegistrationCreditCost: number
 }
 
+export interface AdminBlinkStatus {
+  apiConfigured: boolean
+  webhookConfigured: boolean
+  apiUrl: string
+  webhookUrl: string
+}
+
 export interface AdminUser {
   id: string
   name: string
@@ -116,6 +123,7 @@ export interface AdminOverviewResponse {
   stats: AdminStats
   wallet: AdminWallet
   pricing: AdminPricing
+  blink: AdminBlinkStatus
   alerts: string[]
   users: AdminUser[]
   documents: AdminDocument[]
