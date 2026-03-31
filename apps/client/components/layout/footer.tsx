@@ -3,15 +3,17 @@
 import Link from 'next/link'
 import { Github, Twitter } from 'lucide-react'
 
-import { useAuth } from '@/components/auth/auth-provider'
 import { BrandLogo } from '@/components/layout/brand-logo'
-import { buildVerifyEmailPath } from '@/lib/auth-routing'
 
-const footerLinks = {
+const footerSections = {
+  product: [
+    { href: '/pricing', label: 'Créditos' },
+    { href: '/developers', label: 'Integraciones' },
+    { href: '/about', label: 'Sobre OpenProof' },
+  ],
   resources: [
     { href: '/api-docs', label: 'Documentación API' },
-    { href: '/faq', label: 'FAQ' },
-    { href: '/about', label: 'Sobre el proyecto' },
+    { href: '/faq', label: 'Preguntas frecuentes' },
   ],
   legal: [
     { href: '/privacy', label: 'Privacidad' },
@@ -19,46 +21,7 @@ const footerLinks = {
   ],
 }
 
-function getProductLinks(authState: ReturnType<typeof useAuth>['authState']) {
-  if (authState === 'authenticated_admin') {
-    return [
-      { href: '/pricing', label: 'Pricing' },
-      { href: '/register', label: 'Registrar documento' },
-      { href: '/dashboard', label: 'Dashboard' },
-      { href: '/admin', label: 'Admin' },
-    ]
-  }
-
-  if (authState === 'authenticated_verified') {
-    return [
-      { href: '/pricing', label: 'Pricing' },
-      { href: '/register', label: 'Registrar documento' },
-      { href: '/history', label: 'Historial' },
-      { href: '/dashboard', label: 'Dashboard' },
-    ]
-  }
-
-  if (authState === 'authenticated_unverified') {
-    return [
-      { href: buildVerifyEmailPath('/register'), label: 'Confirmar correo' },
-      { href: '/dashboard', label: 'Dashboard' },
-      { href: '/account', label: 'Cuenta' },
-      { href: '/api-docs', label: 'Documentación API' },
-    ]
-  }
-
-  return [
-    { href: '/pricing', label: 'Pricing' },
-    { href: '/login?next=%2Fregister', label: 'Registrar documento' },
-    { href: '/login?next=%2Fdashboard', label: 'Dashboard' },
-    { href: '/api-docs', label: 'Documentación API' },
-  ]
-}
-
 export function Footer() {
-  const { authState, isLoading } = useAuth()
-  const productLinks = isLoading ? getProductLinks('anonymous') : getProductLinks(authState)
-
   return (
     <footer className="border-t border-border bg-card/50 pb-20 md:pb-0">
       <div className="container py-12">
@@ -69,8 +32,8 @@ export function Footer() {
               <BrandLogo markClassName="size-9" />
             </Link>
             <p className="mt-4 text-sm text-muted-foreground leading-relaxed">
-              Infraestructura de prueba de existencia sobre Bitcoin para emitir,
-              compartir y auditar constancias documentales con trazabilidad pública.
+              Infraestructura de prueba de existencia sobre Bitcoin para registrar,
+              verificar y compartir constancias documentales con trazabilidad pública.
             </p>
             <div className="mt-4 flex items-center gap-3">
               <a
@@ -98,7 +61,7 @@ export function Footer() {
           <div>
             <h3 className="font-semibold text-foreground mb-4">Producto</h3>
             <ul className="space-y-2">
-              {productLinks.map((link) => (
+              {footerSections.product.map((link) => (
                 <li key={link.href}>
                   <Link
                     href={link.href}
@@ -115,7 +78,7 @@ export function Footer() {
           <div>
             <h3 className="font-semibold text-foreground mb-4">Recursos</h3>
             <ul className="space-y-2">
-              {footerLinks.resources.map((link) => (
+              {footerSections.resources.map((link) => (
                 <li key={link.href}>
                   <Link
                     href={link.href}
@@ -132,7 +95,7 @@ export function Footer() {
           <div>
             <h3 className="font-semibold text-foreground mb-4">Legal</h3>
             <ul className="space-y-2">
-              {footerLinks.legal.map((link) => (
+              {footerSections.legal.map((link) => (
                 <li key={link.href}>
                   <Link
                     href={link.href}

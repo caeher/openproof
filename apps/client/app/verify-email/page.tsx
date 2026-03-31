@@ -134,7 +134,7 @@ function VerifyEmailPageContent() {
           ) : null}
 
           {verifiedUser ? (
-            <Alert className="border-emerald-200 bg-emerald-50 text-emerald-950">
+            <Alert className="border-success/30 bg-success/10 text-foreground">
               <MailCheck className="h-4 w-4" />
               <AlertDescription>
                 Correo verificado correctamente para {verifiedUser.email}.

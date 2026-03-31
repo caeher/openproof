@@ -130,7 +130,7 @@ function SignupPageContent() {
             ) : null}
 
             {success ? (
-              <Alert className="border-emerald-200 bg-emerald-50 text-emerald-950">
+              <Alert className="border-success/30 bg-success/10 text-foreground">
                 <MailCheck className="h-4 w-4" />
                 <AlertDescription>
                   Cuenta creada para {success.user.name}. Revisa {success.user.email} y valida el correo antes de registrar documentos o emitir API keys.

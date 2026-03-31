@@ -70,7 +70,7 @@ export default function HistoryPage() {
       <Header />
       
       <main className="flex-1 pb-24 md:pb-0">
-        <div className="container mx-auto px-4 py-8 md:py-12">
+        <div className="container py-8 md:py-12">
           {/* Back link */}
           <Link
             href="/"

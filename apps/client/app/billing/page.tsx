@@ -148,7 +148,7 @@ export default function BillingPage() {
       <Header />
 
       <main className="flex-1 pb-24 md:pb-0">
-        <div className="container mx-auto px-4 py-8 md:py-12">
+        <div className="container py-8 md:py-12">
           <Link
             href="/dashboard"
             className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors mb-6"
@@ -157,7 +157,7 @@ export default function BillingPage() {
             Volver a la cuenta
           </Link>
 
-          <div className="max-w-5xl mx-auto">
+          <div>
             <AuthGuard requireVerified>
               <div className="mb-8">
                 <div className="inline-flex items-center gap-2 rounded-full bg-secondary px-3 py-1.5 text-sm font-medium text-foreground">

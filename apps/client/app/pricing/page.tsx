@@ -55,8 +55,8 @@ export default function PricingPage() {
       <Header />
 
       <main className="flex-1 pb-24 md:pb-0">
-        <div className="container mx-auto px-4 py-12 md:py-16">
-          <div className="max-w-5xl mx-auto text-center">
+        <div className="container py-12 md:py-16">
+          <div className="mx-auto max-w-6xl text-center">
             <div className="inline-flex items-center gap-2 rounded-full bg-secondary px-3 py-1.5 text-sm font-medium text-foreground">
               <Wallet className="h-4 w-4" />
               Pricing por créditos
@@ -77,7 +77,7 @@ export default function PricingPage() {
             </div>
           ) : null}
 
-          <div className="max-w-6xl mx-auto mt-10 grid gap-6 md:grid-cols-3">
+          <div className="mt-10 grid gap-6 md:grid-cols-3">
             {isLoading ? (
               <Card className="md:col-span-3">
                 <CardContent className="flex items-center justify-center gap-3 py-16 text-muted-foreground">
