@@ -4,7 +4,7 @@ Este proyecto es un frontend construido con Next.js 16, App Router, React 19 y T
 
 ## Estructura del proyecto
 
-- `app/`: rutas del App Router. Aquí viven las páginas y layouts del producto. `app/layout.tsx` centraliza `metadata`, `viewport`, fuentes Geist, `ThemeProvider` y `Analytics`. `app/globals.css` es la hoja global activa.
+- `app/`: rutas del App Router. Aquí viven las páginas y layouts del producto. `app/layout.tsx` centraliza `metadata`, `viewport`, fuentes y providers del producto. `app/globals.css` es el punto de entrada CSS que delega en la hoja global canónica.
 - `app/register`, `app/verify`, `app/dashboard`, `app/history`, `app/faq`, `app/about`, `app/api-docs`: vistas funcionales del producto.
 - `app/documents/[id]` y `app/p/[txid]`: rutas dinámicas para detalle de documento y exploración por transacción.
 - `components/layout/`: componentes de estructura compartida, como `Header`, `Footer` y `MobileNav`.
@@ -14,7 +14,7 @@ Este proyecto es un frontend construido con Next.js 16, App Router, React 19 y T
 - `lib/`: utilidades puras y acceso a datos. `lib/utils.ts` expone `cn(...)` para clases CSS y `lib/api.ts` concentra el cliente de datos actual, que hoy es mock.
 - `types/`: tipos de dominio, contratos compartidos y respuestas API.
 - `public/`: assets estáticos, iconos e imágenes.
-- `styles/`: estilos auxiliares o heredados. Hoy el archivo global que realmente se carga desde el layout es `app/globals.css`, no `styles/globals.css`.
+- `styles/`: estilos globales compartidos y auxiliares. La fuente de verdad del tema y los tokens vive en `styles/globals.css`; `app/globals.css` sólo la importa para integrarse con el App Router.
 
 ## Estándares y patrones del proyecto
 
@@ -24,7 +24,7 @@ Este proyecto es un frontend construido con Next.js 16, App Router, React 19 y T
 - Centralizar tipos compartidos en `types/index.ts` y preferir `import type` cuando solo se importan tipos.
 - Reutilizar componentes de `components/ui/` antes de crear wrappers ad hoc. El proyecto sigue el estilo shadcn/ui con configuración `new-york`, `neutral` y variables CSS.
 - Construir estilos con clases utilitarias de Tailwind y tokens semánticos como `bg-background`, `text-foreground`, `border-border`, `bg-secondary` o `text-muted-foreground`.
-- Evitar colores hardcodeados en componentes cuando ya exista un token en `app/globals.css`.
+- Evitar colores hardcodeados en componentes cuando ya exista un token en `styles/globals.css`.
 - Componer clases condicionales con `cn(...)` desde `@/lib/utils`.
 - Mantener un enfoque mobile-first y responsive con utilidades Tailwind. El patrón dominante usa `container mx-auto px-4`, `max-w-*`, `grid`, `flex` y variantes `md:` o `lg:`.
 - Usar `lucide-react` para iconografía y mantener coherencia visual con el resto del producto.
@@ -34,7 +34,7 @@ Este proyecto es un frontend construido con Next.js 16, App Router, React 19 y T
 - La capa de datos actual es mock y vive en `lib/api.ts`. Si se conecta a backend real, conservar la responsabilidad en una capa de cliente centralizada y mantener contratos tipados con `ApiResponse<T>`.
 - Mantener el copy del producto en español mientras no exista una estrategia formal de internacionalización.
 - Preservar accesibilidad básica: uso de `sr-only`, etiquetas descriptivas, jerarquía de títulos, estados visibles y componentes semánticos para alerts, dialogs, forms y navegación.
-- Preservar el sistema de tema claro/oscuro definido con `next-themes` y variables CSS en `app/globals.css`.
+- Preservar el sistema de tema claro/oscuro definido con `next-themes` y variables CSS en `styles/globals.css`.
 
 ## Guía para cambios futuros
 
@@ -42,5 +42,5 @@ Este proyecto es un frontend construido con Next.js 16, App Router, React 19 y T
 - Si una `page.tsx` empieza a mezclar demasiada UI, estado y efectos, mover piezas reutilizables a componentes de dominio.
 - No dispersar llamadas a servicios directamente dentro de múltiples páginas. Encapsular acceso a datos en `lib/api.ts` o en clientes equivalentes.
 - No mover tipos de dominio a componentes individuales salvo que sean estrictamente locales. Los contratos compartidos deben permanecer en `types/`.
-- Para cambios visuales globales o tokens de diseño, trabajar sobre `app/globals.css`. No asumir que `styles/globals.css` está activo en la aplicación.
+- Para cambios visuales globales o tokens de diseño, trabajar sobre `styles/globals.css`. `app/globals.css` sólo debe mantenerse como entrypoint de Next.
 - Aunque `next.config.mjs` permita compilar ignorando errores de TypeScript, los cambios deben seguir siendo compatibles con `strict` y no depender de ese bypass.
