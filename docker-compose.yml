@@ -37,6 +37,14 @@ services:
       BITCOIN_RPC_URL: ${BITCOIN_RPC_URL:-https://bitcoin-core.cubo.caeher.com/}
       BITCOIN_RPC_USER: ${BITCOIN_RPC_USER:-bitcoin_caeher}
       BITCOIN_RPC_PASSWORD: ${BITCOIN_RPC_PASSWORD:-bitcoin_caeher}
+      SMTP_HOST: ${SMTP_HOST:-}
+      SMTP_PORT: ${SMTP_PORT:-587}
+      SMTP_USERNAME: ${SMTP_USERNAME:-}
+      SMTP_PASSWORD: ${SMTP_PASSWORD:-}
+      SMTP_FROM: ${SMTP_FROM:-}
+      SMTP_REPLY_TO: ${SMTP_REPLY_TO:-}
+      SMTP_TLS_MODE: ${SMTP_TLS_MODE:-starttls}
+      SMTP_TIMEOUT_SECONDS: ${SMTP_TIMEOUT_SECONDS:-15}
       RUST_LOG: ${RUST_LOG:-openproof_api_server=info,tower_http=info}
     depends_on:
       postgres:
