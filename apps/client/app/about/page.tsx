@@ -56,7 +56,7 @@ export default function AboutPage() {
                 Democratizando la prueba de existencia
               </h1>
               <p className="text-lg text-muted-foreground leading-relaxed mb-8">
-                ProofChain nace de una idea simple pero poderosa: todos deberían poder 
+                OpenProof nace de una idea simple pero poderosa: todos deberían poder 
                 demostrar que sus ideas, creaciones y documentos existían en un momento 
                 específico, sin depender de intermediarios costosos o burocráticos.
               </p>
@@ -136,7 +136,7 @@ export default function AboutPage() {
               </div>
               
               <h2 className="text-2xl md:text-3xl font-bold text-foreground mb-4">
-                Las personas detrás de ProofChain
+                Las personas detrás de OpenProof
               </h2>
               <p className="text-muted-foreground max-w-xl mx-auto">
                 Un equipo apasionado por la criptografía, blockchain y la experiencia de usuario
@@ -175,7 +175,7 @@ export default function AboutPage() {
               
               <div className="prose prose-neutral dark:prose-invert max-w-none">
                 <p className="text-muted-foreground leading-relaxed mb-6">
-                  ProofChain utiliza la función hash SHA-256, la misma que asegura la blockchain 
+                  OpenProof utiliza la función hash SHA-256, la misma que asegura la blockchain 
                   de Bitcoin. Cuando subes un archivo, calculamos su hash de forma local en tu 
                   navegador, garantizando que el contenido nunca abandona tu dispositivo.
                 </p>

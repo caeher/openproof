@@ -2,7 +2,7 @@
 
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import { Home, Upload, Search, FolderOpen, User, Wallet, MailCheck, Shield } from 'lucide-react'
+import { Home, Upload, FolderOpen, User, Wallet, MailCheck, Shield, CircleHelp } from 'lucide-react'
 
 import { useAuth } from '@/components/auth/auth-provider'
 import { cn } from '@/lib/utils'
@@ -10,7 +10,7 @@ import { cn } from '@/lib/utils'
 const publicNavItems = [
   { href: '/', label: 'Inicio', icon: Home },
   { href: '/pricing', label: 'Pricing', icon: Wallet },
-  { href: '/verify', label: 'Verificar', icon: Search },
+  { href: '/faq', label: 'FAQ', icon: CircleHelp },
 ]
 
 const verifiedNavItems = [

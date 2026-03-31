@@ -1,9 +1,10 @@
 'use client'
 
 import Link from 'next/link'
-import { Shield, Github, Twitter } from 'lucide-react'
+import { Github, Twitter } from 'lucide-react'
 
 import { useAuth } from '@/components/auth/auth-provider'
+import { BrandLogo } from '@/components/layout/brand-logo'
 import { buildVerifyEmailPath } from '@/lib/auth-routing'
 
 const footerLinks = {
@@ -39,18 +40,18 @@ function getProductLinks(authState: ReturnType<typeof useAuth>['authState']) {
 
   if (authState === 'authenticated_unverified') {
     return [
-      { href: '/verify', label: 'Verificar documento' },
       { href: buildVerifyEmailPath('/register'), label: 'Confirmar correo' },
       { href: '/dashboard', label: 'Dashboard' },
       { href: '/account', label: 'Cuenta' },
+      { href: '/api-docs', label: 'Documentación API' },
     ]
   }
 
   return [
     { href: '/pricing', label: 'Pricing' },
     { href: '/login?next=%2Fregister', label: 'Registrar documento' },
-    { href: '/verify', label: 'Verificar documento' },
     { href: '/login?next=%2Fdashboard', label: 'Dashboard' },
+    { href: '/api-docs', label: 'Documentación API' },
   ]
 }
 
@@ -60,21 +61,18 @@ export function Footer() {
 
   return (
     <footer className="border-t border-border bg-card/50 pb-20 md:pb-0">
-      <div className="container max-w-6xl mx-auto px-4 py-12">
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
+      <div className="container py-12">
+        <div className="grid grid-cols-2 gap-6 md:grid-cols-4">
           {/* Brand */}
           <div className="col-span-2 md:col-span-1">
-            <Link href="/" className="flex items-center gap-2">
-              <div className="p-1.5 rounded-md bg-foreground">
-                <Shield className="w-4 h-4 text-background" />
-              </div>
-              <span className="font-semibold text-foreground">ProofChain</span>
+            <Link href="/" aria-label="OpenProof">
+              <BrandLogo markClassName="size-9" />
             </Link>
             <p className="mt-4 text-sm text-muted-foreground leading-relaxed">
-              Prueba de existencia en la blockchain de Bitcoin. 
-              Registra y verifica documentos de forma segura e inmutable.
+              Infraestructura de prueba de existencia sobre Bitcoin para emitir,
+              compartir y auditar constancias documentales con trazabilidad pública.
             </p>
-            <div className="flex items-center gap-3 mt-4">
+            <div className="mt-4 flex items-center gap-3">
               <a
                 href="https://github.com"
                 target="_blank"
@@ -151,7 +149,7 @@ export function Footer() {
         {/* Bottom */}
         <div className="mt-12 pt-8 border-t border-border">
           <p className="text-sm text-muted-foreground text-center">
-            {new Date().getFullYear()} ProofChain. Todos los derechos reservados.
+            {new Date().getFullYear()} OpenProof. Todos los derechos reservados.
           </p>
         </div>
       </div>

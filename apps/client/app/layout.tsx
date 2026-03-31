@@ -15,19 +15,32 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: 'ProofChain - Bitcoin Proof of Existence',
-  description: 'Registra y verifica la existencia de documentos usando la blockchain de Bitcoin como notario digital. Prueba inmutable de timestamp.',
-  keywords: ['proof of existence', 'bitcoin', 'blockchain', 'notary', 'timestamp', 'hash', 'documento'],
-  authors: [{ name: 'ProofChain' }],
+  title: 'OpenProof | Pruebas de existencia sobre Bitcoin',
+  description: 'Registra hashes, comparte constancias públicas y verifica autenticidad documental sobre la blockchain de Bitcoin.',
+  keywords: ['openproof', 'proof of existence', 'bitcoin', 'blockchain', 'timestamp', 'hash', 'documento'],
+  authors: [{ name: 'Caeher' }],
   generator: 'Next.js',
   icons: {
     icon: [
       {
+        url: '/favicon.ico',
+        sizes: 'any',
+      },
+      {
+        url: '/favicon-16x16.png',
+        sizes: '16x16',
+        type: 'image/png',
+      },
+      {
         url: '/icon-light-32x32.png',
+        sizes: '32x32',
+        type: 'image/png',
         media: '(prefers-color-scheme: light)',
       },
       {
         url: '/icon-dark-32x32.png',
+        sizes: '32x32',
+        type: 'image/png',
         media: '(prefers-color-scheme: dark)',
       },
       {
@@ -35,7 +48,8 @@ export const metadata: Metadata = {
         type: 'image/svg+xml',
       },
     ],
-    apple: '/apple-icon.png',
+    apple: '/apple-touch-icon.png',
+    shortcut: '/favicon.ico',
   },
 }
 

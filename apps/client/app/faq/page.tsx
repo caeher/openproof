@@ -200,7 +200,7 @@ export default function FAQPage() {
                       Nota legal
                     </h3>
                     <p className="text-sm text-muted-foreground leading-relaxed">
-                      ProofChain proporciona una herramienta tecnológica para crear pruebas de existencia 
+                      OpenProof proporciona una herramienta tecnológica para crear pruebas de existencia 
                       basadas en criptografía y blockchain. Este servicio no constituye asesoramiento legal 
                       y no reemplaza los mecanismos legales tradicionales. La validez legal de estas pruebas 
                       puede variar según la jurisdicción. Consulta con un profesional legal para casos específicos.

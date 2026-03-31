@@ -19,6 +19,7 @@ export interface PublicDocumentProof {
   documentId: string
   fileHash: string
   transactionId?: string
+  publicProofPath?: string
   blockHeight?: number
   timestamp?: string
   confirmations?: number
@@ -261,6 +262,7 @@ export interface VerifyDocumentRequest {
 export interface VerifyDocumentResponse {
   exists: boolean
   transactionId?: string
+  publicProofPath?: string
   blockHeight?: number
   timestamp?: string
   confirmations?: number

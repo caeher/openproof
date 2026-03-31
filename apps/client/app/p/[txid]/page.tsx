@@ -2,11 +2,12 @@
 
 import { useState, useEffect, use } from 'react'
 import Link from 'next/link'
-import { Shield, FileText, Calendar, Blocks, Clock, CheckCircle2, Copy, Check, Info } from 'lucide-react'
+import { FileText, Calendar, Blocks, Clock, CheckCircle2, Copy, Check, Info } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Alert, AlertDescription } from '@/components/ui/alert'
 import { Skeleton } from '@/components/ui/skeleton'
+import { BrandLogo } from '@/components/layout/brand-logo'
 import { 
   HashPreview, 
   TimestampDisplay,
@@ -107,13 +108,10 @@ export default function PublicVerificationPage({
   return (
     <div className="min-h-screen flex flex-col bg-background">
       <header className="sticky top-0 z-40 w-full bg-background/95 backdrop-blur-lg border-b border-border">
-        <div className="container mx-auto px-4">
+        <div className="container">
           <div className="flex items-center justify-between h-14">
-            <Link href="/" className="flex items-center gap-2">
-              <div className="p-1.5 rounded-md bg-foreground">
-                <Shield className="w-4 h-4 text-background" />
-              </div>
-              <span className="font-semibold text-foreground">ProofChain</span>
+            <Link href="/" aria-label="OpenProof">
+              <BrandLogo markClassName="size-8" labelClassName="text-base" />
             </Link>
             
             <Button variant="outline" size="sm" onClick={handleShare}>
@@ -134,7 +132,7 @@ export default function PublicVerificationPage({
       </header>
       
       <main className="flex-1">
-        <div className="container mx-auto px-4 py-8 md:py-12">
+        <div className="page-frame">
           {isLoading ? (
             <div className="max-w-2xl mx-auto space-y-6">
               <div className="text-center">
@@ -325,9 +323,9 @@ export default function PublicVerificationPage({
       </main>
       
       <footer className="border-t border-border py-6">
-        <div className="container mx-auto px-4 text-center">
+        <div className="container text-center">
           <p className="text-sm text-muted-foreground">
-            Verificación pública de <Link href="/" className="text-foreground hover:underline">ProofChain</Link>
+            Constancia pública emitida por <Link href="/" className="text-foreground hover:underline">OpenProof</Link>
           </p>
         </div>
       </footer>

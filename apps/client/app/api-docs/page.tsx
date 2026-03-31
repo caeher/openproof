@@ -1,125 +1,341 @@
 import Link from 'next/link'
-import { ArrowLeft, Code, Copy, Terminal, FileJson, Lock, Zap, Server } from 'lucide-react'
+import { ArrowLeft, Code2, FileJson, Globe2, KeyRound, Lock, Server, Zap } from 'lucide-react'
+
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
+import { CodeBlock } from '@/components/ui/code-block'
 import { Header, Footer, MobileNav } from '@/components/layout'
+
+const quickstartExamples = [
+  {
+    id: 'curl',
+    label: 'curl',
+    language: 'bash' as const,
+    code: `curl -X POST https://tu-dominio-openproof.com/api/v1/documents/verify \\
+  -H "Content-Type: application/json" \\
+  -d '{
+    "fileHash": "a7ffc6f8bf1ed76651c14756a061d662f580ff4de43b49fa82d80a4b80f8434a"
+  }'`,
+  },
+  {
+    id: 'typescript',
+    label: 'TypeScript',
+    language: 'typescript' as const,
+    code: `const response = await fetch('https://tu-dominio-openproof.com/api/v1/documents/verify', {
+  method: 'POST',
+  headers: {
+    'Content-Type': 'application/json',
+  },
+  body: JSON.stringify({
+    fileHash: 'a7ffc6f8bf1ed76651c14756a061d662f580ff4de43b49fa82d80a4b80f8434a',
+  }),
+})
+
+const payload = await response.json()
+
+if (payload.success && payload.data.publicProofPath) {
+  console.log('Viewer público:', payload.data.publicProofPath)
+}`,
+  },
+  {
+    id: 'python',
+    label: 'Python',
+    language: 'python' as const,
+    code: `import requests
+
+response = requests.post(
+    'https://tu-dominio-openproof.com/api/v1/documents/verify',
+    json={
+        'fileHash': 'a7ffc6f8bf1ed76651c14756a061d662f580ff4de43b49fa82d80a4b80f8434a'
+    },
+    timeout=10,
+)
+
+payload = response.json()
+print(payload['data'].get('publicProofPath'))`,
+  },
+  {
+    id: 'rust',
+    label: 'Rust',
+    language: 'rust' as const,
+    code: `use reqwest::Client;
+use serde_json::json;
+
+let client = Client::new();
+
+let payload = client
+    .post("https://tu-dominio-openproof.com/api/v1/documents/verify")
+    .json(&json!({
+        "fileHash": "a7ffc6f8bf1ed76651c14756a061d662f580ff4de43b49fa82d80a4b80f8434a"
+    }))
+    .send()
+    .await?
+    .json::<serde_json::Value>()
+    .await?;
+
+println!("{:?}", payload["data"]["publicProofPath"]);`,
+  },
+]
 
 const endpoints = [
   {
     method: 'POST',
     path: '/api/v1/documents',
-    description: 'Registra un nuevo documento usando sesion autenticada o API key bearer',
-    request: {
-      body: `{
-  "file_hash": "a7ffc6f8bf1ed76651c14756a061d662f580ff4de43b49fa82d80a4b80f8434a",
-  "filename": "contract.pdf",
-  "metadata": {
-    "description": "Contract document",
-    "tags": ["legal", "2024"]
-  }
-}`,
+    audience: 'Bearer requerido',
+    description: 'Registra un hash documental con nombre de archivo y metadatos opcionales.',
+    requestExamples: [
+      {
+        id: 'curl',
+        label: 'curl',
+        language: 'bash' as const,
+        code: `curl -X POST https://tu-dominio-openproof.com/api/v1/documents \\
+  -H "Content-Type: application/json" \\
+  -H "Authorization: Bearer OPENPROOF_API_KEY" \\
+  -d '{
+    "fileHash": "a7ffc6f8bf1ed76651c14756a061d662f580ff4de43b49fa82d80a4b80f8434a",
+    "filename": "contrato-marzo-2026.pdf",
+    "metadata": {
+      "description": "Contrato firmado con proveedor",
+      "tags": ["legal", "proveedores"]
+    }
+  }'`,
+      },
+      {
+        id: 'typescript',
+        label: 'TypeScript',
+        language: 'typescript' as const,
+        code: `const response = await fetch('https://tu-dominio-openproof.com/api/v1/documents', {
+  method: 'POST',
+  headers: {
+    'Content-Type': 'application/json',
+    Authorization: 'Bearer OPENPROOF_API_KEY',
+  },
+  body: JSON.stringify({
+    fileHash: 'a7ffc6f8bf1ed76651c14756a061d662f580ff4de43b49fa82d80a4b80f8434a',
+    filename: 'contrato-marzo-2026.pdf',
+    metadata: {
+      description: 'Contrato firmado con proveedor',
+      tags: ['legal', 'proveedores'],
     },
+  }),
+})
+
+const payload = await response.json()`,
+      },
+      {
+        id: 'python',
+        label: 'Python',
+        language: 'python' as const,
+        code: `import requests
+
+payload = requests.post(
+    'https://tu-dominio-openproof.com/api/v1/documents',
+    headers={'Authorization': 'Bearer OPENPROOF_API_KEY'},
+    json={
+        'fileHash': 'a7ffc6f8bf1ed76651c14756a061d662f580ff4de43b49fa82d80a4b80f8434a',
+        'filename': 'contrato-marzo-2026.pdf',
+        'metadata': {
+            'description': 'Contrato firmado con proveedor',
+            'tags': ['legal', 'proveedores'],
+        },
+    },
+    timeout=10,
+)
+
+print(payload.json())`,
+      },
+    ],
     response: `{
   "success": true,
   "data": {
-    "document_id": "doc_abc123",
-    "transaction_id": "4a5e1e4baab89f3a32518a88c31bc87f618f76673e2cc77ab2127b7afdeda33b",
+    "documentId": "2fbd2479-c2b7-467a-9d85-4f1119caaf39",
+    "transactionId": "4a5e1e4baab89f3a32518a88c31bc87f618f76673e2cc77ab2127b7afdeda33b",
     "status": "processing",
-    "created_at": "2024-01-15T10:30:00Z"
+    "createdAt": "2026-03-30T18:45:00Z"
   }
 }`,
+    notes: [
+      'Requiere sesión verificada o API key bearer válida.',
+      'El `transactionId` puede llegar vacío mientras el worker todavía no haya emitido la transacción on-chain.',
+    ],
   },
   {
     method: 'POST',
     path: '/api/v1/documents/verify',
-    description: 'Verifica si un documento existe en la blockchain',
-    request: {
-      body: `{
-  "file_hash": "a7ffc6f8bf1ed76651c14756a061d662f580ff4de43b49fa82d80a4b80f8434a"
-}`,
-    },
+    audience: 'Ruta pública',
+    description: 'Verifica si un hash ya fue registrado y devuelve la ruta pública del viewer cuando existe constancia compartible.',
+    requestExamples: quickstartExamples,
     response: `{
   "success": true,
   "data": {
     "exists": true,
-    "transaction_id": "4a5e1e4baab89f3a32518a88c31bc87f618f76673e2cc77ab2127b7afdeda33b",
-    "block_height": 831542,
+    "transactionId": "4a5e1e4baab89f3a32518a88c31bc87f618f76673e2cc77ab2127b7afdeda33b",
+    "publicProofPath": "/p/4a5e1e4baab89f3a32518a88c31bc87f618f76673e2cc77ab2127b7afdeda33b",
+    "blockHeight": 831542,
     "timestamp": "2024-01-15T10:30:00Z",
     "confirmations": 1542
   }
 }`,
+    notes: [
+      'No requiere autenticación y está sujeta a rate limiting público.',
+      '`publicProofPath` es la ruta recomendada para enlazar el viewer oficial desde tus propias aplicaciones.',
+    ],
   },
   {
     method: 'GET',
     path: '/api/v1/documents/{id}',
-    description: 'Obtiene los detalles de un documento registrado',
-    request: null,
+    audience: 'Bearer requerido',
+    description: 'Obtiene el detalle privado de un documento perteneciente al owner autenticado.',
+    requestExamples: [
+      {
+        id: 'curl',
+        label: 'curl',
+        language: 'bash' as const,
+        code: `curl https://tu-dominio-openproof.com/api/v1/documents/2fbd2479-c2b7-467a-9d85-4f1119caaf39 \\
+  -H "Authorization: Bearer OPENPROOF_API_KEY"`,
+      },
+      {
+        id: 'typescript',
+        label: 'TypeScript',
+        language: 'typescript' as const,
+        code: `const response = await fetch(
+  'https://tu-dominio-openproof.com/api/v1/documents/2fbd2479-c2b7-467a-9d85-4f1119caaf39',
+  {
+    headers: {
+      Authorization: 'Bearer OPENPROOF_API_KEY',
+    },
+  },
+)
+
+const payload = await response.json()`,
+      },
+    ],
     response: `{
   "success": true,
   "data": {
-    "id": "doc_abc123",
-    "file_hash": "a7ffc6f8bf1ed76651c14756a061d662...",
+    "id": "2fbd2479-c2b7-467a-9d85-4f1119caaf39",
+    "fileHash": "a7ffc6f8bf1ed76651c14756a061d662f580ff4de43b49fa82d80a4b80f8434a",
     "filename": "contract.pdf",
     "metadata": {
-      "description": "Contract document",
-      "tags": ["legal", "2024"]
+      "description": "Contrato firmado con proveedor",
+      "tags": ["legal", "proveedores"]
     },
-    "transaction_id": "4a5e1e4baab89f3a32518a88c31bc87f...",
-    "block_height": 831542,
+    "transactionId": "4a5e1e4baab89f3a32518a88c31bc87f618f76673e2cc77ab2127b7afdeda33b",
+    "blockHeight": 831542,
     "timestamp": "2024-01-15T10:30:00Z",
     "confirmations": 1542,
     "status": "confirmed",
-    "created_at": "2024-01-15T10:25:00Z"
+    "createdAt": "2026-03-30T18:45:00Z",
+    "updatedAt": "2026-03-30T18:52:00Z"
   }
 }`,
+    notes: [
+      'Solo devuelve documentos asociados al owner autenticado o al owner de la API key.',
+    ],
   },
   {
     method: 'GET',
     path: '/api/v1/documents',
-    description: 'Lista los documentos asociados al usuario autenticado o al owner de la API key',
-    request: null,
+    audience: 'Bearer requerido',
+    description: 'Lista los documentos del usuario autenticado o del owner de la API key.',
+    requestExamples: [
+      {
+        id: 'curl',
+        label: 'curl',
+        language: 'bash' as const,
+        code: `curl https://tu-dominio-openproof.com/api/v1/documents \\
+  -H "Authorization: Bearer OPENPROOF_API_KEY"`,
+      },
+      {
+        id: 'python',
+        label: 'Python',
+        language: 'python' as const,
+        code: `import requests
+
+payload = requests.get(
+    'https://tu-dominio-openproof.com/api/v1/documents',
+    headers={'Authorization': 'Bearer OPENPROOF_API_KEY'},
+    timeout=10,
+)
+
+print(payload.json())`,
+      },
+    ],
     response: `{
   "success": true,
   "data": [
     {
-      "id": "doc_abc123",
-      "file_hash": "a7ffc6f8bf1ed...",
-      "filename": "contract.pdf",
+      "id": "2fbd2479-c2b7-467a-9d85-4f1119caaf39",
+      "fileHash": "a7ffc6f8bf1ed76651c14756a061d662f580ff4de43b49fa82d80a4b80f8434a",
+      "filename": "contrato-marzo-2026.pdf",
+      "transactionId": "4a5e1e4baab89f3a32518a88c31bc87f618f76673e2cc77ab2127b7afdeda33b",
       "status": "confirmed",
-      "created_at": "2024-01-15T10:25:00Z"
+      "createdAt": "2026-03-30T18:45:00Z",
+      "updatedAt": "2026-03-30T18:52:00Z"
     }
   ]
 }`,
+    notes: [
+      'Útil para dashboards, backoffices o conciliación de registros ya procesados.',
+    ],
   },
   {
     method: 'GET',
     path: '/api/v1/transactions/{txid}',
-    description: 'Obtiene detalles de una transacción Bitcoin',
-    request: null,
+    audience: 'Ruta pública',
+    description: 'Expone información pública de una transacción Bitcoin vinculada al registro.',
+    requestExamples: [
+      {
+        id: 'curl',
+        label: 'curl',
+        language: 'bash' as const,
+        code: `curl https://tu-dominio-openproof.com/api/v1/transactions/4a5e1e4baab89f3a32518a88c31bc87f618f76673e2cc77ab2127b7afdeda33b`,
+      },
+      {
+        id: 'rust',
+        label: 'Rust',
+        language: 'rust' as const,
+        code: `let payload = reqwest::get(
+    "https://tu-dominio-openproof.com/api/v1/transactions/4a5e1e4baab89f3a32518a88c31bc87f618f76673e2cc77ab2127b7afdeda33b"
+)
+.await?
+.json::<serde_json::Value>()
+.await?;`,
+      },
+    ],
     response: `{
   "success": true,
   "data": {
     "txid": "4a5e1e4baab89f3a32518a88c31bc87f...",
-    "block_height": 831542,
-    "block_hash": "000000000000000000029d7e3cb4c3a0...",
+    "blockHeight": 831542,
+    "blockHash": "000000000000000000029d7e3cb4c3a0...",
     "timestamp": "2024-01-15T10:30:00Z",
     "confirmations": 1542,
     "fee": 0.00001234,
-    "op_return": "a7ffc6f8bf1ed76651c14756a061d662"
+    "outputs": [
+      {
+        "address": "bc1qexample...",
+        "value": 0.00000546,
+        "opReturn": "a7ffc6f8bf1ed76651c14756a061d662"
+      }
+    ]
   }
 }`,
+    notes: [
+      'Diseñada para viewers públicos, auditorías técnicas y validación de anclaje on-chain.',
+    ],
   },
 ]
 
-export default function APIDocsPage() {
+export default async function APIDocsPage() {
   return (
     <div className="min-h-screen flex flex-col bg-background">
       <Header />
       
       <main className="flex-1 pb-24 md:pb-0">
-        <div className="container mx-auto px-4 py-8 md:py-12">
+        <div className="page-frame">
           {/* Back link */}
           <Link
             href="/"
@@ -129,11 +345,11 @@ export default function APIDocsPage() {
             Volver al inicio
           </Link>
 
-          <div className="max-w-4xl mx-auto">
+          <div className="space-y-6">
             {/* Header */}
-            <div className="mb-12">
+            <div className="rounded-3xl border border-border bg-card p-6 md:p-8">
               <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-secondary text-sm font-medium text-foreground mb-4">
-                <Code className="w-4 h-4" />
+                <Code2 className="w-4 h-4" />
                 API REST v1
               </div>
               
@@ -141,72 +357,87 @@ export default function APIDocsPage() {
                 Documentación de la API
               </h1>
               <p className="text-lg text-muted-foreground">
-                Integra ProofChain en tu aplicación para registrar y verificar 
-                documentos de forma programática.
+                Integra OpenProof desde backend, scripts o servicios externos para registrar
+                hashes, consultar estados y enlazar viewers públicos con ejemplos listos para usar.
               </p>
             </div>
 
-            {/* Quick start */}
-            <Card className="mb-12">
+            <div className="grid gap-6 lg:grid-cols-3">
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <Server className="w-5 h-5" />
+                    Base URL
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <p className="rounded-2xl border border-border bg-secondary/50 px-4 py-4 font-mono text-sm text-foreground">
+                    https://tu-dominio-openproof.com/api/v1
+                  </p>
+                </CardContent>
+              </Card>
+
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <KeyRound className="w-5 h-5" />
+                    Autenticación
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <p className="text-sm leading-7 text-muted-foreground">
+                    Las rutas privadas aceptan API key bearer o sesión válida según el contexto.
+                  </p>
+                  <p className="rounded-2xl border border-border bg-secondary/50 px-4 py-4 font-mono text-xs text-foreground">
+                    Authorization: Bearer OPENPROOF_API_KEY
+                  </p>
+                </CardContent>
+              </Card>
+
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <Globe2 className="w-5 h-5" />
+                    Viewer público
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <p className="text-sm leading-7 text-muted-foreground">
+                    Usa la respuesta de verificación para enlazar el viewer oficial devuelto en
+                    <span className="font-mono text-foreground"> publicProofPath</span>.
+                  </p>
+                  <p className="rounded-2xl border border-border bg-secondary/50 px-4 py-4 font-mono text-xs text-foreground">
+                    /p/&lt;transactionId&gt;
+                  </p>
+                </CardContent>
+              </Card>
+            </div>
+
+            <Card>
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
-                  <Terminal className="w-5 h-5" />
+                  <Code2 className="w-5 h-5" />
                   Inicio rápido
                 </CardTitle>
                 <CardDescription>
-                  Verifica un documento con un simple request
+                  Ejemplos listos para verificar un hash y obtener la ruta pública del viewer.
                 </CardDescription>
               </CardHeader>
               <CardContent>
-                <div className="p-4 rounded-lg bg-foreground text-background font-mono text-sm overflow-x-auto">
-                  <pre>{`curl -X POST https://api.proofchain.io/api/v1/documents \
-  -H "Content-Type: application/json" \
-  -H "Authorization: Bearer YOUR_API_KEY" \
-  -d '{"file_hash": "a7ffc6f8bf1ed76651c14756a061d662...", "filename": "contract.pdf"}'
-
-curl -X POST https://api.proofchain.io/api/v1/documents/verify \
-  -H "Content-Type: application/json" \\
-  -d '{"file_hash": "a7ffc6f8bf1ed76651c14756a061d662..."}'`}</pre>
-                </div>
-              </CardContent>
-            </Card>
-
-            {/* Authentication */}
-            <Card className="mb-12">
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Lock className="w-5 h-5" />
-                  Autenticación
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <p className="text-muted-foreground">
-                  Todas las peticiones a la API requieren un token de autenticación. 
-                  Incluye tu API key en el header de cada request:
-                </p>
-                
-                <div className="p-4 rounded-lg bg-secondary/50 border border-border font-mono text-sm">
-                  <code>Authorization: Bearer YOUR_API_KEY</code>
-                </div>
-                
-                <p className="text-sm text-muted-foreground">
-                  Puedes generar y rotar tus API keys desde <Link href="/developers" className="text-foreground underline">Developers</Link> una vez autenticado.
-                </p>
-              </CardContent>
-            </Card>
-
-            {/* Base URL */}
-            <Card className="mb-12">
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Server className="w-5 h-5" />
-                  Base URL
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="p-4 rounded-lg bg-secondary/50 border border-border font-mono text-sm">
-                  <code>https://api.proofchain.io/v1</code>
-                </div>
+                <Tabs defaultValue={quickstartExamples[0].id} className="w-full gap-4">
+                  <TabsList className="mb-2 flex h-auto w-full flex-wrap justify-start gap-2 rounded-2xl bg-transparent p-0">
+                    {quickstartExamples.map((example) => (
+                      <TabsTrigger key={example.id} value={example.id} className="rounded-full border border-border bg-secondary/60 px-4 py-2 text-xs uppercase tracking-[0.16em] data-[state=active]:bg-foreground data-[state=active]:text-background">
+                        {example.label}
+                      </TabsTrigger>
+                    ))}
+                  </TabsList>
+                  {quickstartExamples.map((example) => (
+                    <TabsContent key={example.id} value={example.id}>
+                      <CodeBlock code={example.code} language={example.language} title={`Quickstart · ${example.label}`} />
+                    </TabsContent>
+                  ))}
+                </Tabs>
               </CardContent>
             </Card>
 
@@ -224,6 +455,7 @@ curl -X POST https://api.proofchain.io/api/v1/documents/verify \
                       >
                         {endpoint.method}
                       </Badge>
+                      <Badge variant="outline">{endpoint.audience}</Badge>
                       <code className="font-mono text-sm text-foreground">
                         {endpoint.path}
                       </code>
@@ -233,35 +465,39 @@ curl -X POST https://api.proofchain.io/api/v1/documents/verify \
                     </CardDescription>
                   </CardHeader>
                   <CardContent>
-                    <Tabs defaultValue={endpoint.request ? 'request' : 'response'} className="w-full">
-                      <TabsList className="mb-4">
-                        {endpoint.request && (
-                          <TabsTrigger value="request">Request</TabsTrigger>
-                        )}
-                        <TabsTrigger value="response">Response</TabsTrigger>
-                      </TabsList>
-                      
-                      {endpoint.request && (
-                        <TabsContent value="request">
-                          <div className="p-4 rounded-lg bg-foreground text-background font-mono text-xs overflow-x-auto">
-                            <pre>{endpoint.request.body}</pre>
+                    <div className="space-y-6">
+                      <Tabs defaultValue={endpoint.requestExamples[0].id} className="w-full gap-4">
+                        <TabsList className="mb-2 flex h-auto w-full flex-wrap justify-start gap-2 rounded-2xl bg-transparent p-0">
+                          {endpoint.requestExamples.map((example) => (
+                            <TabsTrigger key={example.id} value={example.id} className="rounded-full border border-border bg-secondary/60 px-4 py-2 text-xs uppercase tracking-[0.16em] data-[state=active]:bg-foreground data-[state=active]:text-background">
+                              {example.label}
+                            </TabsTrigger>
+                          ))}
+                        </TabsList>
+                        {endpoint.requestExamples.map((example) => (
+                          <TabsContent key={example.id} value={example.id}>
+                            <CodeBlock code={example.code} language={example.language} title={`Request · ${example.label}`} />
+                          </TabsContent>
+                        ))}
+                      </Tabs>
+
+                      <CodeBlock code={endpoint.response} language="json" title="Response" />
+
+                      <div className="grid gap-4 md:grid-cols-2">
+                        {endpoint.notes.map((note) => (
+                          <div key={note} className="rounded-2xl border border-border bg-secondary/35 px-4 py-4 text-sm leading-7 text-muted-foreground">
+                            {note}
                           </div>
-                        </TabsContent>
-                      )}
-                      
-                      <TabsContent value="response">
-                        <div className="p-4 rounded-lg bg-foreground text-background font-mono text-xs overflow-x-auto">
-                          <pre>{endpoint.response}</pre>
-                        </div>
-                      </TabsContent>
-                    </Tabs>
+                        ))}
+                      </div>
+                    </div>
                   </CardContent>
                 </Card>
               ))}
             </div>
 
             {/* Rate limits */}
-            <Card className="mt-12">
+            <Card>
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                   <Zap className="w-5 h-5" />
@@ -274,7 +510,7 @@ curl -X POST https://api.proofchain.io/api/v1/documents/verify \
                     La API tiene los siguientes límites de uso:
                   </p>
                   
-                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                  <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
                     <div className="p-4 rounded-lg bg-secondary/50 border border-border text-center">
                       <p className="text-2xl font-bold text-foreground">100</p>
                       <p className="text-sm text-muted-foreground">requests/minuto</p>
@@ -293,17 +529,19 @@ curl -X POST https://api.proofchain.io/api/v1/documents/verify \
                     Los headers de respuesta incluyen información sobre tu uso actual:
                   </p>
                   
-                  <div className="p-4 rounded-lg bg-secondary/50 border border-border font-mono text-xs">
-                    <pre>{`X-RateLimit-Limit: 100
+                  <CodeBlock
+                    code={`X-RateLimit-Limit: 100
 X-RateLimit-Remaining: 95
-X-RateLimit-Reset: 1705312260`}</pre>
-                  </div>
+X-RateLimit-Reset: 1705312260`}
+                    language="bash"
+                    title="Headers de ejemplo"
+                  />
                 </div>
               </CardContent>
             </Card>
 
             {/* Errors */}
-            <Card className="mt-8">
+            <Card>
               <CardHeader>
                 <CardTitle>Códigos de error</CardTitle>
               </CardHeader>
@@ -330,13 +568,18 @@ X-RateLimit-Reset: 1705312260`}</pre>
             </Card>
 
             {/* CTA */}
-            <div className="mt-12 text-center">
+            <div className="rounded-3xl border border-border bg-card p-6 text-center md:p-8">
               <p className="text-muted-foreground mb-4">
-                ¿Listo para integrar ProofChain?
+                ¿Listo para integrar OpenProof?
               </p>
-              <Button asChild>
-                <Link href="/developers">Obtener API Key</Link>
-              </Button>
+              <div className="flex flex-col items-center justify-center gap-4 sm:flex-row">
+                <Button asChild>
+                  <Link href="/developers">Obtener API key</Link>
+                </Button>
+                <Button asChild variant="outline">
+                  <Link href="/pricing">Revisar créditos</Link>
+                </Button>
+              </div>
             </div>
           </div>
         </div>

@@ -83,12 +83,14 @@ export default function VerifyPage() {
     setError(null)
   }, [])
 
+  const publicProofPath = result?.publicProofPath || (result?.transactionId ? `/p/${result.transactionId}` : null)
+
   return (
     <div className="min-h-screen flex flex-col bg-background">
       <Header />
       
       <main className="flex-1 pb-24 md:pb-0">
-        <div className="container mx-auto px-4 py-8 md:py-12">
+        <div className="page-frame">
           {/* Back link */}
           <Link
             href="/"
@@ -100,7 +102,7 @@ export default function VerifyPage() {
 
           <div className="max-w-2xl mx-auto">
             {/* Header */}
-            <div className="text-center mb-8">
+            <div className="text-center mb-6">
               <h1 className="text-2xl md:text-3xl font-bold text-foreground">
                 Verificar documento
               </h1>
@@ -113,8 +115,8 @@ export default function VerifyPage() {
             <Alert className="mb-6 bg-secondary/50 border-border">
               <Info className="h-4 w-4" />
               <AlertDescription className="text-sm">
-                La verificación es pública y no requiere cuenta. 
-                Tu archivo no se sube a ningún servidor.
+                La verificación es pública y no requiere cuenta. Si existe una constancia anclada,
+                el sistema te entregará el enlace público para compartir la evidencia.
               </AlertDescription>
             </Alert>
 
@@ -222,6 +224,16 @@ export default function VerifyPage() {
                       Este documento fue registrado en la blockchain de Bitcoin 
                       y su existencia está verificada criptográficamente.
                     </p>
+
+                    {publicProofPath ? (
+                      <Alert className="mb-6 border-accent/20 bg-accent/5 text-left">
+                        <Info className="h-4 w-4" />
+                        <AlertDescription className="text-sm text-foreground">
+                          Comparte la constancia pública para que terceros revisen bloque,
+                          confirmaciones y datos del registro sin exponer tu panel privado.
+                        </AlertDescription>
+                      </Alert>
+                    ) : null}
                     
                     <HashPreview hash={hash} variant="large" label="Hash verificado" />
                   </CardContent>
@@ -239,11 +251,13 @@ export default function VerifyPage() {
                   <Button variant="outline" onClick={handleReset} className="sm:flex-1">
                     Nueva verificación
                   </Button>
-                  <Button asChild className="sm:flex-1">
-                    <Link href={`/p/${result.transactionId}`}>
-                      Ver página pública
-                    </Link>
-                  </Button>
+                  {publicProofPath ? (
+                    <Button asChild className="sm:flex-1">
+                      <Link href={publicProofPath}>
+                        Abrir constancia pública
+                      </Link>
+                    </Button>
+                  ) : null}
                 </div>
               </div>
             )}

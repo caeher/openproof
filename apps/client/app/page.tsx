@@ -142,7 +142,7 @@ export default function LandingPage() {
           <div className="container mx-auto px-4">
             <div className="text-center mb-12">
               <h2 className="text-2xl md:text-3xl font-bold text-foreground">
-                Por qué usar ProofChain
+                Por qué usar OpenProof
               </h2>
               <p className="mt-3 text-muted-foreground max-w-xl mx-auto">
                 La forma más segura y transparente de certificar la existencia de tus documentos.
@@ -301,7 +301,7 @@ export default function LandingPage() {
               </div>
               
               <h2 className="text-2xl md:text-3xl font-bold text-foreground">
-                Integra ProofChain en tu aplicación
+                Integra OpenProof en tu aplicación
               </h2>
               <p className="mt-3 text-muted-foreground max-w-xl mx-auto">
                 Nuestra API REST permite registrar y verificar documentos 

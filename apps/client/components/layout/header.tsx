@@ -6,6 +6,7 @@ import { Menu, Shield, Sun, Moon, LogOut, LayoutDashboard, MailCheck } from 'luc
 import { useState, useEffect } from 'react'
 import { useTheme } from 'next-themes'
 import { useAuth } from '@/components/auth/auth-provider'
+import { BrandLogo } from '@/components/layout/brand-logo'
 import { buildVerifyEmailPath } from '@/lib/auth-routing'
 import { cn } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
@@ -14,7 +15,6 @@ import { Sheet, SheetContent, SheetTrigger, SheetTitle } from '@/components/ui/s
 const publicNavLinks = [
   { href: '/', label: 'Inicio' },
   { href: '/pricing', label: 'Pricing' },
-  { href: '/verify', label: 'Verificar' },
   { href: '/faq', label: 'FAQ' },
   { href: '/api-docs', label: 'API' },
 ]
@@ -72,16 +72,10 @@ export function Header() {
 
   return (
     <header className="sticky top-0 z-40 w-full bg-background/95 backdrop-blur-lg border-b border-border">
-      <div className="container max-w-6xl mx-auto px-4">
+      <div className="container">
         <div className="flex items-center justify-between h-16">
-          {/* Logo */}
-          <Link href="/" className="flex items-center gap-2">
-            <div className="p-1.5 rounded-md bg-foreground">
-              <Shield className="w-5 h-5 text-background" />
-            </div>
-            <span className="font-semibold text-lg text-foreground">
-              ProofChain
-            </span>
+          <Link href="/" aria-label="OpenProof" className="shrink-0">
+            <BrandLogo markClassName="size-9" labelClassName="text-base md:text-lg" />
           </Link>
 
           {/* Desktop Navigation */}

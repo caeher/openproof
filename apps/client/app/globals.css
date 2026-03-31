@@ -142,3 +142,21 @@
     @apply bg-background text-foreground;
   }
 }
+
+@layer utilities {
+  .container {
+    @apply mx-auto w-full max-w-6xl px-4;
+  }
+
+  .page-frame {
+    @apply container py-6 md:py-8;
+  }
+
+  .stack-6 {
+    @apply flex flex-col gap-6;
+  }
+
+  .stack-4 {
+    @apply flex flex-col gap-4;
+  }
+}
