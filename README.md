@@ -71,7 +71,7 @@ CLIENT_PORT=3010 API_PORT=3011 ADMIN_PORT=3012 docker compose up --build
 Notes:
 
 - The client container listens on port `3000`.
-- The admin container also listens on port `3000`; Docker publishes it externally on `ADMIN_PORT`.
+- The admin container listens on port `3002`.
 - The API container listens on port `3001`.
 - Bitcoin Core is not part of this compose stack. The API connects to an external RPC endpoint.
 
@@ -172,4 +172,4 @@ ADMIN_PORT=3012 docker compose up --build
 
 ### Admin Not Reachable Through Docker
 
-The admin container listens internally on port `3000`. The compose file must publish `ADMIN_PORT:3000`, not `ADMIN_PORT:3002`.
+The admin container listens internally on port `3002`. The compose file must publish `ADMIN_PORT:3002`.
