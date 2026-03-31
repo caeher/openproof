@@ -73,7 +73,7 @@ export function AuthSplitLayout({
             >
               {/* Centramos explícitamente el icono inside the mark to ensure correct proportions */}
               <BrandLogo
-                markClassName="flex items-center justify-center w-10 h-10 rounded-xl"
+                markClassName="flex text-2xl items-center justify-center w-10 h-10 rounded-xl"
                 labelClassName="text-2xl text-foreground"
               />
             </Link>

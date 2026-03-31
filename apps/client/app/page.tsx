@@ -1,6 +1,7 @@
 'use client'
 
 import Link from 'next/link'
+import { useEffect, useState } from 'react'
 import {
   ArrowRight,
   Blocks,
@@ -124,17 +125,33 @@ const integrationHighlights = [
 
 export default function LandingPage() {
   const { authState, isAuthenticated } = useAuth()
+  const [isScrolled, setIsScrolled] = useState(false)
   const registerHref = !isAuthenticated
     ? '/login?next=%2Fregister'
     : authState === 'authenticated_unverified'
       ? buildVerifyEmailPath('/register')
       : '/register'
 
+  useEffect(() => {
+    const handleScroll = () => {
+      setIsScrolled(window.scrollY > 0)
+    }
+    
+    // Check initial scroll position
+    handleScroll()
+    
+    window.addEventListener('scroll', handleScroll)
+    return () => window.removeEventListener('scroll', handleScroll)
+  }, [])
+
   return (
-    <SiteShell mainClassName="overflow-hidden">
-      <section className="relative overflow-hidden border-b border-border/70">
+    <SiteShell 
+      mainClassName=""
+      navbarTransparent={!isScrolled}
+    >
+      <section className="relative overflow-hidden border-b border-border/70 -mt-16 pt-24">
         {/* Background Elements */}
-        <div className="absolute inset-0 z-0 pointer-events-none bg-background">
+        <div className="absolute inset-0 -top-16 z-0 pointer-events-none bg-background">
           {/* Dynamic Grid */}
           <div className="absolute inset-0 bg-[linear-gradient(to_right,hsl(var(--foreground))_1px,transparent_1px),linear-gradient(to_bottom,hsl(var(--foreground))_1px,transparent_1px)] bg-[size:3rem_3rem] [mask-image:radial-gradient(ellipse_60%_70%_at_50%_0%,#000_15%,transparent_100%)] opacity-[0.03]" />
           
@@ -205,71 +222,6 @@ export default function LandingPage() {
             />
           </div>
 
-          <div className="mt-16 grid gap-6 md:grid-cols-12 lg:gap-8">
-            {/* Main Proof Process Container */}
-            <Card className="flex flex-col overflow-hidden border-border/70 bg-card/88 shadow-[0_24px_90px_rgba(15,23,42,0.08)] dark:shadow-[0_30px_90px_rgba(2,6,23,0.35)] md:col-span-12 lg:col-span-7 xl:col-span-8">
-              <div className="border-b border-border/70 bg-secondary/30 px-6 py-5 md:px-8">
-                <h3 className="text-lg font-semibold text-foreground">Flujo de certificación</h3>
-                <p className="mt-1 text-sm text-muted-foreground">Proceso criptográfico transparente y anclado en Bitcoin.</p>
-              </div>
-              <CardContent className="flex flex-1 flex-col justify-center p-6 md:p-8">
-                <ProofProcess currentStep={3} />
-              </CardContent>
-            </Card>
-
-            {/* Metadata & Specs column */}
-            <div className="flex flex-col gap-6 md:col-span-12 lg:col-span-5 xl:col-span-4">
-              <Card className="border-border/70 bg-card/88 shadow-sm">
-                <CardContent className="p-6">
-                  <div className="mb-5 flex items-center justify-between rounded-2xl border border-border/70 bg-secondary/45 px-4 py-3">
-                    <div>
-                      <p className="text-xs uppercase tracking-[0.18em] text-muted-foreground">Modo de registro</p>
-                      <p className="mt-1 text-sm font-medium text-foreground">Hash-only o almacenamiento</p>
-                    </div>
-                    <CheckCircle2 className="h-5 w-5 text-primary" />
-                  </div>
-                  
-                  <div className="space-y-4">
-                    <div className="flex items-start gap-4">
-                      <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-primary/10 text-primary">
-                        <Fingerprint className="h-5 w-5" />
-                      </div>
-                      <div>
-                        <p className="text-sm font-medium text-foreground">Privacidad por diseño</p>
-                        <p className="mt-1 text-xs leading-5 text-muted-foreground">Calcula hashes localmente en el navegador. El documento nunca sale de tu equipo si no quieres.</p>
-                      </div>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-
-              <Card className="flex-1 border-primary/15 bg-primary/6 shadow-sm">
-                <CardContent className="flex h-full flex-col justify-center space-y-5 p-6">
-                  <p className="text-xs font-medium uppercase tracking-[0.2em] text-primary">Lo que genera la plataforma</p>
-                  <ul className="space-y-4 text-sm leading-6 text-foreground/80">
-                    <li className="flex items-start gap-3">
-                      <div className="mt-1 flex h-4 w-4 shrink-0 items-center justify-center rounded-full bg-primary/20">
-                        <ArrowRight className="h-2.5 w-2.5 text-primary" />
-                      </div>
-                      <span>Hash inmutable interactivo y metadatos asociados.</span>
-                    </li>
-                    <li className="flex items-start gap-3">
-                      <div className="mt-1 flex h-4 w-4 shrink-0 items-center justify-center rounded-full bg-primary/20">
-                        <ArrowRight className="h-2.5 w-2.5 text-primary" />
-                      </div>
-                      <span>Transacción Bitcoin financiada por créditos prepago.</span>
-                    </li>
-                    <li className="flex items-start gap-3">
-                      <div className="mt-1 flex h-4 w-4 shrink-0 items-center justify-center rounded-full bg-primary/20">
-                        <ArrowRight className="h-2.5 w-2.5 text-primary" />
-                      </div>
-                      <span>Constancia de verificación pública para terceros.</span>
-                    </li>
-                  </ul>
-                </CardContent>
-              </Card>
-            </div>
-          </div>
         </div>
       </section>
 

@@ -34,7 +34,11 @@ function getNavLinks(authState: ReturnType<typeof useAuth>['authState']) {
   return publicNavLinks
 }
 
-export function Header() {
+interface HeaderProps {
+  transparent?: boolean
+}
+
+export function Header({ transparent }: HeaderProps) {
   const pathname = usePathname()
   const [open, setOpen] = useState(false)
   const { resolvedTheme, setTheme } = useTheme()
@@ -49,7 +53,14 @@ export function Header() {
   const isDark = resolvedTheme === 'dark'
 
   return (
-    <header className="sticky top-0 z-40 w-full bg-background/90 backdrop-blur-md border-b border-border">
+    <header
+      className={cn(
+        'sticky top-0 z-40 w-full border-b transition-colors duration-200',
+        transparent
+          ? 'bg-transparent border-transparent'
+          : 'bg-background/90 backdrop-blur-md border-border'
+      )}
+    >
       <div className="container">
         <div className="flex items-center justify-between h-16">
           <Link href="/" aria-label="OpenProof" className="shrink-0">
