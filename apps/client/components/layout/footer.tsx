@@ -24,7 +24,7 @@ const footerSections = {
 export function Footer() {
   return (
     <footer className="border-t border-border bg-card/50 pb-20 md:pb-0">
-      <div className="container py-14">
+      <div className="container pt-14 pb-6">
         <div className="grid grid-cols-2 gap-8 md:grid-cols-4">
           {/* Brand */}
           <div className="col-span-2 md:col-span-1">
@@ -113,6 +113,16 @@ export function Footer() {
         <div className="mt-14 pt-8 border-t border-border">
           <p className="text-sm text-muted-foreground text-center">
             © {new Date().getFullYear()} OpenProof. Todos los derechos reservados.
+            {/* Created By Caeher — subtle bottom-right signature */}
+            <br />
+            <a
+              href="https://caeher.com"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-[10px] font-medium text-muted-foreground/60 hover:text-muted-foreground"
+            >
+              Created by Caeher
+            </a>
           </p>
         </div>
       </div>

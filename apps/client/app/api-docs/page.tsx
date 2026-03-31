@@ -494,6 +494,16 @@ export default async function APIDocsPage({
             Volver al inicio
           </Link>
 
+          {/* Header */}
+          <div className="text-center mb-12">
+            <h1 className="text-2xl md:text-3xl font-bold text-foreground">
+                Documentación de la API
+            </h1>
+            <p className="mt-2 text-muted-foreground">
+              Fácil integración
+            </p>
+          </div>
+
           <div className="space-y-6">
             {/* Header */}
             <div className="rounded-3xl border border-border bg-card p-6 md:p-8">
@@ -502,9 +512,6 @@ export default async function APIDocsPage({
                 API REST v1
               </div>
               
-              <h1 className="text-2xl md:text-3xl font-bold text-foreground mb-4">
-                Documentación de la API
-              </h1>
               <p className="text-lg text-muted-foreground">
                 Integra OpenProof desde backend, scripts o servicios externos para registrar
                 hashes, consultar estados y enlazar viewers públicos con ejemplos listos para usar.
@@ -609,7 +616,7 @@ export default async function APIDocsPage({
               <h2 className="text-xl font-bold text-foreground">Endpoints</h2>
               
               {endpoints.map((endpoint) => (
-                <Card key={endpoint.path}>
+                <Card key={`${endpoint.method}:${endpoint.path}`}>
                   <CardHeader>
                     <div className="flex flex-wrap items-center gap-3">
                       <Badge 

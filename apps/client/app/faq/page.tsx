@@ -86,7 +86,7 @@ export default function FAQPage() {
       <Header />
       
       <main className="flex-1 pb-24 md:pb-0">
-        <div className="container mx-auto px-4 py-8 md:py-12">
+        <div className="container max-w-6xl mx-auto px-4 py-8 md:py-12">
           {/* Back link */}
           <Link
             href="/"
@@ -96,7 +96,7 @@ export default function FAQPage() {
             Volver al inicio
           </Link>
 
-          <div className="max-w-3xl mx-auto">
+          <div>
             {/* Header */}
             <div className="text-center mb-12">
               <h1 className="text-2xl md:text-3xl font-bold text-foreground">

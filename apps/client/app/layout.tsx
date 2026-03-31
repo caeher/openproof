@@ -63,15 +63,6 @@ export default function RootLayout({
             disableTransitionOnChange
           >
             {children}
-            {/* Created By Caeher — subtle bottom-right signature */}
-            <a
-              href="https://caeher.com"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="fixed bottom-3 right-3 z-[99] px-2.5 py-1 rounded-full text-[10px] font-medium text-muted-foreground/60 hover:text-muted-foreground bg-card/80 border border-border/50 transition-colors duration-300"
-            >
-              Created by Caeher
-            </a>
           </ThemeProvider>
         </AuthProvider>
         <Analytics />

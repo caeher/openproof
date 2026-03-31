@@ -88,7 +88,6 @@ export default function PricingPage() {
             ) : (
               packages.map((creditPackage) => (
                 <Card key={creditPackage.id} className="relative overflow-hidden">
-                  <div className="absolute inset-x-0 top-0 h-1 bg-accent" />
                   <CardHeader>
                     <CardTitle>{creditPackage.name}</CardTitle>
                     <CardDescription>{creditPackage.description}</CardDescription>

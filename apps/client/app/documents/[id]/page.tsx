@@ -89,7 +89,7 @@ export default function DocumentDetailPage({
       <Header />
       
       <main className="flex-1 pb-24 md:pb-0">
-        <div className="container mx-auto px-4 py-8 md:py-12">
+        <div className="container max-w-6xl mx-auto px-4 py-8 md:py-12">
           {/* Back link */}
           <Link
             href="/history"
@@ -101,7 +101,7 @@ export default function DocumentDetailPage({
 
           <AuthGuard requireVerified>
             {isLoading ? (
-              <div className="max-w-3xl mx-auto space-y-6">
+              <div className="space-y-6">
                 <Skeleton className="h-8 w-1/3" />
                 <Skeleton className="h-4 w-1/4" />
                 <Card>

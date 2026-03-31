@@ -148,7 +148,7 @@ export default function BillingPage() {
       <Header />
 
       <main className="flex-1 pb-24 md:pb-0">
-        <div className="container py-8 md:py-12">
+        <div className="container max-w-6xl mx-auto py-8 md:py-12">
           <Link
             href="/dashboard"
             className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors mb-6"

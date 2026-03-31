@@ -2,7 +2,7 @@
 
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import { Home, Upload, FolderOpen, User, Wallet, MailCheck, Shield, CircleHelp } from 'lucide-react'
+import { Code2, Home, Upload, FolderOpen, Wallet, MailCheck, Shield, CircleHelp } from 'lucide-react'
 
 import { useAuth } from '@/components/auth/auth-provider'
 import { cn } from '@/lib/utils'
@@ -21,7 +21,6 @@ const verifiedNavItems = [
 
 const authNavItems = [
   { href: '/dashboard', label: 'Dashboard', icon: Home },
-  { href: '/account', label: 'Cuenta', icon: User },
 ]
 
 function getNavItems(authState: ReturnType<typeof useAuth>['authState']) {
@@ -41,15 +40,15 @@ function getNavItems(authState: ReturnType<typeof useAuth>['authState']) {
       { href: '/register', label: 'Registrar', icon: Upload },
       { href: '/history', label: 'Historial', icon: FolderOpen },
       { href: '/billing', label: 'Billing', icon: Wallet },
-      { href: '/account', label: 'Cuenta', icon: User },
+      { href: '/developers', label: 'Dev', icon: Code2 },
     ]
   }
 
   if (authState === 'authenticated_unverified') {
     return [
       { href: '/dashboard', label: 'Dashboard', icon: Home },
-      { href: '/account', label: 'Cuenta', icon: User },
       { href: '/verify-email', label: 'Verificar', icon: MailCheck },
+      { href: '/faq', label: 'Ayuda', icon: CircleHelp },
     ]
   }
 

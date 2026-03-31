@@ -38,7 +38,7 @@ function formatTimestamp(value?: string) {
 export default function DevelopersPage() {
   const { isLoading: isAuthLoading, user } = useAuth()
   const [apiKeys, setApiKeys] = useState<DeveloperApiKey[]>([])
-  const [name, setName] = useState('Produccion')
+  const [name, setName] = useState('')
   const [generatedKey, setGeneratedKey] = useState<CreateApiKeyResponse | null>(null)
   const [error, setError] = useState<string | null>(null)
   const [isLoading, setIsLoading] = useState(true)
@@ -167,7 +167,7 @@ export default function DevelopersPage() {
       <Header />
 
       <main className="flex-1 pb-24 md:pb-0">
-        <div className="container mx-auto px-4 py-8 md:py-12">
+        <div className="container max-w-6xl mx-auto px-4 py-8 md:py-12">
           <Link
             href="/dashboard"
             className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors mb-6"
@@ -176,7 +176,7 @@ export default function DevelopersPage() {
             Volver a la cuenta
           </Link>
 
-          <div className="max-w-4xl mx-auto">
+          <div>
             <AuthGuard requireVerified>
               <div className="mb-8">
                 <div className="inline-flex items-center gap-2 rounded-full bg-secondary px-3 py-1.5 text-sm font-medium text-foreground">

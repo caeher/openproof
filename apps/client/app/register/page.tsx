@@ -105,7 +105,7 @@ export default function RegisterPage() {
       <Header />
       
       <main className="flex-1 pb-24 md:pb-0">
-        <div className="container mx-auto px-4 py-8 md:py-12">
+        <div className="container max-w-6xl mx-auto px-4 py-8 md:py-12">
           {/* Back link */}
           <Link
             href="/"
@@ -115,7 +115,7 @@ export default function RegisterPage() {
             Volver al inicio
           </Link>
 
-          <div className="max-w-2xl mx-auto">
+          <div>
             <AuthGuard requireVerified>
             {/* Header */}
             <div className="text-center mb-8">
